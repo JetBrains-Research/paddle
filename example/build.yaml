@@ -1,0 +1,19 @@
+descriptor:
+  group: ai.paddle
+  version: 0.1.0
+
+roots:
+  sources:
+    - src/main
+  tests:
+    - src/test
+
+tasks:
+  linter:
+    pylint:
+      enabled: true
+    mypy:
+      enabled: true
+  tests:
+    pytest:
+      enabled: true

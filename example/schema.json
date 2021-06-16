@@ -1,0 +1,81 @@
+{
+  "title": "Paddle.build",
+  "description": "Schema for configuration of Paddle build tool",
+  "type": "object",
+  "required": [
+    "descriptor"
+  ],
+  "properties": {
+    "descriptor": {
+      "type": "object",
+      "required": [
+        "group",
+        "version"
+      ],
+      "properties": {
+        "group": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        }
+      }
+    },
+    "roots": {
+      "type": "object",
+      "properties": {
+        "sources": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "resources": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "tasks": {
+      "type": "object",
+      "properties": {
+        "linter": {
+          "type": "object",
+          "properties": {
+            "mypy": {
+              "type": "object",
+              "properties": {
+                "enabled": {
+                  "type": "boolean"
+                }
+              }
+            },
+            "pylint": {
+              "type": "object",
+              "properties": {
+                "enabled": {
+                  "type": "boolean"
+                }
+              }
+            }
+          }
+        },
+        "tests": {
+          "type": "object",
+          "properties": {
+            "pytest": {
+              "type": "object",
+              "properties": {
+                "enabled": {
+                  "type": "boolean"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
