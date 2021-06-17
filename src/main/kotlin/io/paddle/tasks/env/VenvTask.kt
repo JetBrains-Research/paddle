@@ -17,15 +17,18 @@ class VenvTask(private val config: PaddleSchema) : Task() {
     override val outputs: List<Hashable> = listOf(venv.hashable())
 
     override fun act() {
-        Terminal.execute(
+        var code = Terminal.execute(
             "python3",
             listOf("-m", "venv", venv.absolutePath),
             File(".")
         )
-        Terminal.execute(
+        if (code != 0) throw ActException("VirtualEnv creation has failed")
+
+        code = Terminal.execute(
             "${venv.absolutePath}/bin/pip",
             listOf("install", "-r", File(config.environment.requirements).absolutePath),
             File(".")
         )
+        if (code != 0) throw ActException("Requirements.txt installation has failed")
     }
 }

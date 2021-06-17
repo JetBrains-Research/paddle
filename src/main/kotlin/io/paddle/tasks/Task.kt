@@ -18,7 +18,7 @@ abstract class Task {
         get() = inputs.isNotEmpty()
 
     private fun isUpToDate(): Boolean {
-        return inputs.isNotEmpty() && IncrementalCache.isUpToDate(id, inputs.hashable(), outputs.hashable()) && dependencies.all { it.isUpToDate() }
+        return isIncremental && IncrementalCache.isUpToDate(id, inputs.hashable(), outputs.hashable()) && dependencies.all { it.isUpToDate() }
     }
 
     fun run() {
@@ -33,10 +33,21 @@ abstract class Task {
 
         TerminalUI.echoln("> Task :${id}: ${TerminalUI.colored("EXECUTE", TerminalUI.Color.YELLOW)}")
 
-        act()
+
+        try {
+            act()
+        } catch (e: ActException) {
+            TerminalUI.echoln("> Task :${id}: ${TerminalUI.colored("FAILED", TerminalUI.Color.RED)}")
+            return
+        }
+
+        TerminalUI.echoln("> Task :${id}: ${TerminalUI.colored("DONE", TerminalUI.Color.GREEN)}")
+
 
         if (isIncremental) {
             IncrementalCache.update(id, inputs.hashable(), outputs.hashable())
         }
     }
+
+    class ActException(val reason: String) : Exception(reason)
 }

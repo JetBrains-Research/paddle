@@ -14,10 +14,11 @@ class ExecTask(val execution: PaddleSchema.Tasks.Execution, val config: PaddleSc
     override val dependencies: List<Task> = listOf(VenvTask(config))
 
     override fun act() {
-        Terminal.execute(
+        val code = Terminal.execute(
             "${venv.absolutePath}/bin/python",
             listOf(execution.entrypoint),
             File(".")
         )
+        if (code != 0) throw ActException("Script has returned non-zero exit code: ${code}")
     }
 }

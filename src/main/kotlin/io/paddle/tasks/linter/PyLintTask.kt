@@ -15,8 +15,11 @@ class PyLintTask(private val config: PaddleSchema) : Task() {
     override fun act() {
         val roots = config.roots.sources.map { File(it) }
         val files = roots.flatMap { it.walkTopDown().asSequence().filter { file -> file.endsWith(".py") } }
+        var anyFailed = false
         for (file in files) {
-            Terminal.execute("pylint", listOf(file.absolutePath), File("."), redirectStdout = true)
+            val code = Terminal.execute("pylint", listOf(file.absolutePath), File("."), redirectStdout = true)
+            anyFailed = anyFailed || code != 0
         }
+        if (anyFailed) throw ActException("PyLint linting has failed")
     }
 }

@@ -21,8 +21,11 @@ class PyTestTask(private val config: PaddleSchema) : Task() {
 
     override fun act() {
         val roots = config.roots.tests.map { File(it) }
+        var anyFailed = false
         for (file in roots) {
-            Terminal.execute("pytest", listOf(file.absolutePath), File("."), redirectStdout = true)
+            val code = Terminal.execute("pytest", listOf(file.absolutePath), File("."), redirectStdout = true)
+            anyFailed = anyFailed || code != 0
         }
+        if (anyFailed) throw ActException("PyTest tests has failed")
     }
 }

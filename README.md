@@ -1,2 +1,2 @@
 # paddle
-Young and dynamic build system for Python
+Young and dynamic build system for Python.
