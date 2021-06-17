@@ -8,6 +8,10 @@ roots:
   tests:
     - src/test
 
+environment:
+  virtualenv: venv
+  requirements: requirements.txt
+
 tasks:
   linter:
     pylint:
@@ -17,3 +21,7 @@ tasks:
   tests:
     pytest:
       enabled: true
+
+  execution:
+    - entrypoint: src/main/main.py
+      id: main
