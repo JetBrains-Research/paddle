@@ -3,33 +3,26 @@ package io.paddle
 import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.core.subcommands
 import com.github.ajalt.clikt.parameters.arguments.argument
-import io.paddle.schema.PaddleSchema
+import io.paddle.project.Project
+import io.paddle.project.config.Configuration
 import io.paddle.tasks.TasksRegistrar
+import io.paddle.terminal.TerminalUI
 import java.io.File
 
-class Paddle : CliktCommand() {
-    override fun run() {
-        echo("Starting Paddle...")
-    }
-}
-
-class Task : CliktCommand(help = "Execute specific task", name = "task") {
-    val id by argument("id", "Choose the id of task")
+class Paddle(private val project: Project) : CliktCommand() {
+    val task by argument("task", "Use name of task")
 
     override fun run() {
-        val task = TasksRegistrar.get(id)
-        if (task == null) {
-            echo("Unknown task identifier")
-        } else {
-            echo("Executing task $id")
-            task.run()
-        }
+        project.execute(task)
     }
 }
-
 fun main(args: Array<String>) {
-    val config = PaddleSchema.from(File("paddle.yaml"))
-    TasksRegistrar.default(config)
+    val file = File("paddle.yaml")
+    if (!file.exists()) {
+        TerminalUI.echoln("Can't find paddle.yaml in root")
+        return
+    }
 
-    Paddle().subcommands(Task()).main(args)
+    val project = Project.load(file)
+    Paddle(project).main(args)
 }

@@ -1,18 +1,18 @@
-package io.paddle.schema
+package io.paddle.project.config
 
 import com.charleskorn.kaml.Yaml
 import kotlinx.serialization.Serializable
 import java.io.File
 
 @Serializable
-class PaddleSchema(
+class Configuration(
     val descriptor: Descriptor,
     val environment: Environment = Environment(),
     val roots: Roots = Roots(),
     val tasks: Tasks = Tasks()
 ) {
     companion object {
-        fun from(file: File): PaddleSchema {
+        fun from(file: File): Configuration {
             return Yaml.default.decodeFromString(serializer(), file.readText())
         }
     }
@@ -42,13 +42,22 @@ class PaddleSchema(
         val execution: List<Execution> = emptyList()
     ) {
         @Serializable
-        data class Linter(val pylint: Task = Task(enabled = true), val mypy: Task = Task(enabled = true))
+        data class Linter(
+            val pylint: PyLintTask = PyLintTask(),
+            val mypy: MyPyTask = MyPyTask()
+        ) {
+            @Serializable
+            class PyLintTask(val enabled: Boolean = true, val version: String = "2.8.3")
+
+            @Serializable
+            class MyPyTask(val enabled: Boolean = true, val version: String = "0.902")
+        }
 
         @Serializable
-        data class Tests(val pytest: Task = Task(enabled = true))
-
-        @Serializable
-        data class Task(val enabled: Boolean)
+        data class Tests(val pytest: PyTestTask = PyTestTask()) {
+            @Serializable
+            class PyTestTask(val enabled: Boolean = true, val version: String = "6.2.4")
+        }
 
         @Serializable
         data class Execution(val entrypoint: String, val id: String)

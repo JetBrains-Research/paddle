@@ -1,34 +1,23 @@
 package io.paddle.tasks.tests
 
-import io.paddle.schema.PaddleSchema
+import io.paddle.project.Project
 import io.paddle.tasks.Task
-import io.paddle.tasks.env.VenvTask
-import io.paddle.terminal.Terminal
 import io.paddle.utils.Hashable
 import io.paddle.utils.hashable
-import java.io.File
 
-class PyTestTask(private val config: PaddleSchema) : Task() {
-    private val requirements = File(config.environment.requirements)
-    private val venv = File(config.environment.virtualenv)
-
+class PyTestTask(project: Project) : Task(project) {
     override val id: String = "test"
 
     override val inputs: List<Hashable> =
-        config.roots.sources.map { File(it).hashable() } + listOf(requirements.hashable(), venv.hashable())
+        project.roots.sources.map { it.hashable() } + project.roots.tests.map { it.hashable() } +
+            listOf(project.requirements, project.environment.venv.hashable())
 
-    override val dependencies: List<Task> = listOf(VenvTask(config))
+    override val dependencies: List<Task> = listOf(project.tasks.getOrFail("venv"))
 
     override fun act() {
-        val roots = config.roots.tests.map { File(it) }
         var anyFailed = false
-        for (file in roots) {
-
-            val code = Terminal.execute(
-                "${venv.absolutePath}/bin/python",
-                listOf("-m", "pytest", file.absolutePath),
-                File(".")
-            )
+        for (file in project.roots.tests) {
+            val code = project.environment.runModule("pytest", listOf(file.absolutePath))
             anyFailed = anyFailed || code != 0
         }
         if (anyFailed) throw ActException("PyTest tests has failed")

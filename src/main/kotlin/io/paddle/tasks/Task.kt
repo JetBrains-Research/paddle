@@ -1,10 +1,11 @@
 package io.paddle.tasks
 
+import io.paddle.project.Project
 import io.paddle.terminal.TerminalUI
 import io.paddle.utils.Hashable
 import io.paddle.utils.hashable
 
-abstract class Task {
+abstract class Task(val project: Project) {
     abstract val id: String
 
     open val dependencies: List<Task> = emptyList()

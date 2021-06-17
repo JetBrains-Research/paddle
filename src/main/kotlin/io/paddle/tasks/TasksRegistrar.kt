@@ -1,6 +1,7 @@
 package io.paddle.tasks
 
-import io.paddle.schema.PaddleSchema
+import io.paddle.project.Project
+import io.paddle.project.config.Configuration
 import io.paddle.tasks.env.CleanTask
 import io.paddle.tasks.env.VenvTask
 import io.paddle.tasks.exec.ExecTask
@@ -8,20 +9,23 @@ import io.paddle.tasks.linter.MyPyTask
 import io.paddle.tasks.linter.PyLintTask
 import io.paddle.tasks.tests.PyTestTask
 
-object TasksRegistrar {
+class TasksRegistrar {
     private val tasks = HashMap<String, Task>()
 
-    fun default(config: PaddleSchema) {
+    fun default(project: Project, configuration: Configuration) {
         register(
-            VenvTask(config),
-            CleanTask(config),
-            MyPyTask(config),
-            PyLintTask(config),
-            PyTestTask(config)
+            CleanTask(project),
+            VenvTask(project)
         )
 
-        for (execution in config.tasks.execution) {
-            register(ExecTask(execution, config))
+        register(
+            MyPyTask(project),
+            PyLintTask(project),
+            PyTestTask(project)
+        )
+
+        for (execution in configuration.tasks.execution) {
+            register(ExecTask(execution.id, execution.entrypoint, project))
         }
     }
 
@@ -34,5 +38,9 @@ object TasksRegistrar {
 
     fun get(id: String): Task? {
         return tasks[id]
+    }
+
+    fun getOrFail(id: String): Task {
+        return tasks[id] ?: error("Can't find task $id")
     }
 }
