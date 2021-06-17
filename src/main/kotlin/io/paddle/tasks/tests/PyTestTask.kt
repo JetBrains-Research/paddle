@@ -12,7 +12,7 @@ class PyTestTask(private val config: PaddleSchema) : Task() {
     private val requirements = File(config.environment.requirements)
     private val venv = File(config.environment.virtualenv)
 
-    override val id: String = "test:pytest"
+    override val id: String = "test"
 
     override val inputs: List<Hashable> =
         config.roots.sources.map { File(it).hashable() } + listOf(requirements.hashable(), venv.hashable())
@@ -23,7 +23,12 @@ class PyTestTask(private val config: PaddleSchema) : Task() {
         val roots = config.roots.tests.map { File(it) }
         var anyFailed = false
         for (file in roots) {
-            val code = Terminal.execute("pytest", listOf(file.absolutePath), File("."), redirectStdout = true)
+
+            val code = Terminal.execute(
+                "${venv.absolutePath}/bin/python",
+                listOf("-m", "pytest", file.absolutePath),
+                File(".")
+            )
             anyFailed = anyFailed || code != 0
         }
         if (anyFailed) throw ActException("PyTest tests has failed")

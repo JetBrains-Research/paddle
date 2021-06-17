@@ -1,0 +1,11 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Example MyPy" type="JetRunConfigurationType">
+    <option name="MAIN_CLASS_NAME" value="io.paddle.ApplicationKt" />
+    <module name="paddle.main" />
+    <option name="PROGRAM_PARAMETERS" value="task linter:mypy" />
+    <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/example" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>

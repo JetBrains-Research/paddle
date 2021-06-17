@@ -8,10 +8,19 @@ import io.paddle.utils.hashable
 import java.io.File
 
 class VenvTask(private val config: PaddleSchema) : Task() {
+    companion object {
+        private val default = listOf(
+            "wheel",
+            "pytest",
+            "mypy",
+            "pylint"
+        )
+    }
+
     private val requirements = File(config.environment.requirements)
     private val venv = File(config.environment.virtualenv)
 
-    override val id: String = "environment:venv"
+    override val id: String = "venv"
 
     override val inputs: List<Hashable> = listOf(requirements.hashable())
     override val outputs: List<Hashable> = listOf(venv.hashable())
@@ -26,9 +35,18 @@ class VenvTask(private val config: PaddleSchema) : Task() {
 
         code = Terminal.execute(
             "${venv.absolutePath}/bin/pip",
-            listOf("install", "-r", File(config.environment.requirements).absolutePath),
+            listOf("install", "-r", requirements.absolutePath),
             File(".")
         )
         if (code != 0) throw ActException("Requirements.txt installation has failed")
+
+        for (pkg in default) {
+            code = Terminal.execute(
+                "${venv.absolutePath}/bin/pip",
+                listOf("install", pkg),
+                File(".")
+            )
+            if (code != 0) throw ActException("$pkg installation has failed")
+        }
     }
 }

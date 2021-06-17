@@ -7,6 +7,7 @@ plugins {
     id("tanvd.kosogor") version "1.0.12" apply true
     kotlin("jvm") version "1.5.10" apply true
     kotlin("plugin.serialization") version "1.5.10"
+    application apply true
 }
 
 repositories {
@@ -21,6 +22,10 @@ dependencies {
 
     implementation("com.charleskorn.kaml", "kaml", "0.34.0")
     implementation("org.jetbrains.kotlinx", "kotlinx-serialization-json", "1.2.1")
+}
+
+application {
+    mainClass.set("io.paddle.ApplicationKt")
 }
 
 tasks.withType<KotlinJvmCompile> {

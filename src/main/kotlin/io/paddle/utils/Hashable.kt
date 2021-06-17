@@ -41,31 +41,26 @@ class StringHashable(private val input: String) : Hashable {
 fun String.hashable() = StringHashable(this)
 
 class FileHashable(private val file: File) : Hashable {
-    init {
-        require(file.isFile) { "FileHashable is not a file" }
+    override fun hash(): String {
+        if (!file.exists()) return StringHashable("empty_file").hash()
+        if (file.isDirectory) return hashFolder()
+        if (file.isFile) return hashFile()
+        error("Unexpected type of hashable file")
     }
 
-    override fun hash(): String {
+    private fun hashFile(): String {
         val path = StringHashable(file.canonicalPath)
         val digest = StringHashable(Hex.encodeHexString(DigestUtils.digest(DigestUtils.getMd5Digest(), file)))
         return AggregatedHashable(listOf(path, digest)).hash()
     }
-}
 
-class FolderHashable(private val folder: File) : Hashable {
-    init {
-        require(folder.isDirectory) { "FolderHashable is not a folder" }
-    }
-
-    override fun hash(): String {
-        val path = StringHashable(folder.absolutePath)
-        val files = folder.walkTopDown().asSequence().filter { it.isFile }.map { FileHashable(it) }
+    private fun hashFolder(): String {
+        val path = StringHashable(file.absolutePath)
+        val files = file.walkTopDown().asSequence().filter { it.isFile }.map { FileHashable(it) }
         return AggregatedHashable(listOf(path) + files).hash()
     }
 }
 
 fun File.hashable(): Hashable {
-    if (isFile) return FileHashable(this)
-    if (isDirectory) return FolderHashable(this)
-    throw IllegalArgumentException("Unknown type of file at $absolutePath")
+    return FileHashable(this)
 }

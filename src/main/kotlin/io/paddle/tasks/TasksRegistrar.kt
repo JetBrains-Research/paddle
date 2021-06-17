@@ -1,6 +1,7 @@
 package io.paddle.tasks
 
 import io.paddle.schema.PaddleSchema
+import io.paddle.tasks.env.CleanTask
 import io.paddle.tasks.env.VenvTask
 import io.paddle.tasks.exec.ExecTask
 import io.paddle.tasks.linter.MyPyTask
@@ -13,6 +14,7 @@ object TasksRegistrar {
     fun default(config: PaddleSchema) {
         register(
             VenvTask(config),
+            CleanTask(config),
             MyPyTask(config),
             PyLintTask(config),
             PyTestTask(config)
