@@ -9,7 +9,7 @@ roots:
     - src/test
 
 environment:
-  virtualenv: venv
+  virtualenv: .venv
   requirements: requirements.txt
 
 tasks:
