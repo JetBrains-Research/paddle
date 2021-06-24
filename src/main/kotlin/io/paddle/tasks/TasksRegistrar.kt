@@ -25,7 +25,7 @@ class TasksRegistrar {
         )
 
         for (execution in configuration.tasks.execution) {
-            register(ExecTask(execution.id, execution.entrypoint, project))
+            register(ExecTask(execution.id, execution.entrypoint, execution.args, project))
         }
     }
 

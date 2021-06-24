@@ -60,6 +60,6 @@ class Configuration(
         }
 
         @Serializable
-        data class Execution(val entrypoint: String, val id: String)
+        data class Execution(val entrypoint: String, val id: String, val args: List<String> = emptyList())
     }
 }
