@@ -1,8 +1,8 @@
 package io.paddle.plugin.standard
 
 import io.paddle.plugin.Plugin
+import io.paddle.plugin.standard.extensions.Roots
 import io.paddle.project.Project
-import io.paddle.project.RootsExtension
 import io.paddle.tasks.Task
 
 object StandardPlugin: Plugin {
@@ -13,7 +13,7 @@ object StandardPlugin: Plugin {
     @Suppress("UNCHECKED_CAST")
     override fun extensions(project: Project): List<Project.Extension<Any>> {
         return listOf(
-            RootsExtension
+            Roots.Extension
         ) as List<Project.Extension<Any>>
     }
 }

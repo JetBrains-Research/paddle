@@ -15,7 +15,7 @@ abstract class Configuration {
     fun bool(name: String, default: Boolean? = null) = ConfigurationDelegate(name, default)
     fun integer(name: String, default: Int? = null) = ConfigurationDelegate(name, default)
     fun string(name: String, default: String? = null) = ConfigurationDelegate(name, default)
-    fun <T> array(name: String, default: Array<T>? = null) = ConfigurationDelegate(name, default)
+    fun <T> list(name: String, default: List<T>? = null) = ConfigurationDelegate(name, default)
 
     abstract fun <T> get(key: String): T?
 

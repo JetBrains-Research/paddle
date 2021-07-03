@@ -1,5 +1,7 @@
 package io.paddle.plugin.python.tasks.linter
 
+import io.paddle.plugin.python.extensions.*
+import io.paddle.plugin.standard.extensions.roots
 import io.paddle.project.*
 import io.paddle.tasks.Task
 import io.paddle.tasks.incremental.IncrementalTask

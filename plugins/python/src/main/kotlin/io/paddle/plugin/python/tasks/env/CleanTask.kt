@@ -1,7 +1,7 @@
 package io.paddle.plugin.python.tasks.env
 
 import io.paddle.project.Project
-import io.paddle.project.environment
+import io.paddle.plugin.python.extensions.environment
 import io.paddle.tasks.Task
 import java.io.File
 

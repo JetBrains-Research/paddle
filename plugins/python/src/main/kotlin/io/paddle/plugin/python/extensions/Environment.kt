@@ -1,28 +1,25 @@
-package io.paddle.project
+package io.paddle.plugin.python.extensions
 
+import io.paddle.project.Project
 import io.paddle.terminal.Terminal
-import io.paddle.utils.config.Configuration
 import io.paddle.utils.config.ConfigurationView
 import io.paddle.utils.ext.Extendable
 import java.io.File
 
 
-object EnvironmentExtension: Project.Extension<Environment> {
-    override val key: Extendable.Key<Environment> = Extendable.Key()
-
-    override fun create(project: Project): Environment {
-        return Environment.from(project.config)
-    }
-}
-
 val Project.environment: Environment
-    get() = extensions.get(EnvironmentExtension.key)!!
+    get() = extensions.get(Environment.Extension.key)!!
 
 class Environment(val venv: File, val workingDir: File) {
-    companion object {
-        fun from(configuration: Configuration): Environment {
-            val view = ConfigurationView("environment", configuration)
-            return Environment(File(view.get("virtualenv") ?: ".venv"), File("."))
+    object Extension : Project.Extension<Environment> {
+        override val key: Extendable.Key<Environment> = Extendable.Key()
+
+        override fun create(project: Project): Environment {
+            val config = object : ConfigurationView("environment", project.config) {
+                val venv by string("virtualenv", default = ".venv")
+            }
+
+            return Environment(File(config.venv), File("."))
         }
     }
 

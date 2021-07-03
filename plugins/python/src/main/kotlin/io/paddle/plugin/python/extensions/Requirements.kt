@@ -1,28 +1,25 @@
-package io.paddle.project
+package io.paddle.plugin.python.extensions
 
+import io.paddle.project.Project
 import io.paddle.utils.Hashable
-import io.paddle.utils.config.Configuration
+import io.paddle.utils.config.ConfigurationView
 import io.paddle.utils.ext.Extendable
 import io.paddle.utils.hashable
 import java.io.File
 
-object RequirementsExtension: Project.Extension<Requirements> {
-    override val key: Extendable.Key<Requirements> = Extendable.Key()
-
-    override fun create(project: Project): Requirements {
-        return Requirements.from(project.config)
-    }
-}
-
 val Project.requirements: Requirements
-    get() = extensions.get(RequirementsExtension.key)!!
+    get() = extensions.get(Requirements.Extension.key)!!
 
 class Requirements(val descriptors: MutableList<Descriptor>, val files: MutableList<File>) : Hashable {
-    companion object {
-        fun from(configuration: Configuration): Requirements {
-            val files = listOf(File(configuration.get<String>("environment.requirements") ?: "requirements.txt"))
+    object Extension : Project.Extension<Requirements> {
+        override val key: Extendable.Key<Requirements> = Extendable.Key()
 
-            return Requirements(ArrayList(), files.toMutableList())
+        override fun create(project: Project): Requirements {
+            val config = object : ConfigurationView("environment", project.config) {
+                val requirements by string("requirements", default = "requirements.txt")
+            }
+
+            return Requirements(ArrayList(), mutableListOf(File(config.requirements)))
         }
     }
 
