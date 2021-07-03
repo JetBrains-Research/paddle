@@ -1,7 +1,6 @@
-package io.paddle.plugin.python.linter
+package io.paddle.plugin.python.tasks.linter
 
-import io.paddle.project.Project
-import io.paddle.project.Requirements
+import io.paddle.project.*
 import io.paddle.tasks.Task
 import io.paddle.tasks.incremental.IncrementalTask
 import io.paddle.utils.Hashable

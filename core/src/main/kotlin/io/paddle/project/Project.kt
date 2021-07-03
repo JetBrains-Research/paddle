@@ -3,16 +3,26 @@ package io.paddle.project
 import io.paddle.plugin.Plugin
 import io.paddle.terminal.TerminalUI
 import io.paddle.utils.config.Configuration
+import io.paddle.utils.ext.Extendable
 import java.io.File
 
 class Project(val config: Configuration) {
-    val roots = Roots.from(config)
+    interface Extension<V: Any> {
+        val key: Extendable.Key<V>
+
+        fun create(project: Project): V
+    }
+
     val tasks = Tasks()
-    val requirements = Requirements.from(config)
-    val environment = Environment.from(config)
+    val extensions = Extendable()
 
     fun register(plugin: Plugin) {
-        tasks.register(*plugin.tasks(this).toTypedArray())
+        for (extension in plugin.extensions(this)) {
+            extensions.register(extension.key, extension.create(this))
+        }
+        for (task in plugin.tasks(this)) {
+            tasks.register(task)
+        }
     }
 
     fun execute(id: String) {

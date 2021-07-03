@@ -1,7 +1,19 @@
 package io.paddle.project
 
 import io.paddle.utils.config.Configuration
+import io.paddle.utils.ext.Extendable
 import java.io.File
+
+object RootsExtension: Project.Extension<Roots> {
+    override val key: Extendable.Key<Roots> = Extendable.Key()
+
+    override fun create(project: Project): Roots {
+        return Roots.from(project.config)
+    }
+}
+
+val Project.roots: Roots
+    get() = extensions.get(RootsExtension.key)!!
 
 class Roots(val sources: MutableList<File>, val tests: List<File>, val resources: List<File>) {
     companion object {

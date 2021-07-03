@@ -1,7 +1,6 @@
-package io.paddle.plugin.python.env
+package io.paddle.plugin.python.tasks.env
 
-import io.paddle.project.Project
-import io.paddle.project.Requirements
+import io.paddle.project.*
 import io.paddle.tasks.incremental.IncrementalTask
 import io.paddle.utils.Hashable
 import io.paddle.utils.hashable

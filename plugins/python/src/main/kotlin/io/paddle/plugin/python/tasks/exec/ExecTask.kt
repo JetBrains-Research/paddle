@@ -1,6 +1,7 @@
-package io.paddle.plugin.python.exec
+package io.paddle.plugin.python.tasks.exec
 
 import io.paddle.project.Project
+import io.paddle.project.environment
 import io.paddle.tasks.Task
 
 class ExecTask(name: String, private val entrypoint: String, private val arguments: List<String>, project: Project) : Task(project) {

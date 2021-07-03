@@ -3,6 +3,7 @@ package io.paddle
 import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.parameters.arguments.argument
 import io.paddle.plugin.python.PythonPlugin
+import io.paddle.plugin.standard.StandardPlugin
 import io.paddle.project.Project
 import io.paddle.terminal.TerminalUI
 import java.io.File
@@ -22,7 +23,10 @@ fun main(args: Array<String>) {
         return
     }
 
-    val project = Project.load(file)
-    project.register(PythonPlugin)
+    val project = Project.load(file).also {
+        it.register(StandardPlugin)
+        it.register(PythonPlugin)
+    }
+
     Paddle(project).main(args)
 }
