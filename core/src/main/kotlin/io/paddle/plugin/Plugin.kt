@@ -1,7 +1,8 @@
 package io.paddle.plugin
 
 import io.paddle.project.Project
+import io.paddle.tasks.Task
 
 interface Plugin {
-    fun install(project: Project)
+    fun tasks(project: Project): List<Task>
 }

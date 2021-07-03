@@ -6,7 +6,7 @@ import kotlin.reflect.KProperty
 
 abstract class Configuration {
     @Suppress("UNCHECKED_CAST")
-    class ConfigurationDelegate<T>(private val name: String, private val default: T? = null): ReadOnlyProperty<Configuration, T> {
+    class ConfigurationDelegate<T>(private val name: String, private val default: T? = null) : ReadOnlyProperty<Configuration, T> {
         override fun getValue(thisRef: Configuration, property: KProperty<*>): T {
             return (thisRef.get<T>(name) ?: default) as T
         }

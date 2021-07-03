@@ -7,7 +7,7 @@ import kotlinx.serialization.builtins.MapSerializer
 import kotlinx.serialization.builtins.serializer
 import java.io.File
 
-object IncrementalCache {
+internal object IncrementalCache {
     private val storage = File(".paddle/cache.json")
 
     private var cache: Map<String, Cache>

@@ -1,6 +1,7 @@
 package io.paddle.plugin.python.tests
 
 import io.paddle.project.Project
+import io.paddle.project.Requirements
 import io.paddle.tasks.Task
 import io.paddle.tasks.incremental.IncrementalTask
 import io.paddle.utils.Hashable
@@ -13,7 +14,14 @@ class PyTestTask(project: Project) : IncrementalTask(project) {
         project.roots.sources.map { it.hashable() } + project.roots.tests.map { it.hashable() } +
             listOf(project.requirements, project.environment.venv.hashable())
 
-    override val dependencies: List<Task> = listOf(project.tasks.getOrFail("venv"))
+    override val dependencies: List<Task>
+        get() = listOf(project.tasks.getOrFail("venv"))
+
+    override fun initialize() {
+        project.requirements.descriptors.add(
+            Requirements.Descriptor("pytest", project.config.get<String>("tasks.tests.pytest.version") ?: "6.2.4")
+        )
+    }
 
     override fun act() {
         var anyFailed = false

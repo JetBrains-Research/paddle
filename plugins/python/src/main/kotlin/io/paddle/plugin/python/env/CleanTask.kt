@@ -14,6 +14,8 @@ class CleanTask(project: Project) : Task(project) {
 
     override val id: String = "clean"
 
+    override fun initialize() {}
+
     override fun act() {
         project.environment.venv.deleteRecursively()
         for (cache in caches) {

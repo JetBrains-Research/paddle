@@ -6,7 +6,10 @@ import io.paddle.tasks.Task
 class ExecTask(name: String, private val entrypoint: String, private val arguments: List<String>, project: Project) : Task(project) {
     override val id: String = "exec:${name}"
 
-    override val dependencies: List<Task> = listOf(project.tasks.getOrFail("venv"))
+    override val dependencies: List<Task>
+        get() = listOf(project.tasks.getOrFail("venv"))
+
+    override fun initialize() {}
 
     override fun act() {
         val code = when {

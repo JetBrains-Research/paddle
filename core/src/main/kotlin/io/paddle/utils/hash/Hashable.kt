@@ -10,7 +10,7 @@ interface Hashable {
     fun hash(): String
 }
 
-class EmptyHashable: Hashable {
+class EmptyHashable : Hashable {
     override fun hash(): String {
         return "empty"
     }

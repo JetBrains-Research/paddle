@@ -23,6 +23,6 @@ fun main(args: Array<String>) {
     }
 
     val project = Project.load(file)
-    PythonPlugin.install(project)
+    project.register(PythonPlugin)
     Paddle(project).main(args)
 }
