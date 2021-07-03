@@ -1,4 +1,4 @@
-package io.paddle.tasks
+package io.paddle.tasks.incremental
 
 import io.paddle.utils.Hashable
 import io.paddle.utils.JSON

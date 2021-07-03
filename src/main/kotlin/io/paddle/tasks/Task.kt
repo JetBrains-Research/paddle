@@ -10,30 +10,14 @@ abstract class Task(val project: Project) {
 
     open val dependencies: List<Task> = emptyList()
 
-    open val inputs: List<Hashable> = emptyList()
-    open val outputs: List<Hashable> = emptyList()
-
     abstract fun act()
 
-    private val isIncremental: Boolean
-        get() = inputs.isNotEmpty()
-
-    private fun isUpToDate(): Boolean {
-        return isIncremental && IncrementalCache.isUpToDate(id, inputs.hashable(), outputs.hashable()) && dependencies.all { it.isUpToDate() }
-    }
-
-    fun run() {
-        if (isUpToDate()) {
-            TerminalUI.echoln("> Task :${id}: ${TerminalUI.colored("UP-TO-DATE", TerminalUI.Color.GREEN)}")
-            return
-        }
-
+    open fun run() {
         for (dep in dependencies) {
             dep.run()
         }
 
         TerminalUI.echoln("> Task :${id}: ${TerminalUI.colored("EXECUTE", TerminalUI.Color.YELLOW)}")
-
 
         try {
             act()
@@ -43,11 +27,6 @@ abstract class Task(val project: Project) {
         }
 
         TerminalUI.echoln("> Task :${id}: ${TerminalUI.colored("DONE", TerminalUI.Color.GREEN)}")
-
-
-        if (isIncremental) {
-            IncrementalCache.update(id, inputs.hashable(), outputs.hashable())
-        }
     }
 
     class ActException(val reason: String) : Exception(reason)

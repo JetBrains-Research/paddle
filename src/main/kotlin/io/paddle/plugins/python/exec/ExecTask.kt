@@ -1,4 +1,4 @@
-package io.paddle.tasks.exec
+package io.paddle.plugins.python.exec
 
 import io.paddle.project.Project
 import io.paddle.tasks.Task

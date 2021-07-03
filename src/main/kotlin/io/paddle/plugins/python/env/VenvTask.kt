@@ -1,11 +1,12 @@
-package io.paddle.tasks.env
+package io.paddle.plugins.python.env
 
 import io.paddle.project.Project
 import io.paddle.tasks.Task
+import io.paddle.tasks.incremental.IncrementalTask
 import io.paddle.utils.Hashable
 import io.paddle.utils.hashable
 
-class VenvTask(project: Project) : Task(project) {
+class VenvTask(project: Project) : IncrementalTask(project) {
     companion object {
         private val default = listOf(
             "wheel",

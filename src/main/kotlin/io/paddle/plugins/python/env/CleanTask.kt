@@ -1,4 +1,4 @@
-package io.paddle.tasks.env
+package io.paddle.plugins.python.env
 
 import io.paddle.project.Project
 import io.paddle.project.config.Configuration

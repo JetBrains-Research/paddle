@@ -5,7 +5,6 @@ import io.paddle.terminal.Terminal
 import java.io.File
 
 class Environment(val venv: File, val workingDir: File) {
-
     companion object {
         fun from(configuration: Configuration): Environment {
             return Environment(File(configuration.environment.virtualenv), File("."))

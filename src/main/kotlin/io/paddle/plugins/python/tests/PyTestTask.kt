@@ -1,11 +1,12 @@
-package io.paddle.tasks.tests
+package io.paddle.plugins.python.tests
 
 import io.paddle.project.Project
 import io.paddle.tasks.Task
+import io.paddle.tasks.incremental.IncrementalTask
 import io.paddle.utils.Hashable
 import io.paddle.utils.hashable
 
-class PyTestTask(project: Project) : Task(project) {
+class PyTestTask(project: Project) : IncrementalTask(project) {
     override val id: String = "test"
 
     override val inputs: List<Hashable> =
