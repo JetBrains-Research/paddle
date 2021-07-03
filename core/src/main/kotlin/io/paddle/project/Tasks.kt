@@ -1,13 +1,9 @@
-package io.paddle.tasks
+package io.paddle.project
 
-import io.paddle.project.Project
-import io.paddle.project.config.Configuration
+import io.paddle.tasks.Task
 
-class TasksRegistrar {
+class Tasks {
     private val tasks = HashMap<String, Task>()
-
-    fun default(project: Project, configuration: Configuration) {
-    }
 
     fun register(vararg given: Task) {
         for (task in given) {

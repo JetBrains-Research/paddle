@@ -2,8 +2,6 @@ package io.paddle.tasks
 
 import io.paddle.project.Project
 import io.paddle.terminal.TerminalUI
-import io.paddle.utils.Hashable
-import io.paddle.utils.hashable
 
 abstract class Task(val project: Project) {
     abstract val id: String
@@ -29,5 +27,5 @@ abstract class Task(val project: Project) {
         TerminalUI.echoln("> Task :${id}: ${TerminalUI.colored("DONE", TerminalUI.Color.GREEN)}")
     }
 
-    class ActException(val reason: String) : Exception(reason)
+    class ActException(reason: String) : Exception(reason)
 }

@@ -1,6 +1,6 @@
 package io.paddle.project
 
-import io.paddle.project.config.Configuration
+import io.paddle.utils.config.Configuration
 import java.io.File
 
 class Locations(val workingFolder: File) {

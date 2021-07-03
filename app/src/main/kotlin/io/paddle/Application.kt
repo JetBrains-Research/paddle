@@ -1,11 +1,9 @@
 package io.paddle
 
 import com.github.ajalt.clikt.core.CliktCommand
-import com.github.ajalt.clikt.core.subcommands
 import com.github.ajalt.clikt.parameters.arguments.argument
+import io.paddle.plugin.python.PythonPlugin
 import io.paddle.project.Project
-import io.paddle.project.config.Configuration
-import io.paddle.tasks.TasksRegistrar
 import io.paddle.terminal.TerminalUI
 import java.io.File
 
@@ -16,6 +14,7 @@ class Paddle(private val project: Project) : CliktCommand() {
         project.execute(task)
     }
 }
+
 fun main(args: Array<String>) {
     val file = File("paddle.yaml")
     if (!file.exists()) {
@@ -24,5 +23,6 @@ fun main(args: Array<String>) {
     }
 
     val project = Project.load(file)
+    PythonPlugin.install(project)
     Paddle(project).main(args)
 }

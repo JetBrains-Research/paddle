@@ -1,5 +1,6 @@
 package io.paddle.utils
 
+import io.paddle.utils.json.JSON
 import kotlinx.serialization.SerializationStrategy
 import org.apache.commons.codec.binary.Hex
 import org.apache.commons.codec.digest.DigestUtils

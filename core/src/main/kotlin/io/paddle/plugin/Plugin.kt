@@ -1,8 +1,7 @@
 package io.paddle.plugin
 
 import io.paddle.project.Project
-import io.paddle.project.config.Configuration
 
 interface Plugin {
-    fun install(project: Project, configuration: Configuration)
+    fun install(project: Project)
 }

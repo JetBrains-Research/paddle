@@ -1,13 +1,15 @@
 package io.paddle.project
 
-import io.paddle.project.config.Configuration
 import io.paddle.terminal.Terminal
+import io.paddle.utils.config.Configuration
+import io.paddle.utils.config.ConfigurationView
 import java.io.File
 
 class Environment(val venv: File, val workingDir: File) {
     companion object {
         fun from(configuration: Configuration): Environment {
-            return Environment(File(configuration.environment.virtualenv), File("."))
+            val view = ConfigurationView("environment", configuration)
+            return Environment(File(view.get("virtualenv") ?: ".venv"), File("."))
         }
     }
 

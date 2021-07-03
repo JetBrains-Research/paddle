@@ -1,7 +1,7 @@
 package io.paddle.tasks.incremental
 
 import io.paddle.utils.Hashable
-import io.paddle.utils.JSON
+import io.paddle.utils.json.JSON
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.builtins.MapSerializer
 import kotlinx.serialization.builtins.serializer
