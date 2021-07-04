@@ -1,7 +1,8 @@
 package io.paddle.plugin.python.tasks.env
 
 import io.paddle.plugin.python.extensions.*
-import io.paddle.project.*
+import io.paddle.plugin.standard.tasks.clean
+import io.paddle.project.Project
 import io.paddle.tasks.incremental.IncrementalTask
 import io.paddle.utils.Hashable
 import io.paddle.utils.hashable
@@ -14,6 +15,7 @@ class VenvTask(project: Project) : IncrementalTask(project) {
 
     override fun initialize() {
         project.requirements.descriptors.add(Requirements.Descriptor("wheel", "0.36.2"))
+        project.tasks.clean.locations.add(project.environment.venv)
     }
 
     override fun act() {

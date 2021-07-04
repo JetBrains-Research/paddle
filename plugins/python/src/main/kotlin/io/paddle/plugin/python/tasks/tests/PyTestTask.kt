@@ -2,11 +2,13 @@ package io.paddle.plugin.python.tasks.tests
 
 import io.paddle.plugin.python.extensions.*
 import io.paddle.plugin.standard.extensions.roots
+import io.paddle.plugin.standard.tasks.clean
 import io.paddle.project.*
 import io.paddle.tasks.Task
 import io.paddle.tasks.incremental.IncrementalTask
 import io.paddle.utils.Hashable
 import io.paddle.utils.hashable
+import java.io.File
 
 class PyTestTask(project: Project) : IncrementalTask(project) {
     override val id: String = "test"
@@ -22,6 +24,7 @@ class PyTestTask(project: Project) : IncrementalTask(project) {
         project.requirements.descriptors.add(
             Requirements.Descriptor("pytest", project.config.get<String>("tasks.tests.pytest.version") ?: "6.2.4")
         )
+        project.tasks.clean.locations.add(File(".pytest_cache"))
     }
 
     override fun act() {

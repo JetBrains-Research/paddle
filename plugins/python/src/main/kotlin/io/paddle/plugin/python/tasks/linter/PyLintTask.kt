@@ -2,11 +2,13 @@ package io.paddle.plugin.python.tasks.linter
 
 import io.paddle.plugin.python.extensions.*
 import io.paddle.plugin.standard.extensions.roots
+import io.paddle.plugin.standard.tasks.clean
 import io.paddle.project.*
 import io.paddle.tasks.Task
 import io.paddle.tasks.incremental.IncrementalTask
 import io.paddle.utils.Hashable
 import io.paddle.utils.hashable
+import java.io.File
 
 class PyLintTask(project: Project) : IncrementalTask(project) {
     override val id = "linter:pylint"
@@ -20,6 +22,7 @@ class PyLintTask(project: Project) : IncrementalTask(project) {
         project.requirements.descriptors.add(
             Requirements.Descriptor("pylint", project.config.get<String>("tasks.linter.pylint.version") ?: "2.8.3"),
         )
+        project.tasks.clean.locations.add(File(".pylint_cache"))
     }
 
     override fun act() {

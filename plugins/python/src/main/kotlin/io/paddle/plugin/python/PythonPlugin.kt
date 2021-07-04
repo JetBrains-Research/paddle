@@ -3,7 +3,7 @@ package io.paddle.plugin.python
 import io.paddle.plugin.Plugin
 import io.paddle.plugin.python.extensions.Environment
 import io.paddle.plugin.python.extensions.Requirements
-import io.paddle.plugin.python.tasks.env.CleanTask
+import io.paddle.plugin.standard.tasks.CleanTask
 import io.paddle.plugin.python.tasks.env.VenvTask
 import io.paddle.plugin.python.tasks.exec.RunTask
 import io.paddle.plugin.python.tasks.linter.MyPyTask
