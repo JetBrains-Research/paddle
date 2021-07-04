@@ -53,7 +53,7 @@ class DockerCommandExecutor(private val image: String) : CommandExecutor() {
 
         client.startContainerCmd(container.id).exec()
 
-        val logs = client.logContainerCmd(container.id)
+        client.logContainerCmd(container.id)
             .withFollowStream(true)
             .withStdErr(true)
             .withStdOut(true)
@@ -65,6 +65,7 @@ class DockerCommandExecutor(private val image: String) : CommandExecutor() {
             .awaitCompletion()
 
         val result = client.waitContainerCmd(container.id).exec(WaitContainerResultCallback()).awaitCompletion()
+        client.removeContainerCmd(container.id).exec()
         return result.awaitStatusCode()
     }
 }
