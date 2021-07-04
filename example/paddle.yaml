@@ -27,4 +27,4 @@ tasks:
       id: main
 
 docker:
-  image: rappdw/docker-java-python:latest
+  image: python:3.9-slim

@@ -13,6 +13,9 @@ import io.paddle.project.*
 import io.paddle.tasks.Task
 
 object PythonPlugin : Plugin {
+    override fun configure(project: Project) {
+    }
+
     override fun tasks(project: Project): List<Task> {
         return listOf(
             CleanTask(project),

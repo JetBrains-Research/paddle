@@ -1,5 +1,6 @@
 package io.paddle.project
 
+import io.paddle.execution.CommandExecutor
 import io.paddle.execution.local.LocalCommandExecutor
 import io.paddle.plugin.Plugin
 import io.paddle.terminal.TerminalUI
@@ -16,7 +17,7 @@ class Project(val config: Configuration) {
 
     val tasks = Tasks()
     val extensions = Extendable()
-    val executor = LocalCommandExecutor()
+    var executor: CommandExecutor = LocalCommandExecutor()
 
     fun register(plugin: Plugin) {
         for (extension in plugin.extensions(this)) {
@@ -26,6 +27,8 @@ class Project(val config: Configuration) {
         for (task in plugin.tasks(this)) {
             tasks.register(task)
         }
+
+        plugin.configure(this)
     }
 
     fun execute(id: String) {

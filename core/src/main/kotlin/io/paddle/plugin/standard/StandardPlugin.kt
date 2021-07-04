@@ -7,6 +7,9 @@ import io.paddle.project.Project
 import io.paddle.tasks.Task
 
 object StandardPlugin: Plugin {
+    override fun configure(project: Project) {
+    }
+
     override fun tasks(project: Project): List<Task> {
         return listOf(
             CleanTask(project)

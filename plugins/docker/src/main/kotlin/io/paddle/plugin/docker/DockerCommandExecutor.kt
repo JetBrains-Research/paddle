@@ -8,36 +8,45 @@ import com.github.dockerjava.api.model.Frame
 import com.github.dockerjava.core.DefaultDockerClientConfig
 import com.github.dockerjava.core.DockerClientImpl
 import com.github.dockerjava.httpclient5.ApacheDockerHttpClient
+import io.paddle.execution.CommandExecutor
 import io.paddle.project.Project
 import io.paddle.terminal.TerminalUI
+import io.paddle.utils.ext.Extendable
 import java.io.File
 
-object DockerWrapperClient {
+class DockerCommandExecutor(private val image: String) : CommandExecutor() {
+    object Extension : Project.Extension<DockerCommandExecutor> {
+        override val key: Extendable.Key<DockerCommandExecutor> = Extendable.Key()
+
+        override fun create(project: Project): DockerCommandExecutor {
+            val image: String? = project.config.get("docker.image")
+            return DockerCommandExecutor(image!!)
+        }
+    }
+
     private val config = DefaultDockerClientConfig.createDefaultConfigBuilder().build()
     private val http = ApacheDockerHttpClient.Builder().dockerHost(config.dockerHost).sslConfig(config.sslConfig).build()
     private val client = DockerClientImpl.getInstance(config, http)
 
-    fun isWrapped(): Boolean {
-        return System.getenv("PADDLE_IN_DOCKER") == "TRUE"
-    }
-
-    fun startWrappedSession(image: String, project: Project, args: List<String>) {
+    override fun execute(command: String, args: Iterable<String>, working: File): Int {
         val (name, tag) = image.split(":")
+
         if (client.listImagesCmd().exec().all { image !in it.repoTags }) {
             TerminalUI.echoln("> Executor :docker: ${TerminalUI.colored("PULLING $image", TerminalUI.Color.CYAN)}")
             client.pullImageCmd(name).withTag(tag).exec(PullImageResultCallback()).awaitCompletion()
         }
 
-        TerminalUI.echoln("> Executor :docker: ${TerminalUI.colored("RUNNING", TerminalUI.Color.CYAN)}")
+        val oldPath = File(".").absolutePath.dropLast(2)
+
+        val fixedCommand =  if (command.startsWith(oldPath)) "/project/${command.drop(oldPath.length + 1)}" else command
+        val fixedArgs = args.map { if (it.startsWith(oldPath)) "/project/${it.drop(oldPath.length + 1)}" else it }
+
         val container = client.createContainerCmd(image)
             .withBinds(
                 Bind.parse(File(".").absolutePath + ":" + "/project"),
-                Bind.parse(File("../build/app/install/app").absolutePath + ":" + "/paddle"),
-
             )
-            .withEnv("PADDLE_IN_DOCKER=TRUE")
-            .withWorkingDir("/project")
-            .withCmd("/paddle/bin/app", *args.toTypedArray())
+            .withWorkingDir("/project/${working.toRelativeString(File("."))}")
+            .withCmd(fixedCommand, *fixedArgs.toTypedArray())
             .withAttachStderr(true)
             .withAttachStdout(true)
             .exec()
@@ -55,6 +64,7 @@ object DockerWrapperClient {
             })
             .awaitCompletion()
 
-        client.waitContainerCmd(container.id).exec(WaitContainerResultCallback()).awaitCompletion()
+        val result = client.waitContainerCmd(container.id).exec(WaitContainerResultCallback()).awaitCompletion()
+        return result.awaitStatusCode()
     }
 }
