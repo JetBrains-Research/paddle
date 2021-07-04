@@ -29,7 +29,7 @@ abstract class Task(val project: Project) {
      *
      * Note, that in case Cacheable task [act] still will be called since it does not check for cache.
      */
-    abstract fun act()
+    protected abstract fun act()
 
     /**
      * Run task with respect to the caches and current state.
