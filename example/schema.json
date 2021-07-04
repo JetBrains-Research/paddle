@@ -38,6 +38,14 @@
         }
       }
     },
+    "docker": {
+      "type": "object",
+      "properties": {
+        "image": {
+          "type": "string"
+        }
+      }
+    },
     "environment": {
       "type": "object",
       "properties": {

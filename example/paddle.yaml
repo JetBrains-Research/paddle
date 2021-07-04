@@ -25,3 +25,6 @@ tasks:
   run:
     - entrypoint: src/main/main.py
       id: main
+
+docker:
+  image: rappdw/docker-java-python:latest

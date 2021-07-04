@@ -2,6 +2,8 @@ package io.paddle
 
 import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.parameters.arguments.argument
+import io.paddle.plugin.docker.DockerPlugin
+import io.paddle.plugin.docker.docker
 import io.paddle.plugin.python.PythonPlugin
 import io.paddle.plugin.standard.StandardPlugin
 import io.paddle.project.Project
@@ -26,7 +28,12 @@ fun main(args: Array<String>) {
     val project = Project.load(file).also {
         it.register(StandardPlugin)
         it.register(PythonPlugin)
+        it.register(DockerPlugin)
     }
 
-    Paddle(project).main(args)
+    if (project.docker.shouldBeWrapped()) {
+        project.docker.startWrappedSession(args.toList())
+    } else {
+        Paddle(project).main(args)
+    }
 }
