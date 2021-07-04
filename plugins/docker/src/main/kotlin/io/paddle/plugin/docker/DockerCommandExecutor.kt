@@ -38,6 +38,7 @@ class DockerCommandExecutor(private val image: String) : CommandExecutor() {
 
         val oldPath = File(".").absolutePath.dropLast(2)
 
+        //TODO-tanvd consider reworking this part and use standard File API instead of tricks like this one
         val fixedCommand =  if (command.startsWith(oldPath)) "/project/${command.drop(oldPath.length + 1)}" else command
         val fixedArgs = args.map { if (it.startsWith(oldPath)) "/project/${it.drop(oldPath.length + 1)}" else it }
 
