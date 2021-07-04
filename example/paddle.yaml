@@ -22,6 +22,6 @@ tasks:
     pytest:
       enabled: true
 
-  execution:
+  run:
     - entrypoint: src/main/main.py
       id: main

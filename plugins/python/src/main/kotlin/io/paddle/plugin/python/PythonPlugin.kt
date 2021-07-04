@@ -5,6 +5,7 @@ import io.paddle.plugin.python.extensions.Environment
 import io.paddle.plugin.python.extensions.Requirements
 import io.paddle.plugin.python.tasks.env.CleanTask
 import io.paddle.plugin.python.tasks.env.VenvTask
+import io.paddle.plugin.python.tasks.exec.RunTask
 import io.paddle.plugin.python.tasks.linter.MyPyTask
 import io.paddle.plugin.python.tasks.linter.PyLintTask
 import io.paddle.plugin.python.tasks.tests.PyTestTask
@@ -20,7 +21,7 @@ object PythonPlugin : Plugin {
             MyPyTask(project),
             PyLintTask(project),
             PyTestTask(project)
-        )
+        ) + RunTask.from(project)
     }
 
     @Suppress("UNCHECKED_CAST")
