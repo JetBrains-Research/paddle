@@ -14,12 +14,12 @@ import io.paddle.terminal.TerminalUI
 import io.paddle.utils.ext.Extendable
 import java.io.File
 
-class DockerCommandExecutor(private val image: String) : CommandExecutor() {
+class DockerCommandExecutor(val image: String) : CommandExecutor() {
     object Extension : Project.Extension<DockerCommandExecutor> {
         override val key: Extendable.Key<DockerCommandExecutor> = Extendable.Key()
 
         override fun create(project: Project): DockerCommandExecutor {
-            val image: String? = project.config.get("docker.image")
+            val image: String? = project.config.get("executor.image")
             return DockerCommandExecutor(image!!)
         }
     }

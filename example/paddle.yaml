@@ -1,5 +1,5 @@
 descriptor:
-  group: ai.paddle
+  name: ai.paddle
   version: 0.1.0
 
 roots:
@@ -9,22 +9,17 @@ roots:
     - src/test
 
 environment:
-  virtualenv: .venv
-  requirements: requirements.txt
+  type: virtualenv
+  path: .venv
+
+requirements:
+  file: requirements.txt
 
 tasks:
-  linter:
-    pylint:
-      enabled: true
-    mypy:
-      enabled: true
-  tests:
-    pytest:
-      enabled: true
-
   run:
     - entrypoint: src/main/main.py
       id: main
 
-docker:
+executor:
+  type: docker
   image: python:3.9-slim

@@ -15,7 +15,7 @@ class Environment(val project: Project, val venv: File, val workingDir: File) {
 
         override fun create(project: Project): Environment {
             val config = object : ConfigurationView("environment", project.config) {
-                val venv by string("virtualenv", default = ".venv")
+                val venv by string("path", default = ".venv")
             }
 
             return Environment(project, File(config.venv), File("."))
@@ -35,7 +35,7 @@ class Environment(val project: Project, val venv: File, val workingDir: File) {
     }
 
     fun install(dependency: Requirements.Descriptor): Int {
-        return project.executor.execute("${venv.absolutePath}/bin/pip", listOf("install", "${dependency.id}==${dependency.version}"), workingDir)
+        return project.executor.execute("${venv.absolutePath}/bin/pip", listOf("install", "${dependency.name}==${dependency.version}"), workingDir)
     }
 
     fun install(requirements: File): Int {
