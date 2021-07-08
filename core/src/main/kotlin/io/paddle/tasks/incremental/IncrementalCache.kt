@@ -1,5 +1,6 @@
 package io.paddle.tasks.incremental
 
+import io.paddle.project.Project
 import io.paddle.utils.Hashable
 import io.paddle.utils.json.JSON
 import kotlinx.serialization.Serializable
@@ -7,8 +8,8 @@ import kotlinx.serialization.builtins.MapSerializer
 import kotlinx.serialization.builtins.serializer
 import java.io.File
 
-internal object IncrementalCache {
-    private val storage = File(".paddle/cache.json")
+internal class IncrementalCache(val project: Project) {
+    private val storage = File(project.workDir, ".paddle/cache.json")
 
     private var cache: Map<String, Cache>
         get() {

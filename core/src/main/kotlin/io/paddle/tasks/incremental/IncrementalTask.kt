@@ -19,7 +19,7 @@ abstract class IncrementalTask(project: Project) : Task(project) {
     open val outputs: List<Hashable> = emptyList()
 
     private fun isUpToDate(): Boolean {
-        return IncrementalCache.isUpToDate(id, inputs.hashable(), outputs.hashable()) && dependencies.all { it is IncrementalTask && it.isUpToDate() }
+        return IncrementalCache(project).isUpToDate(id, inputs.hashable(), outputs.hashable()) && dependencies.all { it is IncrementalTask && it.isUpToDate() }
     }
 
     override fun run() {
@@ -30,6 +30,6 @@ abstract class IncrementalTask(project: Project) : Task(project) {
 
         super.run()
 
-        IncrementalCache.update(id, inputs.hashable(), outputs.hashable())
+        IncrementalCache(project).update(id, inputs.hashable(), outputs.hashable())
     }
 }

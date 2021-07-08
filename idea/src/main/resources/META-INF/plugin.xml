@@ -1,0 +1,20 @@
+<idea-plugin>
+    <id>tanvd.paddle</id>
+    <name>Paddle</name>
+    <vendor email="vdtankov@gmail.com">Vladislav Tankov</vendor>
+
+    <description><![CDATA[
+        <p>Integrates Paddle build system with IntelliJ-based IDEs</p>
+
+        <ul>
+            <li>Automate configuration of your development environment: source sets, run configurations -- everything preconfigured</li>
+            <li>Execute tasks right from your IDE, including Docker execution in Docker</li>
+        </ul>
+    ]]></description>
+
+    <extensions defaultExtensionNs="com.intellij">
+        <projectOpenProcessor implementation="io.paddle.idea.PaddleProjectOpenProcessor"/>
+        <externalSystemManager implementation="io.paddle.idea.PaddleExternalSystemManager"/>
+    </extensions>
+
+</idea-plugin>

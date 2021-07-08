@@ -11,7 +11,7 @@ class CleanTask(project: Project) : Task(project) {
     override val id: String = "clean"
 
     override fun initialize() {
-        locations.add(File(".paddle"))
+        locations.add(File(project.workDir, ".paddle"))
     }
 
     override fun act() {

@@ -8,7 +8,7 @@ import io.paddle.utils.config.Configuration
 import io.paddle.utils.ext.Extendable
 import java.io.File
 
-class Project(val config: Configuration) {
+class Project(val config: Configuration, val workDir: File = File(".")) {
     interface Extension<V: Any> {
         val key: Extendable.Key<V>
 
