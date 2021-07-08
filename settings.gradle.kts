@@ -1,6 +1,6 @@
 rootProject.name = "paddle"
 
-include(":app")
+include(":cli")
 include(":core")
 include(":plugins:python")
 include(":plugins:docker")
