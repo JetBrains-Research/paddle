@@ -3,7 +3,6 @@ package io.paddle.idea
 import com.intellij.execution.configurations.SimpleJavaParameters
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.externalSystem.ExternalSystemAutoImportAware
-import com.intellij.openapi.externalSystem.ExternalSystemConfigurableAware
 import com.intellij.openapi.externalSystem.ExternalSystemManager
 import com.intellij.openapi.externalSystem.ExternalSystemUiAware
 import com.intellij.openapi.externalSystem.model.ProjectSystemId
@@ -11,7 +10,6 @@ import com.intellij.openapi.externalSystem.service.project.ExternalSystemProject
 import com.intellij.openapi.externalSystem.task.ExternalSystemTaskManager
 import com.intellij.openapi.externalSystem.util.ExternalSystemConstants
 import com.intellij.openapi.fileChooser.FileChooserDescriptor
-import com.intellij.openapi.options.Configurable
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Pair
 import com.intellij.openapi.util.registry.Registry
@@ -33,8 +31,7 @@ class PaddleExternalSystemManager : ExternalSystemManager<
 
     init {
         @Suppress("UnresolvedPluginConfigReference")
-        val value = Registry.get("${PADDLE_ID.id}${ExternalSystemConstants.USE_IN_PROCESS_COMMUNICATION_REGISTRY_KEY_SUFFIX}")
-        value.setValue(true)
+        Registry.get("${PADDLE_ID.id}${ExternalSystemConstants.USE_IN_PROCESS_COMMUNICATION_REGISTRY_KEY_SUFFIX}").setValue(true)
     }
 
     override fun enhanceRemoteProcessing(parameters: SimpleJavaParameters) {
@@ -54,7 +51,9 @@ class PaddleExternalSystemManager : ExternalSystemManager<
         return Function { PaddleExecutionSettings() }
     }
 
-    override fun getProjectResolverClass(): Class<out ExternalSystemProjectResolver<PaddleExecutionSettings>> = PaddleProjectResolver::class.java
+    override fun getProjectResolverClass(): Class<out ExternalSystemProjectResolver<PaddleExecutionSettings>> {
+        return PaddleProjectResolver::class.java
+    }
 
     override fun getTaskManagerClass(): Class<out ExternalSystemTaskManager<PaddleExecutionSettings>> {
         return PaddleTaskManager::class.java

@@ -32,8 +32,8 @@ class PaddleProjectResolver : ExternalSystemProjectResolver<PaddleExecutionSetti
         val projectNode = DataNode(ProjectKeys.PROJECT, projectData, null)
 
         val moduleData = ModuleData(
-            project.descriptor.name, PADDLE_ID, ModuleTypeManager.getInstance().defaultModuleType.id,
-            project.descriptor.name, pathToProjectFile.canonicalPath, pathToProjectFile.canonicalPath
+            "main", PADDLE_ID, ModuleTypeManager.getInstance().defaultModuleType.id,
+            project.descriptor.name, pathToProject.canonicalPath, pathToProject.canonicalPath
         )
 
         val moduleNode = projectNode.createChild(ProjectKeys.MODULE, moduleData)

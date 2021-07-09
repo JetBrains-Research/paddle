@@ -25,7 +25,6 @@ class PaddleProjectOpenProcessor : ProjectOpenProcessor() {
     }
 
     override fun isProjectFile(file: VirtualFile): Boolean {
-        print(file.canonicalPath)
         return canOpenProject(file)
     }
 
@@ -35,24 +34,24 @@ class PaddleProjectOpenProcessor : ProjectOpenProcessor() {
     override fun getName(): String = "Paddle"
 
     override fun doOpenProject(virtualFile: VirtualFile, projectToClose: Project?, forceOpenInNewFrame: Boolean): Project? {
-        if (projectToClose != null) {
-            invokeLater { FileEditorManager.getInstance(projectToClose).openFile(virtualFile, true) }
-        } else {
-            val directory = getProjectDirectory(virtualFile)
-            val project = PlatformProjectOpenProcessor.getInstance().doOpenProject(directory, null, forceOpenInNewFrame)
-                ?: return null
-            invokeLater { OpenFileAction.openFile(virtualFile, project) }
-            ExternalSystemUtil.linkExternalProject(
-                PADDLE_ID,
-                PaddleExternalProjectSettings(directory.findChild("paddle.yaml")!!.canonicalPath!!),
-                project,
-                { LOG.warn("Import result was $it") },
-                false,
-                ProgressExecutionMode.IN_BACKGROUND_ASYNC
-            )
-            return project
+        val directory = getProjectDirectory(virtualFile)
+        val config = directory.findChild("paddle.yaml") ?: return run {
+            LOG.warn("Can't find paddle.yaml in project folder")
+            null
         }
-        return projectToClose
+
+        val project = PlatformProjectOpenProcessor.getInstance().doOpenProject(directory, projectToClose, forceOpenInNewFrame)
+            ?: return null
+        invokeLater { OpenFileAction.openFile(virtualFile, project) }
+        ExternalSystemUtil.linkExternalProject(
+            PADDLE_ID,
+            PaddleExternalProjectSettings(config.canonicalPath!!),
+            project,
+            { if (!it) LOG.warn("Import of Paddle project has failed.") },
+            false,
+            ProgressExecutionMode.IN_BACKGROUND_ASYNC
+        )
+        return project
     }
 
     private fun getProjectDirectory(file: VirtualFile): VirtualFile {
