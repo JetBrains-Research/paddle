@@ -13,7 +13,7 @@
     ]]></description>
 
     <extensions defaultExtensionNs="com.intellij">
-        <projectOpenProcessor implementation="io.paddle.idea.PaddleProjectOpenProcessor"/>
+        <projectOpenProcessor implementation="io.paddle.idea.project.open.PaddleProjectOpenProcessor"/>
         <externalSystemManager implementation="io.paddle.idea.PaddleExternalSystemManager"/>
         <!--suppress PluginXmlValidity -->
         <externalResolverIsSafe executesTrustedCodeOnly="true" systemId="Paddle"/>

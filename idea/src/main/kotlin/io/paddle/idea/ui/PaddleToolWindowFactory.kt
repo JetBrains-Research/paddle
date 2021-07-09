@@ -1,7 +1,7 @@
 package io.paddle.idea.ui
 
 import com.intellij.openapi.externalSystem.service.task.ui.AbstractExternalSystemToolWindowFactory
-import io.paddle.idea.PADDLE_ID
+import io.paddle.idea.PaddleExternalSystemManager
 
-class PaddleToolWindowFactory: AbstractExternalSystemToolWindowFactory(PADDLE_ID) {
+class PaddleToolWindowFactory : AbstractExternalSystemToolWindowFactory(PaddleExternalSystemManager.ID) {
 }

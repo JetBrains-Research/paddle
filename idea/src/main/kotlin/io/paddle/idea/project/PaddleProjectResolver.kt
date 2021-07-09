@@ -6,11 +6,12 @@ import com.intellij.openapi.externalSystem.model.project.*
 import com.intellij.openapi.externalSystem.model.task.*
 import com.intellij.openapi.externalSystem.service.project.ExternalSystemProjectResolver
 import com.intellij.openapi.module.ModuleTypeManager
-import io.paddle.idea.PADDLE_ID
-import io.paddle.idea.PaddleExecutionSettings
+import io.paddle.idea.*
+import io.paddle.idea.settings.PaddleExecutionSettings
 import io.paddle.idea.utils.PaddleProject
 import io.paddle.plugin.standard.extensions.descriptor
 import io.paddle.plugin.standard.extensions.roots
+import io.paddle.project.Project
 import java.io.File
 
 class PaddleProjectResolver : ExternalSystemProjectResolver<PaddleExecutionSettings> {
@@ -25,7 +26,7 @@ class PaddleProjectResolver : ExternalSystemProjectResolver<PaddleExecutionSetti
         val pathToProject = pathToProjectFile.parentFile
         val project = PaddleProject.load(pathToProjectFile, pathToProject)
 
-        val projectData = ProjectData(PADDLE_ID, project.descriptor.name, pathToProject.canonicalPath, pathToProject.canonicalPath).also {
+        val projectData = ProjectData(PaddleExternalSystemManager.ID, project.descriptor.name, pathToProject.canonicalPath, pathToProject.canonicalPath).also {
             it.group = project.descriptor.name
             it.version = project.descriptor.version
         }
@@ -34,7 +35,7 @@ class PaddleProjectResolver : ExternalSystemProjectResolver<PaddleExecutionSetti
 
         val moduleData = ModuleData(
             "main",
-            PADDLE_ID,
+            PaddleExternalSystemManager.ID,
             ModuleTypeManager.getInstance().defaultModuleType.id,
             project.descriptor.name,
             pathToProject.canonicalPath, pathToProject.canonicalPath
@@ -42,7 +43,28 @@ class PaddleProjectResolver : ExternalSystemProjectResolver<PaddleExecutionSetti
 
         val moduleNode = projectNode.createChild(ProjectKeys.MODULE, moduleData)
 
-        val rootData = ContentRootData(PADDLE_ID, pathToProject.canonicalPath)
+        moduleNode.also {
+            it.attachContentRoot(pathToProject, project)
+            it.attachTasks(pathToProject, project)
+        }
+
+        return projectNode
+    }
+
+    private fun DataNode<ModuleData>.attachTasks(
+        pathToProject: File,
+        project: Project
+    ) {
+        for (task in project.tasks.all()) {
+            val data = TaskData(PaddleExternalSystemManager.ID, task.id, pathToProject.canonicalPath, null).also {
+                it.group = task.group
+            }
+            createChild(ProjectKeys.TASK, data)
+        }
+    }
+
+    private fun DataNode<ModuleData>.attachContentRoot(pathToProject: File, project: Project) {
+        val rootData = ContentRootData(PaddleExternalSystemManager.ID, pathToProject.canonicalPath)
         for (src in project.roots.sources) {
             rootData.storePath(ExternalSystemSourceType.SOURCE, src.canonicalPath)
         }
@@ -52,16 +74,7 @@ class PaddleProjectResolver : ExternalSystemProjectResolver<PaddleExecutionSetti
         for (resources in project.roots.resources) {
             rootData.storePath(ExternalSystemSourceType.RESOURCE, resources.canonicalPath)
         }
-
-
-
-        moduleNode.createChild(ProjectKeys.CONTENT_ROOT, rootData)
-
-        for (task in project.tasks.all()) {
-            moduleNode.createChild(ProjectKeys.TASK, TaskData(PADDLE_ID, task.id, pathToProject.canonicalPath, null))
-        }
-
-        return projectNode
+        createChild(ProjectKeys.CONTENT_ROOT, rootData)
     }
 
     override fun cancelTask(taskId: ExternalSystemTaskId, listener: ExternalSystemTaskNotificationListener): Boolean = false

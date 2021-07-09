@@ -3,6 +3,7 @@ package io.paddle.plugin.python.tasks.exec
 import io.paddle.project.Project
 import io.paddle.plugin.python.extensions.environment
 import io.paddle.tasks.Task
+import io.paddle.utils.tasks.TaskDefaultGroups
 
 class RunTask(name: String, private val entrypoint: String, private val arguments: List<String>, project: Project) : Task(project) {
     companion object {
@@ -24,6 +25,8 @@ class RunTask(name: String, private val entrypoint: String, private val argument
     }
 
     override val id: String = "run:${name}"
+
+    override val group: String = TaskDefaultGroups.APP
 
     override val dependencies: List<Task>
         get() = listOf(project.tasks.getOrFail("venv"))

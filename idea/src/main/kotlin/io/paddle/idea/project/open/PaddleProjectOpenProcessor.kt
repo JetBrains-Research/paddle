@@ -1,10 +1,7 @@
-package io.paddle.idea
+package io.paddle.idea.project.open
 
 import com.intellij.ide.actions.OpenFileAction
 import com.intellij.openapi.application.invokeLater
-import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.externalSystem.service.execution.ProgressExecutionMode
-import com.intellij.openapi.externalSystem.util.ExternalSystemUtil
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.vfs.VirtualFile
@@ -34,28 +31,12 @@ class PaddleProjectOpenProcessor : ProjectOpenProcessor() {
 
     override fun doOpenProject(virtualFile: VirtualFile, projectToClose: Project?, forceOpenInNewFrame: Boolean): Project? {
         val directory = getProjectDirectory(virtualFile)
-        val config = directory.findChild("paddle.yaml") ?: return run {
-            LOG.warn("Can't find paddle.yaml in project folder")
-            null
-        }
-
         val project = PlatformProjectOpenProcessor.getInstance().doOpenProject(directory, projectToClose, forceOpenInNewFrame)
             ?: return null
-        val settings = PaddleExternalProjectSettings(config.canonicalPath!!)
-        project.putUserData(PaddleExternalProjectSettings.KEY, settings)
 
+        PaddleOpenProjectProvider.linkToExistingProject(directory, project)
         invokeLater { OpenFileAction.openFile(virtualFile, project) }
-        ExternalSystemUtil.linkExternalProject(
-            PADDLE_ID,
-            settings,
-            project,
-            {
-                if (!it) LOG.warn("Import of Paddle project has failed.")
-                ExternalSystemUtil.ensureToolWindowInitialized(project, PADDLE_ID)
-            },
-            false,
-            ProgressExecutionMode.IN_BACKGROUND_ASYNC
-        )
+
         return project
     }
 
@@ -64,9 +45,5 @@ class PaddleProjectOpenProcessor : ProjectOpenProcessor() {
         if (file.isDirectory && file.children.any { it.isPaddle }) return file
 
         error("Unexpected file considered a Paddle project root")
-    }
-
-    companion object {
-        private val LOG = Logger.getInstance(PaddleProjectOpenProcessor::class.java)
     }
 }

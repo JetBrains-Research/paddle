@@ -2,6 +2,8 @@ package io.paddle.idea.utils
 
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.util.io.exists
+import com.intellij.util.io.isDirectory
 import java.nio.file.Path
 import kotlin.io.path.isRegularFile
 
@@ -19,3 +21,8 @@ internal val VirtualFile.isPaddle: Boolean
 internal val Path.isPaddle: Boolean
     get() =
         isRegularFile() && fileName.toString() == "paddle.yaml"
+
+internal fun Path.findPaddleInDirectory(): Path? {
+    require(isDirectory()) { "Trying to find paddle.yaml not in directory" }
+    return resolve("paddle.yaml").takeIf { it.exists() }
+}

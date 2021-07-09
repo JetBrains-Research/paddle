@@ -2,6 +2,7 @@ package io.paddle.tasks
 
 import io.paddle.project.Project
 import io.paddle.terminal.TerminalUI
+import io.paddle.utils.tasks.TaskDefaultGroups
 
 abstract class Task(val project: Project) {
     /**
@@ -10,6 +11,13 @@ abstract class Task(val project: Project) {
      * Note that this identifier will be used to call the task from the terminal.
      */
     abstract val id: String
+
+    /**
+     * Tasks are grouped into categories by semantics.
+     *
+     * Use [TaskDefaultGroups] for standard groups for tasks
+     */
+    abstract val group: String
 
     /**
      * Dependencies that should be called before this specific task.

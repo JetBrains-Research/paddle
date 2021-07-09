@@ -18,6 +18,7 @@ import com.intellij.util.Function
 import icons.ExternalSystemIcons
 import io.paddle.idea.project.PaddleProjectResolver
 import io.paddle.idea.project.PaddleTaskManager
+import io.paddle.idea.settings.*
 import io.paddle.idea.utils.getOrPut
 import io.paddle.idea.utils.isPaddle
 import javax.swing.Icon
@@ -31,16 +32,31 @@ class PaddleExternalSystemManager : ExternalSystemManager<
     ExternalSystemUiAware,
     ExternalSystemAutoImportAware {
 
+    companion object {
+        val ID: ProjectSystemId = ProjectSystemId("Paddle")
+
+        private val FILE_CHOOSER_DESCRIPTOR = object : FileChooserDescriptor(
+            true,
+            false,
+            false,
+            false,
+            false,
+            false
+        ) {
+            override fun isFileSelectable(file: VirtualFile?) = super.isFileSelectable(file) && file != null && file.isPaddle
+        }
+    }
+
 
     init {
         @Suppress("UnresolvedPluginConfigReference")
-        Registry.get("${PADDLE_ID.id}${ExternalSystemConstants.USE_IN_PROCESS_COMMUNICATION_REGISTRY_KEY_SUFFIX}").setValue(true)
+        Registry.get("${ID.id}${ExternalSystemConstants.USE_IN_PROCESS_COMMUNICATION_REGISTRY_KEY_SUFFIX}").setValue(true)
     }
 
     override fun enhanceRemoteProcessing(parameters: SimpleJavaParameters) {
     }
 
-    override fun getSystemId(): ProjectSystemId = PADDLE_ID
+    override fun getSystemId(): ProjectSystemId = ID
 
     override fun getSettingsProvider(): Function<Project, PaddleExternalSystemSettings> {
         return Function {
@@ -68,23 +84,8 @@ class PaddleExternalSystemManager : ExternalSystemManager<
 
     override fun getExternalProjectDescriptor(): FileChooserDescriptor = FILE_CHOOSER_DESCRIPTOR
 
-    companion object {
-        private val FILE_CHOOSER_DESCRIPTOR = object : FileChooserDescriptor(
-            true,
-            false,
-            false,
-            false,
-            false,
-            false
-        ) {
-            override fun isFileSelectable(file: VirtualFile?) = super.isFileSelectable(file) && file != null && file.isPaddle
-        }
-
-    }
-
     override fun getProjectRepresentationName(targetProjectPath: String, rootProjectPath: String?): String {
-        print("WOW")
-        TODO("Not yet implemented")
+        return "Paddle"
     }
 
     override fun getProjectIcon(): Icon = AllIcons.Nodes.IdeaProject
@@ -92,7 +93,6 @@ class PaddleExternalSystemManager : ExternalSystemManager<
     override fun getTaskIcon(): Icon = ExternalSystemIcons.Task
 
     override fun getAffectedExternalProjectPath(changedFileOrDirPath: String, project: Project): String? {
-        print("WOW")
-        TODO("Not yet implemented")
+        return null
     }
 }

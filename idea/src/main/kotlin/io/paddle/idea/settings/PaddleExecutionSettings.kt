@@ -1,4 +1,4 @@
-package io.paddle.idea
+package io.paddle.idea.settings
 
 import com.intellij.openapi.externalSystem.model.settings.ExternalSystemExecutionSettings
 
