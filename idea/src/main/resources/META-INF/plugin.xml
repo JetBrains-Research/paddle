@@ -14,6 +14,7 @@
 
     <extensions defaultExtensionNs="com.intellij">
         <projectOpenProcessor implementation="io.paddle.idea.project.open.PaddleProjectOpenProcessor"/>
+        <externalSystemUnlinkedProjectAware implementation="io.paddle.idea.project.PaddleUnlinkedProjectAware"/>
         <externalSystemManager implementation="io.paddle.idea.PaddleExternalSystemManager"/>
         <!--suppress PluginXmlValidity -->
         <externalResolverIsSafe executesTrustedCodeOnly="true" systemId="Paddle"/>
