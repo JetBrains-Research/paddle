@@ -1,12 +1,13 @@
-package io.paddle.idea
+package io.paddle.idea.project
 
 import com.intellij.openapi.externalSystem.model.DataNode
 import com.intellij.openapi.externalSystem.model.ProjectKeys
 import com.intellij.openapi.externalSystem.model.project.*
-import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
-import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListener
+import com.intellij.openapi.externalSystem.model.task.*
 import com.intellij.openapi.externalSystem.service.project.ExternalSystemProjectResolver
 import com.intellij.openapi.module.ModuleTypeManager
+import io.paddle.idea.PADDLE_ID
+import io.paddle.idea.PaddleExecutionSettings
 import io.paddle.idea.utils.PaddleProject
 import io.paddle.plugin.standard.extensions.descriptor
 import io.paddle.plugin.standard.extensions.roots
@@ -32,8 +33,11 @@ class PaddleProjectResolver : ExternalSystemProjectResolver<PaddleExecutionSetti
         val projectNode = DataNode(ProjectKeys.PROJECT, projectData, null)
 
         val moduleData = ModuleData(
-            "main", PADDLE_ID, ModuleTypeManager.getInstance().defaultModuleType.id,
-            project.descriptor.name, pathToProject.canonicalPath, pathToProject.canonicalPath
+            "main",
+            PADDLE_ID,
+            ModuleTypeManager.getInstance().defaultModuleType.id,
+            project.descriptor.name,
+            pathToProject.canonicalPath, pathToProject.canonicalPath
         )
 
         val moduleNode = projectNode.createChild(ProjectKeys.MODULE, moduleData)
@@ -49,7 +53,13 @@ class PaddleProjectResolver : ExternalSystemProjectResolver<PaddleExecutionSetti
             rootData.storePath(ExternalSystemSourceType.RESOURCE, resources.canonicalPath)
         }
 
+
+
         moduleNode.createChild(ProjectKeys.CONTENT_ROOT, rootData)
+
+        for (task in project.tasks.all()) {
+            moduleNode.createChild(ProjectKeys.TASK, TaskData(PADDLE_ID, task.id, pathToProject.canonicalPath, null))
+        }
 
         return projectNode
     }

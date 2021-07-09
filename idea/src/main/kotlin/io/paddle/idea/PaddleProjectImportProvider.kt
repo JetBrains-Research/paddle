@@ -4,12 +4,17 @@ import com.intellij.openapi.components.Service
 import com.intellij.openapi.externalSystem.model.ProjectSystemId
 import com.intellij.openapi.externalSystem.settings.*
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.Key
 import com.intellij.util.messages.Topic
 
 val PADDLE_ID: ProjectSystemId = ProjectSystemId("Paddle")
 
 
-class PaddleExternalProjectSettings(val path: String) : ExternalProjectSettings() {
+class PaddleExternalProjectSettings(private val path: String) : ExternalProjectSettings() {
+    companion object {
+        val KEY = Key<PaddleExternalProjectSettings>("paddle.external-project-settings-key")
+    }
+
     override fun getExternalProjectPath(): String {
         return path
     }
@@ -28,6 +33,11 @@ class PaddleExternalSystemSettings(project: Project) :
         PaddleExternalProjectSettingsListener.TOPIC,
         project
     ) {
+    companion object {
+        val KEY = Key<PaddleExternalSystemSettings>("paddle.external-system-settings-key")
+    }
+
+
     override fun subscribe(listener: ExternalSystemSettingsListener<PaddleExternalProjectSettings>) {
         project.messageBus.connect().subscribe(changesTopic, PaddleSettingsListenerDelegatingSettingsAdapter(listener))
     }

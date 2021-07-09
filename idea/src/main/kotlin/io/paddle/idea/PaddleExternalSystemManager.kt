@@ -16,6 +16,9 @@ import com.intellij.openapi.util.registry.Registry
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.util.Function
 import icons.ExternalSystemIcons
+import io.paddle.idea.project.PaddleProjectResolver
+import io.paddle.idea.project.PaddleTaskManager
+import io.paddle.idea.utils.getOrPut
 import io.paddle.idea.utils.isPaddle
 import javax.swing.Icon
 
@@ -40,7 +43,9 @@ class PaddleExternalSystemManager : ExternalSystemManager<
     override fun getSystemId(): ProjectSystemId = PADDLE_ID
 
     override fun getSettingsProvider(): Function<Project, PaddleExternalSystemSettings> {
-        return Function { PaddleExternalSystemSettings(it) }
+        return Function {
+            it.getOrPut(PaddleExternalSystemSettings.KEY) { PaddleExternalSystemSettings(it) }
+        }
     }
 
     override fun getLocalSettingsProvider(): Function<Project, PaddleLocalSettings> {

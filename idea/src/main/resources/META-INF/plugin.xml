@@ -15,6 +15,12 @@
     <extensions defaultExtensionNs="com.intellij">
         <projectOpenProcessor implementation="io.paddle.idea.PaddleProjectOpenProcessor"/>
         <externalSystemManager implementation="io.paddle.idea.PaddleExternalSystemManager"/>
+        <!--suppress PluginXmlValidity -->
+        <externalResolverIsSafe executesTrustedCodeOnly="true" systemId="Paddle"/>
+
+
+        <toolWindow id="Paddle" anchor="right" icon="AllIcons.Actions.Compile"
+                    factoryClass="io.paddle.idea.ui.PaddleToolWindowFactory"/>
     </extensions>
 
 </idea-plugin>

@@ -1,8 +1,9 @@
-package io.paddle.idea
+package io.paddle.idea.project
 
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListener
 import com.intellij.openapi.externalSystem.task.ExternalSystemTaskManager
+import io.paddle.idea.PaddleExecutionSettings
 
 class PaddleTaskManager : ExternalSystemTaskManager<PaddleExecutionSettings> {
     override fun executeTasks(

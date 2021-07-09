@@ -5,7 +5,6 @@ import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.externalSystem.service.execution.ProgressExecutionMode
 import com.intellij.openapi.externalSystem.util.ExternalSystemUtil
-import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.vfs.VirtualFile
@@ -42,12 +41,18 @@ class PaddleProjectOpenProcessor : ProjectOpenProcessor() {
 
         val project = PlatformProjectOpenProcessor.getInstance().doOpenProject(directory, projectToClose, forceOpenInNewFrame)
             ?: return null
+        val settings = PaddleExternalProjectSettings(config.canonicalPath!!)
+        project.putUserData(PaddleExternalProjectSettings.KEY, settings)
+
         invokeLater { OpenFileAction.openFile(virtualFile, project) }
         ExternalSystemUtil.linkExternalProject(
             PADDLE_ID,
-            PaddleExternalProjectSettings(config.canonicalPath!!),
+            settings,
             project,
-            { if (!it) LOG.warn("Import of Paddle project has failed.") },
+            {
+                if (!it) LOG.warn("Import of Paddle project has failed.")
+                ExternalSystemUtil.ensureToolWindowInitialized(project, PADDLE_ID)
+            },
             false,
             ProgressExecutionMode.IN_BACKGROUND_ASYNC
         )
