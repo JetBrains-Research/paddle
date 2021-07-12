@@ -2,14 +2,13 @@ package io.paddle.idea
 
 import com.intellij.execution.configurations.SimpleJavaParameters
 import com.intellij.icons.AllIcons
-import com.intellij.openapi.externalSystem.ExternalSystemAutoImportAware
-import com.intellij.openapi.externalSystem.ExternalSystemManager
-import com.intellij.openapi.externalSystem.ExternalSystemUiAware
+import com.intellij.openapi.externalSystem.*
 import com.intellij.openapi.externalSystem.model.ProjectSystemId
 import com.intellij.openapi.externalSystem.service.project.ExternalSystemProjectResolver
 import com.intellij.openapi.externalSystem.task.ExternalSystemTaskManager
 import com.intellij.openapi.externalSystem.util.ExternalSystemConstants
 import com.intellij.openapi.fileChooser.FileChooserDescriptor
+import com.intellij.openapi.options.Configurable
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Pair
 import com.intellij.openapi.util.registry.Registry
@@ -23,13 +22,15 @@ import io.paddle.idea.utils.getOrPut
 import io.paddle.idea.utils.isPaddle
 import javax.swing.Icon
 
-class PaddleExternalSystemManager : ExternalSystemManager<
-    PaddleExternalProjectSettings,
-    PaddleExternalProjectSettingsListener,
-    PaddleExternalSystemSettings,
+class PaddleManager : ExternalSystemManager<
+    PaddleProjectSettings,
+    PaddleProjectSettings.Listener,
+    PaddleSettings,
     PaddleLocalSettings,
-    PaddleExecutionSettings>,
+    PaddleExecutionSettings
+    >,
     ExternalSystemUiAware,
+    ExternalSystemConfigurableAware,
     ExternalSystemAutoImportAware {
 
     companion object {
@@ -58,9 +59,9 @@ class PaddleExternalSystemManager : ExternalSystemManager<
 
     override fun getSystemId(): ProjectSystemId = ID
 
-    override fun getSettingsProvider(): Function<Project, PaddleExternalSystemSettings> {
+    override fun getSettingsProvider(): Function<Project, PaddleSettings> {
         return Function {
-            it.getOrPut(PaddleExternalSystemSettings.KEY) { PaddleExternalSystemSettings(it) }
+            it.getOrPut(PaddleSettings.KEY) { PaddleSettings(it) }
         }
     }
 
@@ -94,5 +95,9 @@ class PaddleExternalSystemManager : ExternalSystemManager<
 
     override fun getAffectedExternalProjectPath(changedFileOrDirPath: String, project: Project): String? {
         return null
+    }
+
+    override fun getConfigurable(project: Project): Configurable {
+        return PaddleConfigurable(project)
     }
 }

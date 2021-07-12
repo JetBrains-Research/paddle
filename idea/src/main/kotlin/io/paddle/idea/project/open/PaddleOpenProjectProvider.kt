@@ -15,7 +15,8 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.registry.Registry
 import com.intellij.openapi.vfs.VirtualFile
 import io.paddle.idea.*
-import io.paddle.idea.settings.PaddleExternalProjectSettings
+import io.paddle.idea.settings.PaddleProjectSettings
+import io.paddle.idea.settings.PaddleSettings
 import io.paddle.idea.utils.findPaddleInDirectory
 import io.paddle.idea.utils.isPaddle
 import java.nio.file.Path
@@ -30,31 +31,33 @@ object PaddleOpenProjectProvider: AbstractOpenProjectProvider() {
         attachProjectAndRefresh(projectSettings, project)
     }
 
-    private fun createLinkSettings(projectDirectory: Path, project: Project): PaddleExternalProjectSettings {
-        val projectSettings = PaddleExternalProjectSettings(projectDirectory.findPaddleInDirectory()!!.toFile().canonicalPath)
-        project.putUserData(PaddleExternalProjectSettings.KEY, projectSettings)
+    private fun createLinkSettings(projectDirectory: Path, project: Project): PaddleProjectSettings {
+        val projectSettings = PaddleProjectSettings().also {
+            it.externalProjectPath = projectDirectory.findPaddleInDirectory()!!.toFile().canonicalPath
+        }
+
+        PaddleSettings.getInstance(project).linkProject(projectSettings)
 
         return projectSettings
     }
 
     private fun attachProjectAndRefresh(settings: ExternalProjectSettings, project: Project) {
-        val externalProjectPath = settings.externalProjectPath
-        ExternalSystemApiUtil.getSettings(project, PaddleExternalSystemManager.ID).linkProject(settings)
+        ExternalSystemApiUtil.getSettings(project, PaddleManager.ID).linkProject(settings)
 
         if (Registry.`is`("external.system.auto.import.disabled")) return
         ExternalSystemUtil.refreshProject(
-            externalProjectPath,
-            ImportSpecBuilder(project, PaddleExternalSystemManager.ID)
+            settings.externalProjectPath,
+            ImportSpecBuilder(project, PaddleManager.ID)
                 .usePreviewMode()
                 .use(ProgressExecutionMode.MODAL_SYNC)
         )
 
         ExternalProjectsManagerImpl.getInstance(project).runWhenInitialized {
-            ExternalSystemUtil.ensureToolWindowInitialized(project, PaddleExternalSystemManager.ID)
+            ExternalSystemUtil.ensureToolWindowInitialized(project, PaddleManager.ID)
             ExternalSystemUtil.refreshProject(
-                externalProjectPath,
-                ImportSpecBuilder(project, PaddleExternalSystemManager.ID)
-                    .callback(createFinalImportCallback(project, externalProjectPath))
+                settings.externalProjectPath,
+                ImportSpecBuilder(project, PaddleManager.ID)
+                    .callback(createFinalImportCallback(project, settings.externalProjectPath))
             )
         }
     }

@@ -8,20 +8,26 @@
 
         <ul>
             <li>Automate configuration of your development environment: source sets, run configurations -- everything preconfigured</li>
-            <li>Execute tasks right from your IDE, including Docker execution in Docker</li>
+            <li>Execute tasks right from your IDE, including scripts execution in Docker</li>
         </ul>
     ]]></description>
 
     <extensions defaultExtensionNs="com.intellij">
         <projectOpenProcessor implementation="io.paddle.idea.project.open.PaddleProjectOpenProcessor"/>
+
         <externalSystemUnlinkedProjectAware implementation="io.paddle.idea.project.PaddleUnlinkedProjectAware"/>
-        <externalSystemManager implementation="io.paddle.idea.PaddleExternalSystemManager"/>
+        <externalSystemManager implementation="io.paddle.idea.PaddleManager"/>
+        <projectService serviceImplementation="io.paddle.idea.settings.PaddleSettings"/>
+
         <!--suppress PluginXmlValidity -->
         <externalResolverIsSafe executesTrustedCodeOnly="true" systemId="Paddle"/>
 
 
-        <toolWindow id="Paddle" anchor="right" icon="AllIcons.Actions.Compile"
-                    factoryClass="io.paddle.idea.ui.PaddleToolWindowFactory"/>
+        <projectConfigurable groupId="build.tools" groupWeight="110" id="reference.settingsdialog.project.paddle"
+                             instance="io.paddle.idea.settings.PaddleConfigurable"
+                             displayName="Paddle"/>
+
+        <toolWindow id="Paddle" anchor="right" icon="AllIcons.Actions.Compile" factoryClass="io.paddle.idea.ui.PaddleToolWindowFactory"/>
     </extensions>
 
 </idea-plugin>

@@ -26,7 +26,7 @@ class PaddleProjectResolver : ExternalSystemProjectResolver<PaddleExecutionSetti
         val pathToProject = pathToProjectFile.parentFile
         val project = PaddleProject.load(pathToProjectFile, pathToProject)
 
-        val projectData = ProjectData(PaddleExternalSystemManager.ID, project.descriptor.name, pathToProject.canonicalPath, pathToProject.canonicalPath).also {
+        val projectData = ProjectData(PaddleManager.ID, project.descriptor.name, pathToProject.canonicalPath, pathToProject.canonicalPath).also {
             it.group = project.descriptor.name
             it.version = project.descriptor.version
         }
@@ -35,7 +35,7 @@ class PaddleProjectResolver : ExternalSystemProjectResolver<PaddleExecutionSetti
 
         val moduleData = ModuleData(
             "main",
-            PaddleExternalSystemManager.ID,
+            PaddleManager.ID,
             ModuleTypeManager.getInstance().defaultModuleType.id,
             project.descriptor.name,
             pathToProject.canonicalPath, pathToProject.canonicalPath
@@ -56,7 +56,7 @@ class PaddleProjectResolver : ExternalSystemProjectResolver<PaddleExecutionSetti
         project: Project
     ) {
         for (task in project.tasks.all()) {
-            val data = TaskData(PaddleExternalSystemManager.ID, task.id, pathToProject.canonicalPath, null).also {
+            val data = TaskData(PaddleManager.ID, task.id, pathToProject.canonicalPath, null).also {
                 it.group = task.group
             }
             createChild(ProjectKeys.TASK, data)
@@ -64,7 +64,7 @@ class PaddleProjectResolver : ExternalSystemProjectResolver<PaddleExecutionSetti
     }
 
     private fun DataNode<ModuleData>.attachContentRoot(pathToProject: File, project: Project) {
-        val rootData = ContentRootData(PaddleExternalSystemManager.ID, pathToProject.canonicalPath)
+        val rootData = ContentRootData(PaddleManager.ID, pathToProject.canonicalPath)
         for (src in project.roots.sources) {
             rootData.storePath(ExternalSystemSourceType.SOURCE, src.canonicalPath)
         }

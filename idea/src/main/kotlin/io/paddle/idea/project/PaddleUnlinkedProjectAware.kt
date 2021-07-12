@@ -5,27 +5,27 @@ import com.intellij.openapi.externalSystem.autolink.ExternalSystemProjectLinkLis
 import com.intellij.openapi.externalSystem.autolink.ExternalSystemUnlinkedProjectAware
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
-import io.paddle.idea.PaddleExternalSystemManager
+import io.paddle.idea.PaddleManager
 import io.paddle.idea.project.open.PaddleOpenProjectProvider
 import io.paddle.idea.settings.*
 import io.paddle.idea.utils.isPaddle
 
 class PaddleUnlinkedProjectAware : ExternalSystemUnlinkedProjectAware {
-    override val systemId = PaddleExternalSystemManager.ID
+    override val systemId = PaddleManager.ID
 
     override fun isBuildFile(project: Project, buildFile: VirtualFile): Boolean {
         return buildFile.isPaddle
     }
 
     override fun isLinkedProject(project: Project, externalProjectPath: String): Boolean {
-        return project.getUserData(PaddleExternalProjectSettings.KEY) != null
+        return PaddleSettings.getInstance(project).getLinkedProjectSettings(externalProjectPath) != null
     }
 
     @Suppress("UnstableApiUsage")
     override fun subscribe(project: Project, listener: ExternalSystemProjectLinkListener, parentDisposable: Disposable) {
-        val settings = project.getUserData(PaddleExternalSystemSettings.KEY)!!
-        settings.subscribe(object : PaddleExternalProjectSettingsListener.Adapter() {
-            override fun onProjectsLinked(settings: Collection<PaddleExternalProjectSettings>) {
+        val settings = project.getUserData(PaddleSettings.KEY)!!
+        settings.subscribe(object : PaddleProjectSettings.Listener.Adapter() {
+            override fun onProjectsLinked(settings: Collection<PaddleProjectSettings>) {
                 settings.forEach { listener.onProjectLinked(it.externalProjectPath) }
             }
 
