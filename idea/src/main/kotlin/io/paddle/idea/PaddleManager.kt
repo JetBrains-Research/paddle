@@ -16,9 +16,8 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.util.Function
 import icons.ExternalSystemIcons
 import io.paddle.idea.project.PaddleProjectResolver
-import io.paddle.idea.project.PaddleTaskManager
+import io.paddle.idea.runner.PaddleTaskManager
 import io.paddle.idea.settings.*
-import io.paddle.idea.utils.getOrPut
 import io.paddle.idea.utils.isPaddle
 import javax.swing.Icon
 
@@ -61,7 +60,7 @@ class PaddleManager : ExternalSystemManager<
 
     override fun getSettingsProvider(): Function<Project, PaddleSettings> {
         return Function {
-            it.getOrPut(PaddleSettings.KEY) { PaddleSettings(it) }
+            PaddleSettings.getInstance(it)
         }
     }
 

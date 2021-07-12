@@ -1,7 +1,9 @@
 package io.paddle.terminal
 
-object TerminalUI {
-    private const val RESET_COLOR = "\u001B[0m"
+class TerminalUI(val output: TextOutput) {
+    companion object {
+        private const val RESET_COLOR = "\u001B[0m"
+    }
 
     enum class Color(val char: String) {
         BLACK("\u001B[30m"),
@@ -15,12 +17,12 @@ object TerminalUI {
     }
 
     fun echo(message: String) {
-        print(message)
+        output.output(message)
     }
 
     fun echoln(message: String) {
         echo(message)
-        println()
+        echo("\n")
     }
 
     fun colored(message: String, color: Color): String {

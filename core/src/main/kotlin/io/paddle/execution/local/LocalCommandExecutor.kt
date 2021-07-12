@@ -1,24 +1,26 @@
 package io.paddle.execution.local
 
 import io.paddle.execution.CommandExecutor
+import io.paddle.terminal.TerminalUI
+import io.paddle.terminal.TextOutput
 import org.codehaus.plexus.util.cli.*
 import java.io.File
 
-class LocalCommandExecutor(): CommandExecutor() {
-    override fun execute(command: String, args: Iterable<String>, working: File): Int {
+class LocalCommandExecutor(output: TextOutput): CommandExecutor(OutputConfiguration(output)) {
+    override fun execute(command: String, args: Iterable<String>, working: File, terminal: TerminalUI): Int {
         return CommandLineUtils.executeCommandLine(
             Commandline().apply {
                 workingDirectory = working
                 executable = command
                 addArguments(args.toList().toTypedArray())
-            }, getConsumer(stdConfiguration.printStdOut), getConsumer(stdConfiguration.printStdErr)
+            }, getConsumer(configuration.printStdOut), getConsumer(configuration.printStdErr)
         )
     }
 
     private fun getConsumer(redirectOutput: Boolean): StreamConsumer {
-        return if (redirectOutput)
-            DefaultConsumer()
-        else
-            CommandLineUtils.StringStreamConsumer()
+        if (!redirectOutput) {
+            return StreamConsumer { }
+        }
+        return StreamConsumer { configuration.output.output(it + "\n") }
     }
 }

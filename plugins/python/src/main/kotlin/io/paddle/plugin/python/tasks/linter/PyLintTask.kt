@@ -25,7 +25,7 @@ class PyLintTask(project: Project) : IncrementalTask(project) {
         project.requirements.descriptors.add(
             Requirements.Descriptor("pylint", project.config.get<String>("tasks.linter.pylint.version") ?: "2.8.3"),
         )
-        project.tasks.clean.locations.add(File(".pylint_cache"))
+        project.tasks.clean.locations.add(File(project.workDir, ".pylint_cache"))
     }
 
     override fun act() {

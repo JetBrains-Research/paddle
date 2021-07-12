@@ -25,7 +25,7 @@ class MyPyTask(project: Project) : IncrementalTask(project) {
         project.requirements.descriptors.add(
             Requirements.Descriptor("mypy", project.config.get<String>("tasks.linter.mypy.version") ?: "0.902")
         )
-        project.tasks.clean.locations.add(File(".mypy_cache"))
+        project.tasks.clean.locations.add(File(project.workDir, ".mypy_cache"))
     }
 
     override fun act() {

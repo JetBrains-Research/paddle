@@ -18,27 +18,27 @@ class Environment(val project: Project, val venv: File, val workingDir: File) {
                 val venv by string("path", default = ".venv")
             }
 
-            return Environment(project, File(config.venv), File("."))
+            return Environment(project, File(project.workDir, config.venv), project.workDir)
         }
     }
 
     fun initialize(): Int {
-        return project.executor.execute("python3", listOf("-m", "venv", venv.absolutePath), workingDir)
+        return project.executor.execute("python3", listOf("-m", "venv", venv.absolutePath), workingDir, project.terminal)
     }
 
     fun runModule(module: String, arguments: List<String> = emptyList()): Int {
-        return project.executor.execute("${venv.absolutePath}/bin/python", listOf("-m", module, *arguments.toTypedArray()), workingDir)
+        return project.executor.execute("${venv.absolutePath}/bin/python", listOf("-m", module, *arguments.toTypedArray()), workingDir, project.terminal)
     }
 
     fun runScript(file: String, arguments: List<String> = emptyList()): Int {
-        return project.executor.execute("${venv.absolutePath}/bin/python", listOf(file, *arguments.toTypedArray()), workingDir)
+        return project.executor.execute("${venv.absolutePath}/bin/python", listOf(file, *arguments.toTypedArray()), workingDir, project.terminal)
     }
 
     fun install(dependency: Requirements.Descriptor): Int {
-        return project.executor.execute("${venv.absolutePath}/bin/pip", listOf("install", "${dependency.name}==${dependency.version}"), workingDir)
+        return project.executor.execute("${venv.absolutePath}/bin/pip", listOf("install", "${dependency.name}==${dependency.version}"), workingDir, project.terminal)
     }
 
     fun install(requirements: File): Int {
-        return project.executor.execute("${venv.absolutePath}/bin/pip", listOf("install", "-r", requirements.absolutePath), workingDir)
+        return project.executor.execute("${venv.absolutePath}/bin/pip", listOf("install", "-r", requirements.absolutePath), workingDir, project.terminal)
     }
 }

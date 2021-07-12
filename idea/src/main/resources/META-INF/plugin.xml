@@ -28,6 +28,9 @@
                              displayName="Paddle"/>
 
         <toolWindow id="Paddle" anchor="right" icon="AllIcons.Actions.Compile" factoryClass="io.paddle.idea.ui.PaddleToolWindowFactory"/>
+
+        <configurationType implementation="io.paddle.idea.runner.PaddleTaskConfigurationType"/>
+
     </extensions>
 
 </idea-plugin>

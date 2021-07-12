@@ -9,7 +9,7 @@ object DockerPlugin: Plugin {
     override fun configure(project: Project) {
         val executor = project.extensions.get(DockerCommandExecutor.Extension.key) ?: return
         project.executor = executor
-        TerminalUI.echoln("> Executor :docker: ${TerminalUI.colored("ENABLED", TerminalUI.Color.CYAN)}")
+        project.terminal.echoln("> Executor :docker: ${project.terminal.colored("ENABLED", TerminalUI.Color.CYAN)}")
     }
     override fun tasks(project: Project): List<Task> {
         return emptyList()

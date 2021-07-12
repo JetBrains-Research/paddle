@@ -18,12 +18,12 @@ class PaddleUnlinkedProjectAware : ExternalSystemUnlinkedProjectAware {
     }
 
     override fun isLinkedProject(project: Project, externalProjectPath: String): Boolean {
-        return PaddleSettings.getInstance(project).getLinkedProjectSettings(externalProjectPath) != null
+        return PaddleSettings.getInstance(project).linkedProjectsSettings.isNotEmpty()
     }
 
     @Suppress("UnstableApiUsage")
     override fun subscribe(project: Project, listener: ExternalSystemProjectLinkListener, parentDisposable: Disposable) {
-        val settings = project.getUserData(PaddleSettings.KEY)!!
+        val settings = PaddleSettings.getInstance(project)
         settings.subscribe(object : PaddleProjectSettings.Listener.Adapter() {
             override fun onProjectsLinked(settings: Collection<PaddleProjectSettings>) {
                 settings.forEach { listener.onProjectLinked(it.externalProjectPath) }

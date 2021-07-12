@@ -22,7 +22,7 @@ class Requirements(val descriptors: MutableList<Descriptor>, val files: MutableL
 
             val libraries = config.libraries.map { Descriptor(it["name"]!!, it["version"]!!) }.toMutableList()
 
-            return Requirements(libraries, mutableListOf(File(config.file)))
+            return Requirements(libraries, mutableListOf(File(project.workDir, config.file)))
         }
     }
 

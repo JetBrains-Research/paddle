@@ -29,8 +29,6 @@ class PaddleSettings(project: Project) : AbstractExternalSystemSettings<
     }
 
     companion object {
-        val KEY = Key<PaddleSettings>("paddle.external-system-settings-key")
-
         fun getInstance(project: Project): PaddleSettings {
             return project.getService(PaddleSettings::class.java)
         }

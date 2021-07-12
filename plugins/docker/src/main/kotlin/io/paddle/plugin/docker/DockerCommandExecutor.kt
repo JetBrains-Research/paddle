@@ -11,16 +11,17 @@ import com.github.dockerjava.httpclient5.ApacheDockerHttpClient
 import io.paddle.execution.CommandExecutor
 import io.paddle.project.Project
 import io.paddle.terminal.TerminalUI
+import io.paddle.terminal.TextOutput
 import io.paddle.utils.ext.Extendable
 import java.io.File
 
-class DockerCommandExecutor(val image: String) : CommandExecutor() {
+class DockerCommandExecutor(private val image: String, output: TextOutput) : CommandExecutor(OutputConfiguration(output)) {
     object Extension : Project.Extension<DockerCommandExecutor> {
         override val key: Extendable.Key<DockerCommandExecutor> = Extendable.Key()
 
         override fun create(project: Project): DockerCommandExecutor {
             val image: String? = project.config.get("executor.image")
-            return DockerCommandExecutor(image!!)
+            return DockerCommandExecutor(image!!, project.output)
         }
     }
 
@@ -28,11 +29,11 @@ class DockerCommandExecutor(val image: String) : CommandExecutor() {
     private val http = ApacheDockerHttpClient.Builder().dockerHost(config.dockerHost).sslConfig(config.sslConfig).build()
     private val client = DockerClientImpl.getInstance(config, http)
 
-    override fun execute(command: String, args: Iterable<String>, working: File): Int {
+    override fun execute(command: String, args: Iterable<String>, working: File, terminal: TerminalUI): Int {
         val (name, tag) = image.split(":")
 
         if (client.listImagesCmd().exec().all { image !in it.repoTags }) {
-            TerminalUI.echoln("> Executor :docker: ${TerminalUI.colored("PULLING $image", TerminalUI.Color.CYAN)}")
+            terminal.echoln("> Executor :docker: ${terminal.colored("PULLING $image", TerminalUI.Color.CYAN)}")
             client.pullImageCmd(name).withTag(tag).exec(PullImageResultCallback()).awaitCompletion()
         }
 
@@ -60,7 +61,7 @@ class DockerCommandExecutor(val image: String) : CommandExecutor() {
             .withStdOut(true)
             .exec(object : ResultCallback.Adapter<Frame>() {
                 override fun onNext(obj: Frame) {
-                    TerminalUI.echo(String(obj.payload))
+                    terminal.echo(String(obj.payload))
                 }
             })
             .awaitCompletion()
