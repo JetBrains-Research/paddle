@@ -1,6 +1,6 @@
 package io.paddle.terminal
 
-class TerminalUI(val output: TextOutput) {
+class TerminalUI(val output: CommandOutput) {
     companion object {
         private const val RESET_COLOR = "\u001B[0m"
     }
@@ -16,14 +16,16 @@ class TerminalUI(val output: TextOutput) {
         WHITE("\u001B[37m")
     }
 
-    fun echo(message: String) {
-        output.output(message)
+    fun stdout(message: String, newline: Boolean = true) {
+        output.stdout(message)
+        if (newline) output.stdout("\n")
     }
 
-    fun echoln(message: String) {
-        echo(message)
-        echo("\n")
+    fun stderr(message: String, newline: Boolean = true) {
+        output.stderr(message)
+        if (newline) output.stdout("\n")
     }
+
 
     fun colored(message: String, color: Color): String {
         return color.char + message + RESET_COLOR

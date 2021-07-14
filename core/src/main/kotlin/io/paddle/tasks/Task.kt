@@ -47,16 +47,16 @@ abstract class Task(val project: Project) {
             dep.run()
         }
 
-        project.terminal.echoln("> Task :${id}: ${project.terminal.colored("EXECUTE", TerminalUI.Color.YELLOW)}")
+        project.terminal.stdout("> Task :${id}: ${project.terminal.colored("EXECUTE", TerminalUI.Color.YELLOW)}")
 
         try {
             act()
         } catch (e: ActException) {
-            project.terminal.echoln("> Task :${id}: ${project.terminal.colored("FAILED", TerminalUI.Color.RED)}")
-            return
+            project.terminal.stderr("> Task :${id}: ${project.terminal.colored("FAILED", TerminalUI.Color.RED)}")
+            throw e
         }
 
-        project.terminal.echoln("> Task :${id}: ${project.terminal.colored("DONE", TerminalUI.Color.GREEN)}")
+        project.terminal.stdout("> Task :${id}: ${project.terminal.colored("DONE", TerminalUI.Color.GREEN)}")
     }
 
     class ActException(reason: String) : Exception(reason)

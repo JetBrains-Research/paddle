@@ -4,13 +4,17 @@ import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListener
 import com.intellij.openapi.externalSystem.task.ExternalSystemTaskManager
 import io.paddle.idea.settings.PaddleExecutionSettings
-import io.paddle.idea.utils.PaddleProject
-import io.paddle.idea.utils.findPaddleInDirectory
-import io.paddle.terminal.TextOutput
+import io.paddle.idea.utils.*
+import io.paddle.tasks.Task
+import org.slf4j.LoggerFactory
 import java.io.File
 import kotlin.io.path.Path
 
 class PaddleTaskManager : ExternalSystemTaskManager<PaddleExecutionSettings> {
+    companion object {
+        private val logger = LoggerFactory.getLogger(PaddleTaskManager::class.java)
+    }
+
     override fun executeTasks(
         id: ExternalSystemTaskId,
         taskNames: MutableList<String>,
@@ -20,15 +24,19 @@ class PaddleTaskManager : ExternalSystemTaskManager<PaddleExecutionSettings> {
         listener: ExternalSystemTaskNotificationListener
     ) {
         val file = Path(projectPath).findPaddleInDirectory()!!.toFile()
-        val project = PaddleProject.load(file, File(projectPath), object : TextOutput{
-            override fun output(text: String) {
-                listener.onTaskOutput(id, text, true)
-            }
-        })
+        val project = PaddleProject.load(file, File(projectPath), IDEACommandOutput(id, listener))
+
         for (task in taskNames) {
-            project.execute(task)
+            listener.onStart(id, projectPath)
+            try {
+                project.execute(task)
+            } catch (e: Task.ActException) {
+                listener.onFailure(id, e)
+                continue
+            }
+            listener.onSuccess(id)
+            listener.onEnd(id)
         }
-        super.executeTasks(id, taskNames, projectPath, settings, jvmParametersSetup, listener)
     }
 
     override fun cancelTask(id: ExternalSystemTaskId, listener: ExternalSystemTaskNotificationListener): Boolean = false

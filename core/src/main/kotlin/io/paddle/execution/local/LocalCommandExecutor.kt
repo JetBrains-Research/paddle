@@ -2,11 +2,11 @@ package io.paddle.execution.local
 
 import io.paddle.execution.CommandExecutor
 import io.paddle.terminal.TerminalUI
-import io.paddle.terminal.TextOutput
+import io.paddle.terminal.CommandOutput
 import org.codehaus.plexus.util.cli.*
 import java.io.File
 
-class LocalCommandExecutor(output: TextOutput): CommandExecutor(OutputConfiguration(output)) {
+class LocalCommandExecutor(output: CommandOutput): CommandExecutor(OutputConfiguration(output)) {
     override fun execute(command: String, args: Iterable<String>, working: File, terminal: TerminalUI): Int {
         return CommandLineUtils.executeCommandLine(
             Commandline().apply {
@@ -21,6 +21,6 @@ class LocalCommandExecutor(output: TextOutput): CommandExecutor(OutputConfigurat
         if (!redirectOutput) {
             return StreamConsumer { }
         }
-        return StreamConsumer { configuration.output.output(it + "\n") }
+        return StreamConsumer { configuration.output.stdout(it + "\n") }
     }
 }

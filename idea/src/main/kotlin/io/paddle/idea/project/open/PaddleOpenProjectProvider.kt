@@ -14,29 +14,26 @@ import com.intellij.openapi.externalSystem.util.ExternalSystemUtil
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.registry.Registry
 import com.intellij.openapi.vfs.VirtualFile
-import io.paddle.idea.*
+import io.paddle.idea.PaddleManager
 import io.paddle.idea.settings.PaddleProjectSettings
-import io.paddle.idea.settings.PaddleSettings
 import io.paddle.idea.utils.findPaddleInDirectory
 import io.paddle.idea.utils.isPaddle
 import java.nio.file.Path
 
 @Suppress("UnstableApiUsage")
-object PaddleOpenProjectProvider: AbstractOpenProjectProvider() {
-    override fun isProjectFile(file: VirtualFile): Boolean  = file.isPaddle
+object PaddleOpenProjectProvider : AbstractOpenProjectProvider() {
+    override fun isProjectFile(file: VirtualFile): Boolean = file.isPaddle
 
     override fun linkAndRefreshProject(projectDirectory: Path, project: Project) {
-        val projectSettings = createLinkSettings(projectDirectory, project)
+        val projectSettings = createLinkSettings(projectDirectory)
 
         attachProjectAndRefresh(projectSettings, project)
     }
 
-    private fun createLinkSettings(projectDirectory: Path, project: Project): PaddleProjectSettings {
+    private fun createLinkSettings(projectDirectory: Path): PaddleProjectSettings {
         val projectSettings = PaddleProjectSettings().also {
             it.externalProjectPath = projectDirectory.findPaddleInDirectory()!!.toFile().canonicalPath
         }
-
-        PaddleSettings.getInstance(project).linkProject(projectSettings)
 
         return projectSettings
     }
@@ -57,13 +54,13 @@ object PaddleOpenProjectProvider: AbstractOpenProjectProvider() {
             ExternalSystemUtil.refreshProject(
                 settings.externalProjectPath,
                 ImportSpecBuilder(project, PaddleManager.ID)
-                    .callback(createFinalImportCallback(project, settings.externalProjectPath))
+                    .callback(createFinalImportCallback(project))
             )
         }
     }
 
 
-    private fun createFinalImportCallback(project: Project, externalProjectPath: String): ExternalProjectRefreshCallback {
+    private fun createFinalImportCallback(project: Project): ExternalProjectRefreshCallback {
         return object : ExternalProjectRefreshCallback {
             override fun onSuccess(externalProject: DataNode<ProjectData>?) {
                 if (externalProject == null) return

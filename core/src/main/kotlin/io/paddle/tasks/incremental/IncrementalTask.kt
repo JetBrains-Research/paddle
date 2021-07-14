@@ -24,7 +24,7 @@ abstract class IncrementalTask(project: Project) : Task(project) {
 
     override fun run() {
         if (isUpToDate()) {
-            project.terminal.echoln("> Task :${id}: ${project.terminal.colored("UP-TO-DATE", TerminalUI.Color.GREEN)}")
+            project.terminal.stdout("> Task :${id}: ${project.terminal.colored("UP-TO-DATE", TerminalUI.Color.GREEN)}")
             return
         }
 

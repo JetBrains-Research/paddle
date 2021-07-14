@@ -11,39 +11,19 @@ import io.paddle.idea.utils.isPaddle
 
 
 class PaddleProjectOpenProcessor : ProjectOpenProcessor() {
-    override fun canOpenProject(file: VirtualFile): Boolean {
-        if (file.isPaddle) return true
-        if (file.isDirectory && file.children.any { it.isPaddle }) {
-            return true
-        }
-
-        return false
-    }
-
-    override fun isProjectFile(file: VirtualFile): Boolean {
-        return canOpenProject(file)
-    }
-
-    @Messages.YesNoCancelResult
-    override fun askConfirmationForOpeningProject(file: VirtualFile, project: Project?): Int = Messages.NO
-
     override fun getName(): String = "Paddle"
 
+    override fun canOpenProject(file: VirtualFile): Boolean = PaddleOpenProjectProvider.canOpenProject(file)
+
     override fun doOpenProject(virtualFile: VirtualFile, projectToClose: Project?, forceOpenInNewFrame: Boolean): Project? {
-        val directory = getProjectDirectory(virtualFile)
-        val project = PlatformProjectOpenProcessor.getInstance().doOpenProject(directory, projectToClose, forceOpenInNewFrame)
-            ?: return null
-
-        PaddleOpenProjectProvider.linkToExistingProject(directory, project)
-        invokeLater { OpenFileAction.openFile(virtualFile, project) }
-
-        return project
+        return PaddleOpenProjectProvider.openProject(virtualFile, projectToClose, forceOpenInNewFrame)
     }
 
-    private fun getProjectDirectory(file: VirtualFile): VirtualFile {
-        if (file.isPaddle) return file.parent
-        if (file.isDirectory && file.children.any { it.isPaddle }) return file
+    override fun canImportProjectAfterwards(): Boolean {
+        return true
+    }
 
-        error("Unexpected file considered a Paddle project root")
+    override fun importProjectAfterwards(project: Project, file: VirtualFile) {
+        PaddleOpenProjectProvider.linkToExistingProject(file, project)
     }
 }

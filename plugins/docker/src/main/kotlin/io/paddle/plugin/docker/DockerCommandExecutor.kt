@@ -11,11 +11,11 @@ import com.github.dockerjava.httpclient5.ApacheDockerHttpClient
 import io.paddle.execution.CommandExecutor
 import io.paddle.project.Project
 import io.paddle.terminal.TerminalUI
-import io.paddle.terminal.TextOutput
+import io.paddle.terminal.CommandOutput
 import io.paddle.utils.ext.Extendable
 import java.io.File
 
-class DockerCommandExecutor(private val image: String, output: TextOutput) : CommandExecutor(OutputConfiguration(output)) {
+class DockerCommandExecutor(private val image: String, output: CommandOutput) : CommandExecutor(OutputConfiguration(output)) {
     object Extension : Project.Extension<DockerCommandExecutor> {
         override val key: Extendable.Key<DockerCommandExecutor> = Extendable.Key()
 
@@ -33,7 +33,7 @@ class DockerCommandExecutor(private val image: String, output: TextOutput) : Com
         val (name, tag) = image.split(":")
 
         if (client.listImagesCmd().exec().all { image !in it.repoTags }) {
-            terminal.echoln("> Executor :docker: ${terminal.colored("PULLING $image", TerminalUI.Color.CYAN)}")
+            terminal.stdout("> Executor :docker: ${terminal.colored("PULLING $image", TerminalUI.Color.CYAN)}")
             client.pullImageCmd(name).withTag(tag).exec(PullImageResultCallback()).awaitCompletion()
         }
 
@@ -61,7 +61,7 @@ class DockerCommandExecutor(private val image: String, output: TextOutput) : Com
             .withStdOut(true)
             .exec(object : ResultCallback.Adapter<Frame>() {
                 override fun onNext(obj: Frame) {
-                    terminal.echo(String(obj.payload))
+                    terminal.stdout(String(obj.payload), newline = false)
                 }
             })
             .awaitCompletion()

@@ -6,22 +6,27 @@ import io.paddle.plugin.docker.DockerPlugin
 import io.paddle.plugin.python.PythonPlugin
 import io.paddle.plugin.standard.StandardPlugin
 import io.paddle.project.Project
+import io.paddle.tasks.Task
 import io.paddle.terminal.TerminalUI
-import io.paddle.terminal.TextOutput
+import io.paddle.terminal.CommandOutput
 import java.io.File
 
 class Paddle(private val project: Project) : CliktCommand() {
     val task by argument("task", "Use name of task")
 
     override fun run() {
-        project.execute(task)
+        try {
+            project.execute(task)
+        } catch (e: Task.ActException) {
+            return
+        }
     }
 }
 
 fun main(args: Array<String>) {
     val file = File("paddle.yaml")
     if (!file.exists()) {
-        TerminalUI(TextOutput.Console).echo("Can't find paddle.yaml in root")
+        TerminalUI(CommandOutput.Console).stderr("Can't find paddle.yaml in root")
         return
     }
 

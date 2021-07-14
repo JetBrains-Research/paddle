@@ -20,6 +20,6 @@ tasks:
     - entrypoint: src/main/main.py
       id: main
 
-executor:
-  type: docker
-  image: python:3.9-slim
+#executor:
+#  type: docker
+#  image: python:3.9-slim
