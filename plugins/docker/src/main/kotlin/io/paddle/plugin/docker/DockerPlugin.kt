@@ -3,13 +3,13 @@ package io.paddle.plugin.docker
 import io.paddle.plugin.Plugin
 import io.paddle.project.Project
 import io.paddle.tasks.Task
-import io.paddle.terminal.TerminalUI
+import io.paddle.terminal.Terminal
 
 object DockerPlugin: Plugin {
     override fun configure(project: Project) {
         val executor = project.extensions.get(DockerCommandExecutor.Extension.key) ?: return
         project.executor = executor
-        project.terminal.stdout("> Executor :docker: ${project.terminal.colored("ENABLED", TerminalUI.Color.CYAN)}")
+        project.terminal.stdout("> Executor :docker: ${Terminal.colored("ENABLED", Terminal.Color.CYAN)}")
     }
     override fun tasks(project: Project): List<Task> {
         return emptyList()

@@ -7,8 +7,8 @@ import io.paddle.plugin.python.PythonPlugin
 import io.paddle.plugin.standard.StandardPlugin
 import io.paddle.project.Project
 import io.paddle.tasks.Task
-import io.paddle.terminal.TerminalUI
-import io.paddle.terminal.CommandOutput
+import io.paddle.terminal.Terminal
+import io.paddle.terminal.TextOutput
 import java.io.File
 
 class Paddle(private val project: Project) : CliktCommand() {
@@ -26,7 +26,7 @@ class Paddle(private val project: Project) : CliktCommand() {
 fun main(args: Array<String>) {
     val file = File("paddle.yaml")
     if (!file.exists()) {
-        TerminalUI(CommandOutput.Console).stderr("Can't find paddle.yaml in root")
+        Terminal(TextOutput.Console).stderr("Can't find paddle.yaml in root")
         return
     }
 

@@ -10,12 +10,12 @@ import com.github.dockerjava.core.DockerClientImpl
 import com.github.dockerjava.httpclient5.ApacheDockerHttpClient
 import io.paddle.execution.CommandExecutor
 import io.paddle.project.Project
-import io.paddle.terminal.TerminalUI
-import io.paddle.terminal.CommandOutput
+import io.paddle.terminal.Terminal
+import io.paddle.terminal.TextOutput
 import io.paddle.utils.ext.Extendable
 import java.io.File
 
-class DockerCommandExecutor(private val image: String, output: CommandOutput) : CommandExecutor(OutputConfiguration(output)) {
+class DockerCommandExecutor(private val image: String, output: TextOutput) : CommandExecutor(OutputConfiguration(output)) {
     object Extension : Project.Extension<DockerCommandExecutor> {
         override val key: Extendable.Key<DockerCommandExecutor> = Extendable.Key()
 
@@ -29,11 +29,11 @@ class DockerCommandExecutor(private val image: String, output: CommandOutput) : 
     private val http = ApacheDockerHttpClient.Builder().dockerHost(config.dockerHost).sslConfig(config.sslConfig).build()
     private val client = DockerClientImpl.getInstance(config, http)
 
-    override fun execute(command: String, args: Iterable<String>, working: File, terminal: TerminalUI): Int {
+    override fun execute(command: String, args: Iterable<String>, working: File, terminal: Terminal): Int {
         val (name, tag) = image.split(":")
 
         if (client.listImagesCmd().exec().all { image !in it.repoTags }) {
-            terminal.stdout("> Executor :docker: ${terminal.colored("PULLING $image", TerminalUI.Color.CYAN)}")
+            terminal.stdout("> Executor :docker: ${Terminal.colored("PULLING $image", Terminal.Color.CYAN)}")
             client.pullImageCmd(name).withTag(tag).exec(PullImageResultCallback()).awaitCompletion()
         }
 

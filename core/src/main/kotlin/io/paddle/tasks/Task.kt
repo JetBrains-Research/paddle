@@ -1,7 +1,7 @@
 package io.paddle.tasks
 
 import io.paddle.project.Project
-import io.paddle.terminal.TerminalUI
+import io.paddle.terminal.CommandOutput
 import io.paddle.utils.tasks.TaskDefaultGroups
 
 abstract class Task(val project: Project) {
@@ -47,16 +47,16 @@ abstract class Task(val project: Project) {
             dep.run()
         }
 
-        project.terminal.stdout("> Task :${id}: ${project.terminal.colored("EXECUTE", TerminalUI.Color.YELLOW)}")
+        project.terminal.commands.stdout(CommandOutput.Command.Task(id, CommandOutput.Command.Task.Status.EXECUTE))
 
         try {
             act()
         } catch (e: ActException) {
-            project.terminal.stderr("> Task :${id}: ${project.terminal.colored("FAILED", TerminalUI.Color.RED)}")
+            project.terminal.commands.stdout(CommandOutput.Command.Task(id, CommandOutput.Command.Task.Status.FAILED))
             throw e
         }
 
-        project.terminal.stdout("> Task :${id}: ${project.terminal.colored("DONE", TerminalUI.Color.GREEN)}")
+        project.terminal.commands.stdout(CommandOutput.Command.Task(id, CommandOutput.Command.Task.Status.DONE))
     }
 
     class ActException(reason: String) : Exception(reason)

@@ -6,15 +6,10 @@ import com.intellij.openapi.externalSystem.task.ExternalSystemTaskManager
 import io.paddle.idea.settings.PaddleExecutionSettings
 import io.paddle.idea.utils.*
 import io.paddle.tasks.Task
-import org.slf4j.LoggerFactory
 import java.io.File
 import kotlin.io.path.Path
 
 class PaddleTaskManager : ExternalSystemTaskManager<PaddleExecutionSettings> {
-    companion object {
-        private val logger = LoggerFactory.getLogger(PaddleTaskManager::class.java)
-    }
-
     override fun executeTasks(
         id: ExternalSystemTaskId,
         taskNames: MutableList<String>,

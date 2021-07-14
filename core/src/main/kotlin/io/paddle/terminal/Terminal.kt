@@ -1,8 +1,22 @@
 package io.paddle.terminal
 
-class TerminalUI(val output: CommandOutput) {
+class Terminal(private val output: TextOutput) {
+    val commands = CommandOutput(output)
+
     companion object {
         private const val RESET_COLOR = "\u001B[0m"
+
+        fun decolor(message: String): String {
+            var result = message
+            for (color in Color.values().map { it.char } + RESET_COLOR) {
+                result = result.replace(color, "")
+            }
+            return result
+        }
+
+        fun colored(message: String, color: Color): String {
+            return color.char + message + RESET_COLOR
+        }
     }
 
     enum class Color(val char: String) {
@@ -24,10 +38,5 @@ class TerminalUI(val output: CommandOutput) {
     fun stderr(message: String, newline: Boolean = true) {
         output.stderr(message)
         if (newline) output.stdout("\n")
-    }
-
-
-    fun colored(message: String, color: Color): String {
-        return color.char + message + RESET_COLOR
     }
 }

@@ -1,13 +1,13 @@
 package io.paddle.execution.local
 
 import io.paddle.execution.CommandExecutor
-import io.paddle.terminal.TerminalUI
-import io.paddle.terminal.CommandOutput
+import io.paddle.terminal.Terminal
+import io.paddle.terminal.TextOutput
 import org.codehaus.plexus.util.cli.*
 import java.io.File
 
-class LocalCommandExecutor(output: CommandOutput): CommandExecutor(OutputConfiguration(output)) {
-    override fun execute(command: String, args: Iterable<String>, working: File, terminal: TerminalUI): Int {
+class LocalCommandExecutor(output: TextOutput): CommandExecutor(OutputConfiguration(output)) {
+    override fun execute(command: String, args: Iterable<String>, working: File, terminal: Terminal): Int {
         return CommandLineUtils.executeCommandLine(
             Commandline().apply {
                 workingDirectory = working

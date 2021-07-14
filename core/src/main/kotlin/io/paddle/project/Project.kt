@@ -3,13 +3,12 @@ package io.paddle.project
 import io.paddle.execution.CommandExecutor
 import io.paddle.execution.local.LocalCommandExecutor
 import io.paddle.plugin.Plugin
-import io.paddle.terminal.TerminalUI
-import io.paddle.terminal.CommandOutput
+import io.paddle.terminal.*
 import io.paddle.utils.config.Configuration
 import io.paddle.utils.ext.Extendable
 import java.io.File
 
-class Project(val config: Configuration, val workDir: File = File("."), val output: CommandOutput = CommandOutput.Console) {
+class Project(val config: Configuration, val workDir: File = File("."), val output: TextOutput = TextOutput.Console) {
     interface Extension<V: Any> {
         val key: Extendable.Key<V>
 
@@ -19,7 +18,7 @@ class Project(val config: Configuration, val workDir: File = File("."), val outp
     val tasks = Tasks()
     val extensions = Extendable()
     var executor: CommandExecutor = LocalCommandExecutor(output)
-    val terminal = TerminalUI(output)
+    val terminal = Terminal(output)
 
     fun register(plugin: Plugin) {
         for (extension in plugin.extensions(this)) {
@@ -35,7 +34,7 @@ class Project(val config: Configuration, val workDir: File = File("."), val outp
 
     fun execute(id: String) {
         val task = tasks.get(id) ?: run {
-            terminal.stderr("> Task :$id: ${terminal.colored("UNKNOWN", TerminalUI.Color.RED)}")
+            terminal.commands.stderr(CommandOutput.Command.Task(id, CommandOutput.Command.Task.Status.UNKNOWN))
             return
         }
         task.run()

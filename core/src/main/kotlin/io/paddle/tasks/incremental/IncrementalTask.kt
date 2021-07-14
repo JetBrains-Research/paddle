@@ -2,7 +2,8 @@ package io.paddle.tasks.incremental
 
 import io.paddle.project.Project
 import io.paddle.tasks.Task
-import io.paddle.terminal.TerminalUI
+import io.paddle.terminal.CommandOutput
+import io.paddle.terminal.Terminal
 import io.paddle.utils.Hashable
 import io.paddle.utils.hashable
 
@@ -24,7 +25,7 @@ abstract class IncrementalTask(project: Project) : Task(project) {
 
     override fun run() {
         if (isUpToDate()) {
-            project.terminal.stdout("> Task :${id}: ${project.terminal.colored("UP-TO-DATE", TerminalUI.Color.GREEN)}")
+            project.terminal.commands.stdout(CommandOutput.Command.Task(id, CommandOutput.Command.Task.Status.UP_TO_DATE))
             return
         }
 

@@ -31,6 +31,8 @@
 
         <configurationType implementation="io.paddle.idea.runner.PaddleTaskConfigurationType"/>
 
+        <externalSystemOutputParserProvider implementation="io.paddle.idea.parser.PaddleParserProvider"/>
+
     </extensions>
 
 </idea-plugin>
