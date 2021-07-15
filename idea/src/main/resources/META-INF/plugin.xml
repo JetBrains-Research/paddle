@@ -31,8 +31,10 @@
 
         <configurationType implementation="io.paddle.idea.runner.PaddleTaskConfigurationType"/>
 
-        <externalSystemOutputParserProvider implementation="io.paddle.idea.parser.PaddleParserProvider"/>
-
+        <externalSystemOutputParserProvider implementation="io.paddle.idea.runner.parser.PaddleParserProvider"/>
     </extensions>
 
+    <extensions defaultExtensionNs="JavaScript.JsonSchema">
+        <ProviderFactory implementation="io.paddle.idea.schema.PaddleJsonSchemaProviderFactory"/>
+    </extensions>
 </idea-plugin>

@@ -1,4 +1,4 @@
-package io.paddle.idea.parser
+package io.paddle.idea.runner.parser
 
 import com.intellij.build.events.*
 import com.intellij.build.events.impl.*
