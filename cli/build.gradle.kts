@@ -41,6 +41,7 @@ githubRelease {
     token(System.getenv("GITHUB_TOKEN"))
     owner("tanvd")
     repo("paddle")
+    targetCommitish("main")
     releaseAssets(shadowJar.task.archiveFile.get())
 }
 
