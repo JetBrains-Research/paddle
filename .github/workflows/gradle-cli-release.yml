@@ -1,0 +1,23 @@
+name: Paddle CLI Release
+
+on: [ workflow_dispatch ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up JDK 1.8
+        uses: actions/setup-java@v1
+
+        with:
+          java-version: 1.8
+          server-id: github
+          settings-path: ${{ github.workspace }}
+
+      - name: Release with Gradle
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: ./gradlew githubRelease --console=plain

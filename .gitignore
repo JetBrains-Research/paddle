@@ -6,3 +6,4 @@ build
 .mypy_cache
 .pytest_cache
 *.iml
+cli/src/main/resources/version.txt
