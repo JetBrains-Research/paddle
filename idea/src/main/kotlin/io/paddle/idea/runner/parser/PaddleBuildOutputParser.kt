@@ -21,12 +21,12 @@ class PaddleBuildOutputParser: BuildOutputParser {
             CommandOutput.Command.Task.Status.FAILED -> FinishEventImpl(task.id, reader.parentEventId, System.currentTimeMillis(), raw, FailureResultImpl())
             CommandOutput.Command.Task.Status.UNKNOWN -> FinishEventImpl(task.id, reader.parentEventId, System.currentTimeMillis(), raw, FailureResultImpl())
             CommandOutput.Command.Task.Status.DONE -> FinishEventImpl(task.id, reader.parentEventId, System.currentTimeMillis(), raw, SuccessResultImpl())
-            CommandOutput.Command.Task.Status.UP_TO_DATE -> FinishEventImpl(task.id, reader.parentEventId, System.currentTimeMillis(), raw, SuccessResultImpl())
+            CommandOutput.Command.Task.Status.UP_TO_DATE -> FinishEventImpl(task.id, reader.parentEventId, System.currentTimeMillis(), raw, SuccessResultImpl(true))
         }
         messageConsumer.accept(event)
 
         return false
     }
 
-    fun String.isNextMessage() = startsWith("> ")
+    private fun String.isNextMessage() = startsWith("> ")
 }
