@@ -7,7 +7,7 @@ import io.paddle.idea.settings.PaddleExecutionSettings
 import io.paddle.idea.utils.*
 import io.paddle.tasks.Task
 import java.io.File
-import kotlin.io.path.Path
+import java.nio.file.Path
 
 class PaddleTaskManager : ExternalSystemTaskManager<PaddleExecutionSettings> {
     override fun executeTasks(
@@ -18,7 +18,7 @@ class PaddleTaskManager : ExternalSystemTaskManager<PaddleExecutionSettings> {
         jvmParametersSetup: String?,
         listener: ExternalSystemTaskNotificationListener
     ) {
-        val file = Path(projectPath).findPaddleInDirectory()!!.toFile()
+        val file = Path.of(projectPath).findPaddleInDirectory()!!.toFile()
         val project = PaddleProject.load(file, File(projectPath), IDEACommandOutput(id, listener))
 
         for (task in taskNames) {

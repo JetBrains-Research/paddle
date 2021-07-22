@@ -17,8 +17,8 @@ dependencies {
 intellij {
     pluginName.set("Paddle")
 
-//    type.set("PC")
-//    version.set("PC-2021.1.3")
+    type.set("PC")
+    version.set("PC-2021.1.3")
 
     downloadSources.set(true)
 }

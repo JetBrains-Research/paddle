@@ -3,14 +3,20 @@
     <name>Paddle</name>
     <vendor email="vdtankov@gmail.com">Vladislav Tankov</vendor>
 
+    <idea-version since-build="211.*" until-build="213.*"/>
+
     <description><![CDATA[
         <p>Integrates Paddle build system with IntelliJ-based IDEs</p>
 
         <ul>
             <li>Automate configuration of your development environment: source sets, run configurations -- everything preconfigured</li>
-            <li>Execute tasks right from your IDE, including scripts execution in Docker</li>
+            <li>Execute tasks right from your IDE: tests, linters and more</li>
         </ul>
     ]]></description>
+
+    <depends>com.intellij.modules.platform</depends>
+    <depends>com.intellij.modules.lang</depends>
+    <depends>com.intellij.modules.json</depends>
 
     <extensions defaultExtensionNs="com.intellij">
         <projectOpenProcessor implementation="io.paddle.idea.project.open.PaddleProjectOpenProcessor"/>
