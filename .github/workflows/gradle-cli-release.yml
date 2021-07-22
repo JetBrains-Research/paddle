@@ -1,4 +1,4 @@
-name: Paddle CLI Release
+name: CLI Release
 
 on: [ workflow_dispatch ]
 
