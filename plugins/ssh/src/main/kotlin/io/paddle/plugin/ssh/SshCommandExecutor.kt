@@ -12,7 +12,7 @@ import io.paddle.utils.ext.Extendable
 import java.io.File
 
 class SshCommandExecutor(private val host: String, private val user: String,
-                         private var remoteDir: String, output: TextOutput) : CommandExecutor(OutputConfiguration(output)) {
+                         remoteDir: String, output: TextOutput) : CommandExecutor(OutputConfiguration(output)) {
     object Extension : Project.Extension<SshCommandExecutor> {
         override val key: Extendable.Key<SshCommandExecutor> = Extendable.Key()
 
@@ -24,11 +24,7 @@ class SshCommandExecutor(private val host: String, private val user: String,
         }
     }
 
-    init {
-        if (!remoteDir.endsWith("/")) {
-            remoteDir += "/"
-        }
-    }
+    private val remoteDir = if (remoteDir.endsWith("/")) remoteDir else "$remoteDir/"
 
     override fun execute(command: String, args: Iterable<String>, working: File, terminal: Terminal): Int {
         terminal.stdout("> Executor :remote-ssh: ${Terminal.colored(
