@@ -12,6 +12,9 @@ dependencies {
     implementation(project(":plugins:docker")){
         exclude("org.slf4j")
     }
+    implementation(project(":plugins:ssh")){
+        exclude("org.slf4j")
+    }
 }
 
 intellij {

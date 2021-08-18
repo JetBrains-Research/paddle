@@ -23,3 +23,9 @@ tasks:
 #executor:
 #  type: docker
 #  image: python:3.9-slim
+
+#executor:
+#  type: ssh
+#  user: admin
+#  host: localhost
+#  directory: /home/project/

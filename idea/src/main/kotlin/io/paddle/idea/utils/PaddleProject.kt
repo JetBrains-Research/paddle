@@ -2,6 +2,7 @@ package io.paddle.idea.utils
 
 import io.paddle.plugin.docker.DockerPlugin
 import io.paddle.plugin.python.PythonPlugin
+import io.paddle.plugin.ssh.SshPlugin
 import io.paddle.plugin.standard.StandardPlugin
 import io.paddle.project.Project
 import io.paddle.terminal.TextOutput
@@ -15,6 +16,7 @@ object PaddleProject {
             it.register(StandardPlugin)
             it.register(PythonPlugin)
             it.register(DockerPlugin)
+            it.register(SshPlugin)
         }
         return project
     }

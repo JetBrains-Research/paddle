@@ -4,6 +4,7 @@ import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.parameters.arguments.argument
 import io.paddle.plugin.docker.DockerPlugin
 import io.paddle.plugin.python.PythonPlugin
+import io.paddle.plugin.ssh.SshPlugin
 import io.paddle.plugin.standard.StandardPlugin
 import io.paddle.project.Project
 import io.paddle.tasks.Task
@@ -34,6 +35,7 @@ fun main(args: Array<String>) {
         it.register(StandardPlugin)
         it.register(PythonPlugin)
         it.register(DockerPlugin)
+        it.register(SshPlugin)
     }
 
     Paddle(project).main(args)
