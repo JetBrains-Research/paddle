@@ -13,6 +13,7 @@ dependencies {
     implementation(project(":core"))
     implementation(project(":plugins:python"))
     implementation(project(":plugins:docker"))
+    implementation(project(":plugins:ssh"))
 
     implementation("com.github.ajalt.clikt", "clikt", "3.2.0")
 

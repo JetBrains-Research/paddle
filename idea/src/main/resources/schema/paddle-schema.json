@@ -57,6 +57,7 @@
           "type": "string",
           "enum": [
             "docker",
+            "ssh",
             "local"
           ]
         }
@@ -77,6 +78,36 @@
             "properties": {
               "image": {
                 "description": "Image to be used for build",
+                "type": "string"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "ssh"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "user",
+              "host",
+              "directory"
+            ],
+            "properties": {
+              "user": {
+                "description": "User to login via ssh",
+                "type": "string"
+              },
+              "host":{
+                "description": "Host to connect via ssh",
+                "type": "string"
+              },
+              "directory": {
+                "description": "Absolute path of remote working directory",
                 "type": "string"
               }
             }
