@@ -6,7 +6,6 @@ import com.intellij.openapi.project.Project
 import io.paddle.idea.PaddleManager
 
 @Service
-class PaddleLocalSettings(project: Project) :
-    AbstractExternalSystemLocalSettings<AbstractExternalSystemLocalSettings.State>(PaddleManager.ID, project) {
+class PaddleLocalSettings(project: Project) : AbstractExternalSystemLocalSettings<AbstractExternalSystemLocalSettings.State>(PaddleManager.ID, project) {
 }
 

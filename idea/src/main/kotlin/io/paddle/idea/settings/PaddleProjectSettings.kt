@@ -3,7 +3,7 @@ package io.paddle.idea.settings
 import com.intellij.openapi.externalSystem.settings.*
 import com.intellij.util.messages.Topic
 
-class PaddleProjectSettings() : ExternalProjectSettings() {
+class PaddleProjectSettings : ExternalProjectSettings() {
     interface Listener : ExternalSystemSettingsListener<PaddleProjectSettings> {
         abstract class Adapter : Listener, ExternalSystemSettingsListenerAdapter<PaddleProjectSettings>()
 

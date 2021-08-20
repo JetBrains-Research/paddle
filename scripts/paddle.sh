@@ -8,7 +8,7 @@ PADDLE_HOME=$HOME/.local/share/paddle
 FIRST_ARG=$1
 
 check_prerequisites () {
-    local required_utils="java curl"
+    local required_utils="java curl jq"
 
     for util in ${required_utils}
     do
