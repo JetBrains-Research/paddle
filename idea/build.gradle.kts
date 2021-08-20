@@ -1,3 +1,6 @@
+group = rootProject.group
+version = rootProject.version
+
 plugins {
     id("org.jetbrains.intellij") version "1.1.2" apply true
 }
@@ -21,4 +24,6 @@ intellij {
     version.set("PC-2021.1.3")
 
     downloadSources.set(true)
+
+    updateSinceUntilBuild.set(false)
 }
