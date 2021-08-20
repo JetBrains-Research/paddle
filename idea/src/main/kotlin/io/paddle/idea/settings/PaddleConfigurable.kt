@@ -51,6 +51,6 @@ class PaddleConfigurable(project: Project) :
 
     companion object {
         const val ID = "reference.settingsdialog.project.paddle"
-        val HELP_TOPIC: @NonNls String? = ID
+        val HELP_TOPIC: @NonNls String = ID
     }
 }
