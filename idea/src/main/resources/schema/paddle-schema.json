@@ -197,6 +197,13 @@
         }
       }
     },
+    "plugins": {
+      "description": "Array of enabled plugins identifiers",
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
     "tasks": {
       "type": "object",
       "properties": {

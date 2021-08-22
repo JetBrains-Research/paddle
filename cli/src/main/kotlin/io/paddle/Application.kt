@@ -2,10 +2,8 @@ package io.paddle
 
 import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.parameters.arguments.argument
-import io.paddle.plugin.docker.DockerPlugin
-import io.paddle.plugin.python.PythonPlugin
-import io.paddle.plugin.ssh.SshPlugin
-import io.paddle.plugin.standard.StandardPlugin
+import io.paddle.plugin.standard.extensions.Plugins
+import io.paddle.plugin.standard.extensions.plugins
 import io.paddle.project.Project
 import io.paddle.tasks.Task
 import io.paddle.terminal.Terminal
@@ -30,12 +28,8 @@ fun main(args: Array<String>) {
         Terminal(TextOutput.Console).stderr("Can't find paddle.yaml in root")
         return
     }
-
     val project = Project.load(file).also {
-        it.register(StandardPlugin)
-        it.register(PythonPlugin)
-        it.register(DockerPlugin)
-        it.register(SshPlugin)
+        it.registerAll(it.plugins.enabled)
     }
 
     Paddle(project).main(args)
