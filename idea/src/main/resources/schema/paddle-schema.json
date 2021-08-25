@@ -102,7 +102,7 @@
                 "description": "User to login via ssh",
                 "type": "string"
               },
-              "host":{
+              "host": {
                 "description": "Host to connect via ssh",
                 "type": "string"
               },
@@ -198,10 +198,22 @@
       }
     },
     "plugins": {
-      "description": "Array of enabled plugins identifiers",
-      "type": "array",
-      "items": {
-        "type": "string"
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "description": "Array of enabled plugins identifiers",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "jars": {
+          "description": "Array of paths to jars with custom plugins",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
       }
     },
     "tasks": {

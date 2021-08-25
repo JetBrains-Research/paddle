@@ -16,9 +16,13 @@ requirements:
   file: requirements.txt
 
 plugins:
-  - python
-  - docker
-  - ssh
+  enabled:
+    - python
+    - docker
+    - ssh
+#    - example-plugin
+#  jars:
+#    - ".../paddle/example/plugins/test-plugin-0.1.0.jar"
 
 tasks:
   run:
