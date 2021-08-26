@@ -2,7 +2,6 @@ package io.paddle
 
 import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.parameters.arguments.argument
-import io.paddle.plugin.standard.extensions.Plugins
 import io.paddle.plugin.standard.extensions.plugins
 import io.paddle.project.Project
 import io.paddle.tasks.Task
@@ -29,7 +28,7 @@ fun main(args: Array<String>) {
         return
     }
     val project = Project.load(file).also {
-        it.registerAll(it.plugins.enabled)
+        it.register(it.plugins.enabled)
     }
 
     Paddle(project).main(args)

@@ -10,7 +10,7 @@ object PaddleProject {
     fun load(file: File, workDir: File, output: TextOutput = TextOutput.Console): Project {
         val config = Configuration.from(file)
         val project = Project(config, workDir, output).also {
-            it.registerAll(it.plugins.enabled)
+            it.register(it.plugins.enabled)
         }
         return project
     }

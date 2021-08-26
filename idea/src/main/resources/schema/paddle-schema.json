@@ -204,7 +204,12 @@
           "description": "Array of enabled plugins identifiers",
           "type": "array",
           "items": {
-            "type": "string"
+            "type": "string",
+            "enum": [
+              "python",
+              "docker",
+              "ssh"
+            ]
           }
         },
         "jars": {
@@ -264,6 +269,36 @@
               "entrypoint": {
                 "type": "string"
               }
+            }
+          }
+        }
+      }
+    }
+  },
+  "if": {
+    "required": [
+      "executor"
+    ],
+    "properties": {
+      "executor": {
+        "required": [
+          "type"
+        ],
+        "properties": {
+          "type": {
+            "const": "ssh"
+          }
+        }
+      }
+    }
+  },
+  "then": {
+    "properties": {
+      "plugins": {
+        "properties": {
+          "enabled": {
+            "contains": {
+              "const": "ssh"
             }
           }
         }

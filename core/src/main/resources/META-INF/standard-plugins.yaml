@@ -1,0 +1,7 @@
+plugins:
+  - id: docker
+    class: io.paddle.plugin.docker.DockerPlugin
+  - id: python
+    class: io.paddle.plugin.python.PythonPlugin
+  - id: ssh
+    class: io.paddle.plugin.ssh.SshPlugin

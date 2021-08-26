@@ -37,7 +37,7 @@ class Project(val config: Configuration, val workDir: File = File("."), val outp
         plugin.configure(this)
     }
 
-    fun registerAll(plugins: Iterable<Plugin>) {
+    fun register(plugins: Iterable<Plugin>) {
         plugins.forEach { this.register(it) }
     }
 
