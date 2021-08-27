@@ -275,34 +275,93 @@
       }
     }
   },
-  "if": {
-    "required": [
-      "executor"
-    ],
-    "properties": {
-      "executor": {
+  "allOf": [
+    {
+      "if": {
         "required": [
-          "type"
+          "executor"
         ],
         "properties": {
-          "type": {
-            "const": "ssh"
+          "executor": {
+            "required": [
+              "type"
+            ],
+            "properties": {
+              "type": {
+                "const": "ssh"
+              }
+            }
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "plugins": {
+            "properties": {
+              "enabled": {
+                "contains": {
+                  "const": "ssh"
+                }
+              }
+            }
           }
         }
       }
-    }
-  },
-  "then": {
-    "properties": {
-      "plugins": {
+    },
+    {
+      "if": {
+        "required": [
+          "executor"
+        ],
         "properties": {
-          "enabled": {
-            "contains": {
-              "const": "ssh"
+          "executor": {
+            "required": [
+              "type"
+            ],
+            "properties": {
+              "type": {
+                "const": "docker"
+              }
+            }
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "plugins": {
+            "properties": {
+              "enabled": {
+                "contains": {
+                  "const": "docker"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "required": [
+          "environment"
+        ],
+        "properties": {
+          "environment": true
+        }
+      },
+      "then": {
+        "properties": {
+          "plugins": {
+            "properties": {
+              "enabled": {
+                "contains": {
+                  "const": "python"
+                }
+              }
             }
           }
         }
       }
     }
-  }
+  ]
 }
