@@ -3,6 +3,7 @@ package io.paddle.project
 import io.paddle.execution.CommandExecutor
 import io.paddle.execution.local.LocalCommandExecutor
 import io.paddle.plugin.Plugin
+import io.paddle.plugin.standard.extensions.Plugins
 import io.paddle.terminal.*
 import io.paddle.utils.config.Configuration
 import io.paddle.utils.ext.Extendable
@@ -20,6 +21,10 @@ class Project(val config: Configuration, val workDir: File = File("."), val outp
     var executor: CommandExecutor = LocalCommandExecutor(output)
     val terminal = Terminal(output)
 
+    init {
+        extensions.register(Plugins.Extension.key, Plugins.Extension.create(this))
+    }
+
     fun register(plugin: Plugin) {
         for (extension in plugin.extensions(this)) {
             extensions.register(extension.key, extension.create(this))
@@ -30,6 +35,10 @@ class Project(val config: Configuration, val workDir: File = File("."), val outp
         }
 
         plugin.configure(this)
+    }
+
+    fun register(plugins: Iterable<Plugin>) {
+        plugins.forEach { this.register(it) }
     }
 
     fun execute(id: String) {

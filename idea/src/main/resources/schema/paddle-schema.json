@@ -102,7 +102,7 @@
                 "description": "User to login via ssh",
                 "type": "string"
               },
-              "host":{
+              "host": {
                 "description": "Host to connect via ssh",
                 "type": "string"
               },
@@ -197,6 +197,30 @@
         }
       }
     },
+    "plugins": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "description": "Array of enabled plugins identifiers",
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "python",
+              "docker",
+              "ssh"
+            ]
+          }
+        },
+        "jars": {
+          "description": "Array of paths to jars with custom plugins",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
     "tasks": {
       "type": "object",
       "properties": {
@@ -250,5 +274,94 @@
         }
       }
     }
-  }
+  },
+  "allOf": [
+    {
+      "if": {
+        "required": [
+          "executor"
+        ],
+        "properties": {
+          "executor": {
+            "required": [
+              "type"
+            ],
+            "properties": {
+              "type": {
+                "const": "ssh"
+              }
+            }
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "plugins": {
+            "properties": {
+              "enabled": {
+                "contains": {
+                  "const": "ssh"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "required": [
+          "executor"
+        ],
+        "properties": {
+          "executor": {
+            "required": [
+              "type"
+            ],
+            "properties": {
+              "type": {
+                "const": "docker"
+              }
+            }
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "plugins": {
+            "properties": {
+              "enabled": {
+                "contains": {
+                  "const": "docker"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "required": [
+          "environment"
+        ],
+        "properties": {
+          "environment": true
+        }
+      },
+      "then": {
+        "properties": {
+          "plugins": {
+            "properties": {
+              "enabled": {
+                "contains": {
+                  "const": "python"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  ]
 }
