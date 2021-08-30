@@ -28,5 +28,5 @@ intellij {
 
     downloadSources.set(true)
 
-    updateSinceUntilBuild.set(false)
+    // updateSinceUntilBuild.set(false)
 }

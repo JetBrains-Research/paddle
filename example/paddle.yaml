@@ -13,7 +13,8 @@ environment:
   path: .venv
 
 requirements:
-  file: requirements.txt
+  libraries:
+    - name: redis
 
 tasks:
   run:

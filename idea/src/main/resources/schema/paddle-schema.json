@@ -102,7 +102,7 @@
                 "description": "User to login via ssh",
                 "type": "string"
               },
-              "host":{
+              "host": {
                 "description": "Host to connect via ssh",
                 "type": "string"
               },
@@ -173,29 +173,37 @@
     },
     "requirements": {
       "type": "object",
-      "properties": {
-        "file": {
-          "type": "string"
+      "anyOf": [
+        {
+          "properties": {
+            "file": {
+              "description": "Path to the requirements.txt file",
+              "type": "string"
+            }
+          }
         },
-        "libraries": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "required": [
-              "name",
-              "version"
-            ],
-            "properties": {
-              "name": {
-                "type": "string"
-              },
-              "version": {
-                "type": "string"
+        {
+          "properties": {
+            "libraries": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": [
+                  "name"
+                ],
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  },
+                  "version": {
+                    "type": "string"
+                  }
+                }
               }
             }
           }
         }
-      }
+      ]
     },
     "tasks": {
       "type": "object",
