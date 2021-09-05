@@ -56,8 +56,6 @@
         "type": {
           "type": "string",
           "enum": [
-            "docker",
-            "ssh",
             "local"
           ]
         }
@@ -67,102 +65,7 @@
           "if": {
             "properties": {
               "type": {
-                "const": "docker"
-              }
-            }
-          },
-          "then": {
-            "required": [
-              "image"
-            ],
-            "properties": {
-              "image": {
-                "description": "Image to be used for build",
-                "type": "string"
-              }
-            }
-          }
-        },
-        {
-          "if": {
-            "properties": {
-              "type": {
-                "const": "ssh"
-              }
-            }
-          },
-          "then": {
-            "required": [
-              "user",
-              "host",
-              "directory"
-            ],
-            "properties": {
-              "user": {
-                "description": "User to login via ssh",
-                "type": "string"
-              },
-              "host": {
-                "description": "Host to connect via ssh",
-                "type": "string"
-              },
-              "directory": {
-                "description": "Absolute path of remote working directory",
-                "type": "string"
-              }
-            }
-          }
-        },
-        {
-          "if": {
-            "properties": {
-              "type": {
                 "const": "local"
-              }
-            }
-          },
-          "then": {
-          }
-        }
-      ]
-    },
-    "environment": {
-      "description": "Environment that should be used by Paddle for Python build process",
-      "properties": {
-        "type": {
-          "type": "string",
-          "enum": [
-            "virtualenv",
-            "global"
-          ]
-        }
-      },
-      "allOf": [
-        {
-          "if": {
-            "properties": {
-              "type": {
-                "const": "virtualenv"
-              }
-            }
-          },
-          "then": {
-            "required": [
-              "path"
-            ],
-            "properties": {
-              "path": {
-                "description": "Path to virtual environment location",
-                "type": "string"
-              }
-            }
-          }
-        },
-        {
-          "if": {
-            "properties": {
-              "type": {
-                "const": "global"
               }
             }
           },
@@ -275,93 +178,5 @@
       }
     }
   },
-  "allOf": [
-    {
-      "if": {
-        "required": [
-          "executor"
-        ],
-        "properties": {
-          "executor": {
-            "required": [
-              "type"
-            ],
-            "properties": {
-              "type": {
-                "const": "ssh"
-              }
-            }
-          }
-        }
-      },
-      "then": {
-        "properties": {
-          "plugins": {
-            "properties": {
-              "enabled": {
-                "contains": {
-                  "const": "ssh"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    {
-      "if": {
-        "required": [
-          "executor"
-        ],
-        "properties": {
-          "executor": {
-            "required": [
-              "type"
-            ],
-            "properties": {
-              "type": {
-                "const": "docker"
-              }
-            }
-          }
-        }
-      },
-      "then": {
-        "properties": {
-          "plugins": {
-            "properties": {
-              "enabled": {
-                "contains": {
-                  "const": "docker"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    {
-      "if": {
-        "required": [
-          "environment"
-        ],
-        "properties": {
-          "environment": true
-        }
-      },
-      "then": {
-        "properties": {
-          "plugins": {
-            "properties": {
-              "enabled": {
-                "contains": {
-                  "const": "python"
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-  ]
+  "allOf": []
 }
