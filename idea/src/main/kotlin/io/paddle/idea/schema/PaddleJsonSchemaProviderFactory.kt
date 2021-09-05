@@ -8,7 +8,7 @@ import com.jetbrains.jsonSchema.extension.JsonSchemaFileProvider
 class PaddleJsonSchemaProviderFactory : JsonSchemaProviderFactory, DumbAware {
     override fun getProviders(project: Project): List<JsonSchemaFileProvider> {
         return listOf(
-            EmbeddedJsonSchemaProvider("/schema/paddle-schema.json", "Paddle", setOf("paddle.yaml"))
+            ExtendedJsonSchemaProvider("/schema/paddle-schema.json", "Paddle", setOf("paddle.yaml"))
         )
     }
 }
