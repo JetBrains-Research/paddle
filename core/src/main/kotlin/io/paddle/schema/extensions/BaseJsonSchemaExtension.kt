@@ -4,8 +4,8 @@ import io.paddle.schema.JsonSchemaBuilder
 
 data class JsonSchemaPart(val value: String, val destination: String)
 
-abstract class AbstractJsonSchemaExtension(private val extensions: List<JsonSchemaPart>) {
-    fun applyTo(schemaBuilder: JsonSchemaBuilder) {
+open class BaseJsonSchemaExtension(private val extensions: List<JsonSchemaPart>) {
+    open fun applyTo(schemaBuilder: JsonSchemaBuilder) {
         extensions.forEach { schemaBuilder.append(it) }
     }
 }

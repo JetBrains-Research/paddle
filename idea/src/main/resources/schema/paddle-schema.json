@@ -108,11 +108,7 @@
           "type": "array",
           "items": {
             "type": "string",
-            "enum": [
-              "python",
-              "docker",
-              "ssh"
-            ]
+            "enum": []
           }
         },
         "jars": {
