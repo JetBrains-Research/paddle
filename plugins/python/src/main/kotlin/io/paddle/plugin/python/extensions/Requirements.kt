@@ -16,13 +16,13 @@ class Requirements(val descriptors: MutableList<Descriptor>, val files: MutableL
 
         override fun create(project: Project): Requirements {
             val config = object : ConfigurationView("requirements", project.config) {
-                val file by string("file", default = "requirements.txt")
+                val requirementsFile by string("file", default = "requirements.txt")
                 val libraries by list<Map<String, String>>("libraries", default = emptyList())
             }
 
             val libraries = config.libraries.map { Descriptor(it["name"]!!, it["version"]!!) }.toMutableList()
 
-            return Requirements(libraries, mutableListOf(File(project.workDir, config.file)))
+            return Requirements(libraries, mutableListOf(File(project.workDir, config.requirementsFile)))
         }
     }
 

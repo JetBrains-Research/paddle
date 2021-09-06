@@ -29,7 +29,7 @@ class DockerCommandExecutor(private val image: String, output: TextOutput) : Com
     private val http = ApacheDockerHttpClient.Builder().dockerHost(config.dockerHost).sslConfig(config.sslConfig).build()
     private val client = DockerClientImpl.getInstance(config, http)
 
-    override fun execute(command: String, args: Iterable<String>, working: File, terminal: Terminal): Int {
+    override fun execute(command: String, args: Iterable<String>, workingDir: File, terminal: Terminal): Int {
         val (name, tag) = image.split(":")
 
         if (client.listImagesCmd().exec().all { image !in it.repoTags }) {
@@ -47,7 +47,7 @@ class DockerCommandExecutor(private val image: String, output: TextOutput) : Com
             .withBinds(
                 Bind.parse(File(".").absolutePath + ":" + "/project"),
             )
-            .withWorkingDir("/project/${working.toRelativeString(File("."))}")
+            .withWorkingDir("/project/${workingDir.toRelativeString(File("."))}")
             .withCmd(fixedCommand, *fixedArgs.toTypedArray())
             .withAttachStderr(true)
             .withAttachStdout(true)
