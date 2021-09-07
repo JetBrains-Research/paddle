@@ -23,5 +23,4 @@ object SshPlugin : Plugin {
         }
         return listOf(SshCommandExecutor.Extension, JsonSchema.Extension) as List<Project.Extension<Any>>
     }
-
 }

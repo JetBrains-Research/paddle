@@ -22,13 +22,14 @@ class Plugins(val enabled: List<Plugin>, val namesOfAvailable: List<String>) {
                 val jarNames by list<String>("jars", emptyList())
             }
             val jarsReps = pluginsConfig.jarNames.map { SingleJarPluginsRepository(File(it)) }
-            val availablePlugins = (listOf(StandardPluginsRepository) + jarsReps)
-                .flatMap { it.getPluginsBy(pluginsConfig.pluginsIds) }
 
             val namesOfAvailablePlugins = jarsReps.flatMap { it.getAvailablePluginsIds() } +
                 StandardPluginsRepository.getAvailablePluginsIds()
 
-            return Plugins(listOf(StandardPlugin) + availablePlugins, namesOfAvailablePlugins)
+            val pluginsToEnable = (jarsReps + StandardPluginsRepository)
+                .flatMap { it.getPluginsBy(pluginsConfig.pluginsIds) }
+
+            return Plugins(listOf(StandardPlugin) + pluginsToEnable, namesOfAvailablePlugins)
         }
     }
 }

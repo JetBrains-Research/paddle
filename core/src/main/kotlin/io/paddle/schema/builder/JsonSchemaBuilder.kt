@@ -1,4 +1,4 @@
-package io.paddle.schema
+package io.paddle.schema.builder
 
 import com.fasterxml.jackson.core.JsonFactory
 import com.fasterxml.jackson.core.JsonProcessingException
@@ -14,9 +14,9 @@ class JsonSchemaBuilder(baseContent: String) {
 
     fun append(jsonSchemaPart: JsonSchemaPart): JsonSchemaBuilder {
         val valueToInsert = try {
-            objectMapper.readTree(jsonSchemaPart.value)
+            objectMapper.readTree(jsonSchemaPart.content)
         } catch (e: JsonProcessingException) {
-            objectMapper.valueToTree(jsonSchemaPart.value)
+            objectMapper.valueToTree(jsonSchemaPart.content)
         }
         var targetNode = jsonSchema.at(jsonSchemaPart.destination)
         if (targetNode.isArray) {
