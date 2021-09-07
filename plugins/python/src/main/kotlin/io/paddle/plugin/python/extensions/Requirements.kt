@@ -26,7 +26,7 @@ class Requirements(val descriptors: MutableList<Descriptor>, val files: MutableL
         }
     }
 
-    class Descriptor(val name: String, val version: String) : Hashable {
+    data class Descriptor(val name: String, val version: String) : Hashable {
         override fun hash(): String {
             return listOf(name.hashable(), version.hashable()).hashable().hash()
         }

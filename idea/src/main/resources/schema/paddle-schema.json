@@ -189,7 +189,8 @@
               "items": {
                 "type": "object",
                 "required": [
-                  "name"
+                  "name",
+                  "version"
                 ],
                 "properties": {
                   "name": {
