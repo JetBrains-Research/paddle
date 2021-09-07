@@ -10,7 +10,7 @@ class JsonSchema(extensions: List<JsonSchemaPart>) : BaseJsonSchemaExtension(ext
 
         private fun getJsonSchemaExtensions() = listOf(
             JsonSchemaPartFromResource(
-                "python-constraint.json",
+                "environment-constraint.json",
                 "/allOf",
                 this
             ),
@@ -18,6 +18,15 @@ class JsonSchema(extensions: List<JsonSchemaPart>) : BaseJsonSchemaExtension(ext
                 "environment.json",
                 "/properties/environment",
                 this
+            ),
+            JsonSchemaPartFromResource(
+                "requirements-constraint.json",
+                "/allOf",
+                this
+            ),
+            JsonSchemaPartFromResource(
+                "requirements.json",
+                "/properties/requirements", this
             )
         )
 

@@ -74,32 +74,6 @@
         }
       ]
     },
-    "requirements": {
-      "type": "object",
-      "properties": {
-        "file": {
-          "type": "string"
-        },
-        "libraries": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "required": [
-              "name",
-              "version"
-            ],
-            "properties": {
-              "name": {
-                "type": "string"
-              },
-              "version": {
-                "type": "string"
-              }
-            }
-          }
-        }
-      }
-    },
     "plugins": {
       "type": "object",
       "properties": {
