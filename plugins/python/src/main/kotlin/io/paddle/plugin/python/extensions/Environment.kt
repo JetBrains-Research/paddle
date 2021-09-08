@@ -6,7 +6,6 @@ import io.paddle.project.Project
 import io.paddle.utils.config.ConfigurationView
 import io.paddle.utils.ext.Extendable
 import java.io.File
-import java.nio.file.Files
 
 
 val Project.environment: Environment
@@ -39,22 +38,14 @@ class Environment(val project: Project, val venv: VenvDir, val workDir: File) {
 
     fun install(dependency: Requirements.Descriptor): Int {
         if (!GlobalCacheRepository.hasCached(dependency)) {
-            val code = GlobalCacheRepository.install(dependency)
-            if (code != 0) {
-                return code
-            }
+            GlobalCacheRepository.installToCache(dependency)
         }
-        val targetPackageGlobalPath = GlobalCacheRepository.getPathToDependency(dependency)
-        val localPackageLink = venv.sitePackages.resolve(dependency.name)
-        if (!localPackageLink.exists()) {
-            // TODO: I guess, we should symlink <package>-<version>.dist-info folder as well
-            Files.createSymbolicLink(localPackageLink.toPath(), targetPackageGlobalPath)
-        }
+        GlobalCacheRepository.createSymlinkToPackage(dependency, linkPath = venv.sitePackages.resolve(dependency.name).toPath())
         return 0
     }
 
     fun install(requirements: File): Int {
-        // TODO: use paddle-global-cache pip by default
+        // TODO: parse requirements and resolve all versions by hands, since it seems impossible to rely on pip's dependency resolution mechanism here
         return project.executor.execute("${venv.absolutePath}/bin/pip", listOf("install", "-r", requirements.absolutePath), workDir, project.terminal)
     }
 }
