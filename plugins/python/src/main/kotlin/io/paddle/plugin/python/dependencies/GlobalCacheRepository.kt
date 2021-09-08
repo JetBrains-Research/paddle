@@ -29,30 +29,40 @@ object GlobalCacheRepository {
 
     fun hasCached(dependency: Requirements.Descriptor) = cachedPackages.contains(dependency)
 
-    fun getPathToDependency(dependency: Requirements.Descriptor): Path = Config.cacheDir.resolve(dependency.name).resolve(dependency.version)
+    fun getPathToPackage(dependency: Requirements.Descriptor): Path =
+        Config.cacheDir.resolve(dependency.name).resolve(dependency.version)
+
+    fun getPathToPackageDistInfo(dependency: Requirements.Descriptor): Path =
+        Config.cacheDir.resolve(dependency.name).resolve(dependency.distInfoDirName)
 
     fun installToCache(dependency: Requirements.Descriptor) {
         val code = GlobalVenvManager.install(dependency)
         if (code == 0) {
-            val packageToCopy = GlobalVenvManager.globalVenv.sitePackages.resolve(dependency.name)
-            try {
-                packageToCopy.copyRecursively(
-                    target = getPathToDependency(dependency).toFile(),
-                    overwrite = true
-                )
-            } catch (ex: IOException) {
-                error("Some IO problems occurred during caching the installed ${dependency.name}-${dependency.version} package.")
-            }
+            copyFromGlobalVenv(dependency)
         } else {
             TODO("Conflict occurred. Clear globalVenv and try again")
         }
     }
 
-    fun createSymlinkToPackage(dependency: Requirements.Descriptor, linkPath: Path) {
-        if (!Files.exists(linkPath)) {
-            Files.createSymbolicLink(linkPath, getPathToDependency(dependency))
+    private fun copyFromGlobalVenv(dependency: Requirements.Descriptor) {
+        val packageToCopy = GlobalVenvManager.globalVenv.sitePackages.resolve(dependency.name)
+        val packageDistInfoToCopy = GlobalVenvManager.globalVenv.sitePackages.resolve(dependency.distInfoDirName)
+        try {
+            packageToCopy.copyRecursively(target = getPathToPackage(dependency).toFile(), overwrite = true)
+            packageDistInfoToCopy.copyRecursively(target = getPathToPackageDistInfo(dependency).toFile(), overwrite = true)
+        } catch (ex: IOException) {
+            error("Some IO problems occurred during caching the installed ${dependency.name}-${dependency.version} package.")
+        }
+    }
+
+    fun createSymlinkToPackage(dependency: Requirements.Descriptor, linkParentDir: Path) {
+        val packageLinkPath = linkParentDir.resolve(dependency.name)
+        val packageDistInfoLinkPath = linkParentDir.resolve(dependency.distInfoDirName)
+        if (Files.notExists(packageLinkPath) && Files.notExists(packageDistInfoLinkPath)) {
+            Files.createSymbolicLink(packageLinkPath, getPathToPackage(dependency))
+            Files.createSymbolicLink(packageDistInfoLinkPath, getPathToPackageDistInfo(dependency))
         } else {
-            error("The specified package is already installed.") // TODO: custom exceptions?
+            error("The specified package <${dependency.name}> is already installed, or removed incorrectly.") // TODO: custom exceptions?
         }
     }
 }

@@ -18,11 +18,14 @@ object Config {
      *       package_name/
      *           version_1/
      *               ...
+     *           version_1.dist-info/
+     *               ...
      *           version_2/
      *               ...
-     *       another_package_name/
-     *           version_1/
+     *           version_2.dist-info/
      *               ...
+     *       another_package_name/
+     *           ...
      * ```
      */
     val cacheDir: Path = paddleHome.resolve("cache")
