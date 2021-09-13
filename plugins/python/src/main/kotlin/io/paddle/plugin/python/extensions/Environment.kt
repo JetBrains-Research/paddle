@@ -37,14 +37,14 @@ class Environment(val project: Project, val venv: VenvDir, val workDir: File) {
     }
 
     fun install(dependency: Requirements.Descriptor): Int {
-        if (venv.sitePackages.resolve(dependency.name).exists()) {
+        if (venv.hasInstalledPackage(dependency)) {
             // TODO: consider re-installing the package if the current version is different from the queried one
             return 0
         }
         if (!GlobalCacheRepository.hasCached(dependency)) {
             GlobalCacheRepository.installToCache(dependency)
         }
-        GlobalCacheRepository.createSymlinkToPackage(dependency, linkParentDir = venv.sitePackages.toPath())
+        GlobalCacheRepository.createSymlinkToPackageRecursively(dependency, parentDirOfSymlink = venv.sitePackages.toPath())
         return 0
     }
 

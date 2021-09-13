@@ -1,5 +1,6 @@
 package io.paddle.plugin.python.dependencies
 
+import io.paddle.plugin.python.extensions.Requirements
 import java.io.File
 
 /**
@@ -17,4 +18,10 @@ class VenvDir(private val directory: File) : File(directory.path) {
             val pythonDir = libDir.listFiles()?.find { it.name.matches(Regex("python\\d.\\d")) } ?: error("Incorrect venv structure")
             return pythonDir.resolve("site-packages")
         }
+
+    fun hasInstalledPackage(dependency: Requirements.Descriptor): Boolean {
+        return this.sitePackages.listFiles()
+            ?.any { it.isDirectory && it.name == dependency.distInfoDirName }
+            ?: false
+    }
 }

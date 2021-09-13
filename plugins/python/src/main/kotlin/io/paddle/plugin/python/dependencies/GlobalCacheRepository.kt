@@ -32,37 +32,68 @@ object GlobalCacheRepository {
     fun getPathToPackage(dependency: Requirements.Descriptor): Path =
         Config.cacheDir.resolve(dependency.name).resolve(dependency.version)
 
-    fun getPathToPackageDistInfo(dependency: Requirements.Descriptor): Path =
-        Config.cacheDir.resolve(dependency.name).resolve(dependency.distInfoDirName)
-
     fun installToCache(dependency: Requirements.Descriptor) {
         val code = GlobalVenvManager.install(dependency)
         if (code == 0) {
-            copyFromGlobalVenv(dependency)
+            copyPackageRecursivelyFromGlobalVenv(dependency)
         } else {
             TODO("Conflict occurred. Clear globalVenv and try again")
         }
     }
 
-    private fun copyFromGlobalVenv(dependency: Requirements.Descriptor) {
-        val packageToCopy = GlobalVenvManager.globalVenv.sitePackages.resolve(dependency.name)
-        val packageDistInfoToCopy = GlobalVenvManager.globalVenv.sitePackages.resolve(dependency.distInfoDirName)
+    private fun copyPackageRecursivelyFromGlobalVenv(dependency: Requirements.Descriptor) {
+        val packageSources = GlobalVenvManager.getPackageRelatedStuff(dependency)
         try {
-            packageToCopy.copyRecursively(target = getPathToPackage(dependency).toFile(), overwrite = true)
-            packageDistInfoToCopy.copyRecursively(target = getPathToPackageDistInfo(dependency).toFile(), overwrite = true)
+            packageSources.forEach { it.copyRecursively(target = getPathToPackage(dependency).resolve(it.name).toFile(), overwrite = true) }
+            cachedPackages.add(dependency)
+            copyDependentPackagesFromGlobalVenv(dependency)
         } catch (ex: IOException) {
             error("Some IO problems occurred during caching the installed ${dependency.name}-${dependency.version} package.")
         }
     }
 
-    fun createSymlinkToPackage(dependency: Requirements.Descriptor, linkParentDir: Path) {
-        val packageLinkPath = linkParentDir.resolve(dependency.name)
-        val packageDistInfoLinkPath = linkParentDir.resolve(dependency.distInfoDirName)
-        if (Files.notExists(packageLinkPath) && Files.notExists(packageDistInfoLinkPath)) {
-            Files.createSymbolicLink(packageLinkPath, getPathToPackage(dependency))
-            Files.createSymbolicLink(packageDistInfoLinkPath, getPathToPackageDistInfo(dependency))
+    private fun copyDependentPackagesFromGlobalVenv(parentDependency: Requirements.Descriptor) {
+        val distInfoDir = GlobalVenvManager.globalVenv.sitePackages.resolve(parentDependency.distInfoDirName)
+        val metadata = PackageMetadata.parse(distInfoDir.resolve("METADATA"))
+        for (packageName in metadata.requiresDist) {
+            if (metadata.providesExtra.contains(packageName)) {
+                continue
+            }
+            if (cachedPackages.any { it.name.startsWith(packageName) }) {
+                continue // FIXME: consider versions as well
+            }
+            // Pip has already installed the required dependent packages, so we should only find it within the venv
+            val version = GlobalVenvManager.getInstalledPackageVersionByName(packageName)
+                ?: error("Package $packageName (required by ${parentDependency.name}) is not installed.")
+
+            val childDependency = Requirements.Descriptor(packageName, version)
+            copyPackageRecursivelyFromGlobalVenv(childDependency)
+        }
+    }
+
+    fun createSymlinkToPackageRecursively(dependency: Requirements.Descriptor, parentDirOfSymlink: Path) {
+        if (Files.notExists(parentDirOfSymlink.resolve(dependency.name))) {
+            getPathToPackage(dependency).toFile().listFiles()?.forEach {
+                Files.createSymbolicLink(parentDirOfSymlink.resolve(it.name), it.toPath())
+            }
+            createSymLinksToDependentPackagesRecursively(dependency, parentDirOfSymlink)
         } else {
-            error("The specified package <${dependency.name}> is already installed, or removed incorrectly.") // TODO: custom exceptions?
+            // TODO: check versions compatibility?
+        }
+    }
+
+    private fun createSymLinksToDependentPackagesRecursively(parentDependency: Requirements.Descriptor, parentDirOfSymlink: Path) {
+        val distInfoDir = GlobalVenvManager.globalVenv.sitePackages.resolve(parentDependency.distInfoDirName)
+        val metadata = PackageMetadata.parse(distInfoDir.resolve("METADATA"))
+        for (packageName in metadata.requiresDist) {
+            if (metadata.providesExtra.contains(packageName)) {
+                continue
+            }
+            val version = GlobalVenvManager.getInstalledPackageVersionByName(packageName)
+                ?: error("Package $packageName (required by ${parentDependency.name} is not installed.")
+
+            val childDependency = Requirements.Descriptor(packageName, version)
+            createSymlinkToPackageRecursively(childDependency, parentDirOfSymlink)
         }
     }
 }
