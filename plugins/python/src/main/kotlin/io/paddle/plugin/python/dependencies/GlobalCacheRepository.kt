@@ -59,7 +59,7 @@ object GlobalCacheRepository {
                 if (pkg.metadata.providesExtra.contains(dependencyName)) {
                     continue // TODO: read docs about it and find proofs
                 }
-                val dependencyVersion = GlobalVenvManager.getInstalledPackageVersionByName(pkg.name)
+                val dependencyVersion = GlobalVenvManager.getInstalledPackageVersionByName(dependencyName)
                     ?: error("Package $dependencyName (required by ${pkg.name}) is not installed.")
                 if (cachedPackages.any { it.name == dependencyName && it.version == dependencyVersion }) {
                     continue
