@@ -4,6 +4,7 @@ import com.github.fracpete.processoutput4j.output.StreamingProcessOutput
 import com.github.fracpete.rsync4j.RSync
 import com.github.fracpete.rsync4j.Ssh
 import io.paddle.execution.CommandExecutor
+import io.paddle.execution.ExecutionResult
 import io.paddle.plugin.ssh.output.RemoteOutputOwner
 import io.paddle.project.Project
 import io.paddle.terminal.Terminal
@@ -26,9 +27,14 @@ class SshCommandExecutor(private val host: String, private val user: String,
 
     private val remoteDir = if (remoteDir.endsWith("/")) remoteDir else "$remoteDir/"
 
-    override fun execute(command: String, args: Iterable<String>, workingDir: File, terminal: Terminal): Int {
-        terminal.stdout("> Executor :remote-ssh: ${Terminal.colored(
-            "Transfer files via rsync from ${workingDir.canonicalPath} to $remoteDir with host: $host and username: $user", Terminal.Color.CYAN)}")
+    override fun execute(command: String, args: Iterable<String>, workingDir: File, terminal: Terminal): ExecutionResult {
+        terminal.stdout(
+            "> Executor :remote-ssh: ${
+                Terminal.colored(
+                    "Transfer files via rsync from ${workingDir.canonicalPath} to $remoteDir with host: $host and username: $user", Terminal.Color.CYAN
+                )
+            }"
+        )
         val rsyncTo = RSync()
             .archive(true)
             .recursive(true)
@@ -78,6 +84,6 @@ class SshCommandExecutor(private val host: String, private val user: String,
             .destination("${workingDir.canonicalPath}/")
 
         processOutput.monitor(rsyncFrom.builder())
-        return rsyncFrom.start().waitFor()
+        return ExecutionResult(rsyncFrom.start().waitFor())
     }
 }

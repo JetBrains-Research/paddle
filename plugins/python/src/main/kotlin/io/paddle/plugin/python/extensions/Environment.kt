@@ -1,5 +1,6 @@
 package io.paddle.plugin.python.extensions
 
+import io.paddle.execution.ExecutionResult
 import io.paddle.plugin.python.dependencies.GlobalCacheRepository
 import io.paddle.plugin.python.dependencies.VenvDir
 import io.paddle.project.Project
@@ -24,32 +25,27 @@ class Environment(val project: Project, val venv: VenvDir, val workDir: File) {
         }
     }
 
-    fun initialize(): Int {
+    fun initialize(): ExecutionResult {
         return project.executor.execute("python3", listOf("-m", "venv", venv.absolutePath), workDir, project.terminal)
     }
 
-    fun runModule(module: String, arguments: List<String> = emptyList()): Int {
+    fun runModule(module: String, arguments: List<String> = emptyList()): ExecutionResult {
         return project.executor.execute("${venv.absolutePath}/bin/python", listOf("-m", module, *arguments.toTypedArray()), workDir, project.terminal)
     }
 
-    fun runScript(file: String, arguments: List<String> = emptyList()): Int {
+    fun runScript(file: String, arguments: List<String> = emptyList()): ExecutionResult {
         return project.executor.execute("${venv.absolutePath}/bin/python", listOf(file, *arguments.toTypedArray()), workDir, project.terminal)
     }
 
-    fun install(dependency: Requirements.Descriptor): Int {
-        if (venv.hasInstalledPackage(dependency)) {
-            // TODO: consider re-installing the package if the current version is different from the queried one
-            return 0
-        }
-        if (!GlobalCacheRepository.hasCached(dependency)) {
-            GlobalCacheRepository.installToCache(dependency)
-        }
-        GlobalCacheRepository.createSymlinkToPackageRecursively(dependency, parentDirOfSymlink = venv.sitePackages.toPath())
-        return 0
+    fun install(dependencyDescriptor: Requirements.Descriptor) {
+        if (venv.hasInstalledPackage(dependencyDescriptor)) return
+
+        val pkg = GlobalCacheRepository.findPackage(dependencyDescriptor)
+        GlobalCacheRepository.createSymlinkToPackageRecursively(pkg, symlinkDir = venv.sitePackages.toPath())
     }
 
-    fun install(requirements: File): Int {
-        // TODO: parse requirements and resolve all versions by hands, since it seems impossible to rely on pip's dependency resolution mechanism here
+    fun install(requirements: File): ExecutionResult {
+        // TODO: throw away when descriptors will be ready
         return project.executor.execute("${venv.absolutePath}/bin/pip", listOf("install", "-r", requirements.absolutePath), workDir, project.terminal)
     }
 }

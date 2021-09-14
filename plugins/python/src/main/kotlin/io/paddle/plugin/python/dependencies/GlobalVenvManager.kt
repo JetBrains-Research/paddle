@@ -1,13 +1,13 @@
 package io.paddle.plugin.python.dependencies
 
 import io.paddle.execution.CommandExecutor
+import io.paddle.execution.ExecutionResult
 import io.paddle.execution.local.LocalCommandExecutor
 import io.paddle.plugin.python.Config
 import io.paddle.plugin.python.extensions.Requirements
 import io.paddle.terminal.Terminal
 import io.paddle.terminal.TextOutput
 import java.io.File
-import java.nio.file.Files
 
 /**
  * A service for managing Paddle's internal virtual environment, where all the packages are installed for the first time.
@@ -18,24 +18,27 @@ object GlobalVenvManager {
     private val executor: CommandExecutor = LocalCommandExecutor(dummyOutput)
     private val terminal: Terminal = Terminal(dummyOutput)
 
-    val globalVenv: VenvDir
+    private val globalVenv: VenvDir
 
     init {
-        if (!Files.exists(Config.venvDir)) {
-            val code = executor.execute(
-                command = "python3",
-                args = listOf("-m", "venv", Config.venvDir.toAbsolutePath().toString()),
-                workingDir = Config.paddleHome.toFile(),
-                terminal = terminal
-            )
-            if (code != 0) {
-                error("Failed to create Paddle's internal virtualenv. Check your python installation.")
-            }
-        }
+        createVenv().orElse { error("Failed to create Paddle's internal virtualenv. Check your python installation.") }
         globalVenv = VenvDir(Config.venvDir.toFile())
     }
 
-    fun install(dependency: Requirements.Descriptor): Int {
+    fun smartInstall(dependency: Requirements.Descriptor): ExecutionResult {
+        return install(dependency).orElse { createVenv(venvArgs = listOf("--clear")).then { install(dependency) } }
+    }
+
+    private fun createVenv(venvArgs: List<String> = emptyList()): ExecutionResult {
+        return executor.execute(
+            command = "python3",
+            args = listOf("-m", "venv") + venvArgs + Config.venvDir.toAbsolutePath().toString(),
+            workingDir = Config.paddleHome.toFile(),
+            terminal = terminal
+        )
+    }
+
+    private fun install(dependency: Requirements.Descriptor): ExecutionResult {
         return executor.execute(
             command = "${Config.venvDir}/bin/pip",
             args = listOf("install", "${dependency.name}==${dependency.version}"),
