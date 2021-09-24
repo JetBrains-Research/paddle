@@ -17,6 +17,6 @@ class CachedPackage(val descriptor: Requirements.Descriptor, val srcPath: Path) 
     }
 
     val topLevelName: String by lazy {
-        distInfo.resolve("top_level.txt").readText().trim()
+        distInfo.resolve("top_level.txt").let { if (it.exists()) it.readText().trim() else name }
     }
 }

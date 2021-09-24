@@ -26,7 +26,7 @@ object GlobalVenvManager {
     }
 
     fun smartInstall(dependency: Requirements.Descriptor): ExecutionResult {
-        return install(dependency).orElse { createVenv(venvArgs = listOf("--clear")).then { install(dependency) } }
+        return createVenv(venvArgs = listOf("--clear")).then { install(dependency) }
     }
 
     private fun createVenv(venvArgs: List<String> = emptyList()): ExecutionResult {
@@ -45,6 +45,14 @@ object GlobalVenvManager {
             workingDir = Config.paddleHome.toFile(),
             terminal = terminal
         )
+    }
+
+    fun contains(pkgName: String): Boolean {
+        val distInfoDirName = globalVenv.sitePackages.listFiles()
+            ?.find { it.isDirectory && it.name.startsWith(pkgName) && it.name.endsWith(".dist-info") }
+            ?.name
+        val topLevelName = distInfoDirName?.let { resolveTopLevelName(it, pkgName) } ?: pkgName
+        return globalVenv.sitePackages.listFiles()?.any { it.name == topLevelName } ?: false
     }
 
     fun getInstalledPackageVersionByName(name: String): String? {
@@ -67,9 +75,15 @@ object GlobalVenvManager {
         }
 
         // Otherwise, for instance, package "attrs" has top-level name "attr", so we need to extract and consider it as well
-        val topLevelName = globalVenv.sitePackages.resolve(dependency.distInfoDirName).resolve("top_level.txt").readText().trim()
+        val topLevelName = resolveTopLevelName(dependency.distInfoDirName, dependency.name)
         return globalVenv.sitePackages.listFiles()
             ?.filter { it.name.matches(Regex("^.*[\\-_]*(${dependency.name}|${topLevelName})(-|\\.|_|c\$|c\\.|\$|).*\$")) }
             ?: error("Paddle's internal virtualenv is empty or corrupted.")
+    }
+
+    private fun resolveTopLevelName(distInfoDirName: String, pkgName: String): String {
+        return globalVenv.sitePackages.resolve(distInfoDirName).resolve("top_level.txt").let {
+            if (it.exists()) it.readText().trim() else pkgName
+        }
     }
 }

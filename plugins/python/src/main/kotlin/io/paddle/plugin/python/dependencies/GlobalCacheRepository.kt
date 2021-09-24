@@ -2,7 +2,6 @@ package io.paddle.plugin.python.dependencies
 
 import io.paddle.plugin.python.Config
 import io.paddle.plugin.python.extensions.Requirements
-import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.Path
 
@@ -16,9 +15,6 @@ object GlobalCacheRepository {
 
     init {
         val cacheDir = Config.cacheDir.toFile()
-        if (!cacheDir.exists()) {
-            cacheDir.mkdirs()
-        }
         cacheDir.listFiles()?.forEach { packageDir ->
             packageDir.listFiles()?.forEach { versionDir ->
                 val descriptor = Requirements.Descriptor(name = packageDir.name, version = versionDir.name)
@@ -50,30 +46,24 @@ object GlobalCacheRepository {
     private fun copyPackageRecursivelyFromGlobalVenv(dependencyDescriptor: Requirements.Descriptor): CachedPackage {
         val packageSources = GlobalVenvManager.getPackageRelatedStuff(dependencyDescriptor)
         val targetPath = getPathToPackage(dependencyDescriptor)
-        try {
-            packageSources.forEach { it.copyRecursively(target = targetPath.resolve(it.name).toFile(), overwrite = true) }
-            val pkg = CachedPackage(dependencyDescriptor, srcPath = targetPath)
+        packageSources.forEach { it.copyRecursively(target = targetPath.resolve(it.name).toFile(), overwrite = true) }
+        val pkg = CachedPackage(dependencyDescriptor, srcPath = targetPath)
 
-            // Copy dependent packages (resolved and installed by PIP for now) recursively
-            for (dependencyName in pkg.metadata.requiresDist) {
-                if (pkg.metadata.providesExtra.contains(dependencyName)) {
-                    continue // TODO: read docs about it and find proofs
-                }
-                val dependencyVersion = GlobalVenvManager.getInstalledPackageVersionByName(dependencyName)
-                    ?: error("Package $dependencyName (required by ${pkg.name}) is not installed.")
-                if (cachedPackages.any { it.name == dependencyName && it.version == dependencyVersion }) {
-                    continue
-                }
-                val dependentPkg = copyPackageRecursivelyFromGlobalVenv(Requirements.Descriptor(dependencyName, dependencyVersion))
-                pkg.dependencies.register(dependentPkg)
+        for (pyRequirement in pkg.metadata.requiresDist) {
+            if (!GlobalVenvManager.contains(pyRequirement.name)) {
+                continue // assumption: PIP didn't install it => we don't need it
             }
-
-            cachedPackages.add(pkg)
-            return pkg
-
-        } catch (ex: IOException) {
-            error("Some IO problems occurred during caching the installed ${dependencyDescriptor.name}-${dependencyDescriptor.version} package.")
+            val dependencyVersion = GlobalVenvManager.getInstalledPackageVersionByName(pyRequirement.name)
+                ?: error("Package $pyRequirement (required by ${pkg.name}) is not installed.")
+            if (cachedPackages.any { it.name == pyRequirement.name && it.version == dependencyVersion }) {
+                continue
+            }
+            val dependentPkg = copyPackageRecursivelyFromGlobalVenv(Requirements.Descriptor(pyRequirement.name, dependencyVersion))
+            pkg.dependencies.register(dependentPkg)
         }
+
+        cachedPackages.add(pkg)
+        return pkg
     }
 
     fun createSymlinkToPackageRecursively(pkg: CachedPackage, symlinkDir: Path) {

@@ -1,5 +1,6 @@
 package io.paddle.plugin.python
 
+import com.intellij.util.io.exists
 import java.nio.file.Path
 import java.nio.file.Paths
 
@@ -8,6 +9,7 @@ object Config {
      * A home directory for Paddle. Contains installed package caches and internal virtual environment. Planning to support caching wheels, etc.
      */
     val paddleHome: Path = System.getenv("PADDLE_HOME")?.let { Path.of(it) } ?: Paths.get(System.getProperty("user.home"), ".paddle")
+        get() = field.also { if (!field.exists()) field.toFile().mkdirs() }
 
     /**
      * A path to the main packages cache directory.
