@@ -49,16 +49,17 @@ object GlobalCacheRepository {
         packageSources.forEach { it.copyRecursively(target = targetPath.resolve(it.name).toFile(), overwrite = true) }
         val pkg = CachedPackage(dependencyDescriptor, srcPath = targetPath)
 
-        for (pyRequirement in pkg.metadata.requiresDist) {
-            if (!GlobalVenvManager.contains(pyRequirement.name)) {
+        for (dependencySpec in pkg.metadata.requiresDist) {
+            val dependencyName = dependencySpec.nameReq().name().text
+            if (!GlobalVenvManager.contains(dependencyName)) {
                 continue // assumption: PIP didn't install it => we don't need it
             }
-            val dependencyVersion = GlobalVenvManager.getInstalledPackageVersionByName(pyRequirement.name)
-                ?: error("Package $pyRequirement (required by ${pkg.name}) is not installed.")
-            if (cachedPackages.any { it.name == pyRequirement.name && it.version == dependencyVersion }) {
+            val dependencyVersion = GlobalVenvManager.getInstalledPackageVersionByName(dependencyName)
+                ?: error("Package $dependencyName (required by ${pkg.name}) is not installed.")
+            if (cachedPackages.any { it.name == dependencyName && it.version == dependencyVersion }) {
                 continue
             }
-            val dependentPkg = copyPackageRecursivelyFromGlobalVenv(Requirements.Descriptor(pyRequirement.name, dependencyVersion))
+            val dependentPkg = copyPackageRecursivelyFromGlobalVenv(Requirements.Descriptor(dependencyName, dependencyVersion))
             pkg.dependencies.register(dependentPkg)
         }
 

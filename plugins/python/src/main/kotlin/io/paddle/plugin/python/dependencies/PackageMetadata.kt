@@ -1,8 +1,9 @@
 package io.paddle.plugin.python.dependencies
 
-import com.jetbrains.python.packaging.requirement.PyRequirementVersionSpec
-import io.paddle.plugin.python.dependencies.parser.MetadataPyRequirementImpl
-import io.paddle.plugin.python.dependencies.parser.PyRequirementMetadataParser
+import io.paddle.plugin.python.dependencies.parser.antlr.DependencySpecificationLexer
+import io.paddle.plugin.python.dependencies.parser.antlr.DependencySpecificationParser
+import org.antlr.v4.runtime.CharStreams
+import org.antlr.v4.runtime.CommonTokenStream
 import java.io.*
 import java.util.*
 import javax.mail.Header
@@ -27,35 +28,30 @@ class PackageMetadata private constructor(private val headers: Map<String, Any?>
     val summary: String? by map(headers)
     val description: String? by map(headers)
 
-    val requiresDist: List<MetadataPyRequirementImpl> by map(headers)
-    val requiresPython: List<PyRequirementVersionSpec> by map(headers)
+    val requiresDist: List<DependencySpecificationParser.SpecificationContext> by map(headers)
+    val requiresPython: DependencySpecificationParser.VersionspecContext by map(headers)
     val providesExtra: List<String> by map(headers)
 
     companion object {
         fun parse(file: File): PackageMetadata {
             val stream: InputStream = ByteArrayInputStream(file.readBytes())
             val content = MimeMessage(Session.getInstance(Properties()), stream)
-
+            val pkgName = content.getHeader("Name").first()
             val headers = mutableMapOf<String, Any?>()
-            headers["Requires-Dist"] = mutableListOf<MetadataPyRequirementImpl>();
+            headers["Requires-Dist"] = mutableListOf<DependencySpecificationParser.SpecificationContext>()
             for (header in content.allHeaders) {
                 val (key, value) = Pair((header as Header).name, header.value)
                 when (key) {
                     "Requires-Dist" -> {
-                        val dependency = PyRequirementMetadataParser.parseRequirement(value)
-                            ?: error("Requires-Dist parse error in package ${headers.getOrDefault("Name", "<unknown>")}.")
-                        (headers["Requires-Dist"] as MutableList<MetadataPyRequirementImpl>).add(dependency)
+                        val parser = createDependencySpecificationParser(value) ?: error("Parse error in package $pkgName: '$key: $value'")
+                        (headers[key] as MutableList<DependencySpecificationParser.SpecificationContext>).add(parser.specification())
                     }
-                    "Requires-Python" ->
-                        headers["Requires-Python"] = PyRequirementMetadataParser.parseVersionSpecs(value)
+                    "Requires-Python" -> {
+                        val parser = createDependencySpecificationParser(value) ?: error("Parse error in package $pkgName: '$key: $value'")
+                        headers[key] = parser.versionspec()
+                    }
                     else -> {
-                        if (headers.containsKey(key) && headers[key] is MutableList<*>) {
-                            (headers[key] as MutableList<Any?>).add(value)
-                        } else if (headers.containsKey(key)) {
-                            headers[key] = mutableListOf(headers[key], value)
-                        } else {
-                            headers[key] = value
-                        }
+                        headers.setOrAdd(key, value)
                     }
                 }
             }
@@ -63,7 +59,26 @@ class PackageMetadata private constructor(private val headers: Map<String, Any?>
             headers.putIfAbsent("Provides-Extra", emptyList<String>())
             return PackageMetadata(headers)
         }
+
+        private fun createDependencySpecificationParser(source: String): DependencySpecificationParser? {
+            val stream = CharStreams.fromString(source.trim())
+            val lexer = DependencySpecificationLexer(stream)
+            val commonTokenStream = CommonTokenStream(lexer)
+            return DependencySpecificationParser(commonTokenStream)
+        }
     }
 
     fun get(key: String): Any? = headers[key]
+}
+
+
+@Suppress("UNCHECKED_CAST")
+fun MutableMap<String, Any?>.setOrAdd(key: String, value: Any?) {
+    if (this.containsKey(key) && this[key] is MutableList<*>) {
+        (this[key] as MutableList<Any?>).add(value)
+    } else if (this.containsKey(key)) {
+        this[key] = mutableListOf(this[key], value)
+    } else {
+        this[key] = value
+    }
 }
