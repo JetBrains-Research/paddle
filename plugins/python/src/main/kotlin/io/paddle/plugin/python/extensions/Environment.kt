@@ -39,7 +39,6 @@ class Environment(val project: Project, val venv: VenvDir, val workDir: File) {
 
     fun install(dependencyDescriptor: Requirements.Descriptor) {
         if (venv.hasInstalledPackage(dependencyDescriptor)) return
-
         val pkg = GlobalCacheRepository.findPackage(dependencyDescriptor)
         GlobalCacheRepository.createSymlinkToPackageRecursively(pkg, symlinkDir = venv.sitePackages.toPath())
     }

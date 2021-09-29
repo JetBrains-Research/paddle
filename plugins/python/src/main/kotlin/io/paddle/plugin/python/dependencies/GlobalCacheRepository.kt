@@ -1,5 +1,6 @@
 package io.paddle.plugin.python.dependencies
 
+import com.intellij.util.io.exists
 import io.paddle.plugin.python.Config
 import io.paddle.plugin.python.extensions.Requirements
 import java.nio.file.Files
@@ -14,8 +15,7 @@ object GlobalCacheRepository {
     private val cachedPackages: MutableList<CachedPackage> = mutableListOf()
 
     init {
-        val cacheDir = Config.cacheDir.toFile()
-        cacheDir.listFiles()?.forEach { packageDir ->
+        Config.cacheDir.toFile().listFiles()?.forEach { packageDir ->
             packageDir.listFiles()?.forEach { versionDir ->
                 val descriptor = Requirements.Descriptor(name = packageDir.name, version = versionDir.name)
                 cachedPackages.add(CachedPackage(descriptor, versionDir.toPath()))
@@ -23,7 +23,7 @@ object GlobalCacheRepository {
         }
     }
 
-    fun hasCached(descriptor: Requirements.Descriptor) = cachedPackages.any { it.descriptor == descriptor }
+    fun hasCached(descriptor: Requirements.Descriptor) = cachedPackages.any { it.descriptor == descriptor && it.srcPath.exists() }
 
     fun getPathToPackage(dependencyDescriptor: Requirements.Descriptor): Path =
         Config.cacheDir.resolve(dependencyDescriptor.name).resolve(dependencyDescriptor.version)
@@ -56,7 +56,7 @@ object GlobalCacheRepository {
             }
             val dependencyVersion = GlobalVenvManager.getInstalledPackageVersionByName(dependencyName)
                 ?: error("Package $dependencyName (required by ${pkg.name}) is not installed.")
-            if (cachedPackages.any { it.name == dependencyName && it.version == dependencyVersion }) {
+            if (hasCached(Requirements.Descriptor(dependencyName, dependencyVersion))) {
                 continue
             }
             val dependentPkg = copyPackageRecursivelyFromGlobalVenv(Requirements.Descriptor(dependencyName, dependencyVersion))
