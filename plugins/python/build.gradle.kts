@@ -39,6 +39,7 @@ intellij {
     plugins.set(
         listOf(
             "PythonCore:211.7628.24",
+            "org.jetbrains.plugins.yaml:211.7142.37",
             "ru.meanmail.plugin.requirements:2021.4.1-211",
             "com.intellij.java"
         )

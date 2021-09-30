@@ -39,6 +39,9 @@
         <configurationType implementation="io.paddle.idea.runner.PaddleTaskConfigurationType"/>
 
         <externalSystemOutputParserProvider implementation="io.paddle.idea.runner.parser.PaddleParserProvider"/>
+
+        <completion.contributor language="yaml"
+                                implementationClass="io.paddle.plugin.python.dependencies.completion.DependenciesCompletionContributor"/>
     </extensions>
 
     <extensions defaultExtensionNs="JavaScript.JsonSchema">
