@@ -3,7 +3,7 @@ package io.paddle.plugin.python.dependencies.index
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class JsonPackageReleaseInfo(
+data class JsonPackageMetadataReleaseInfo(
     val comment_text: String = "",
     val digests: Map<String, String> = mapOf(),
     val downloads: Int = -1,

@@ -3,17 +3,33 @@ version = rootProject.version
 
 plugins {
     id("org.jetbrains.intellij") version "1.1.2" apply true
+    id("application")
     kotlin("plugin.serialization")
     java
 }
 
+application {
+    mainClass.set("io.paddle.plugin.python.dependencies.index.PyPackagesRepositoryIndexerKt")
+}
+
+tasks {
+    register("index") {
+        dependsOn("run")
+    }
+}
+
 dependencies {
     implementation(project(":core"))
+
     implementation("org.antlr:antlr4-runtime:4.8")
     implementation("javax.mail:mail:1.4.7")
+
     implementation("org.jsoup:jsoup:1.14.2")
     implementation("io.ktor:ktor-client-core:1.6.3")
     implementation("io.ktor:ktor-client-cio:1.6.3")
+
+    implementation("org.slf4j:slf4j-api:2.0.0-alpha5")
+    implementation("org.slf4j:slf4j-simple:2.0.0-alpha5")
 }
 
 intellij {

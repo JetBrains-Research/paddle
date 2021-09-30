@@ -1,6 +1,6 @@
 package io.paddle.plugin.python
 
-import com.intellij.util.io.exists
+import io.paddle.plugin.python.dependencies.exists
 import java.nio.file.Path
 import java.nio.file.Paths
 
@@ -40,4 +40,7 @@ object Config {
      * do not support installation of the multiple versions for a single package to the same environment.
      */
     val venvDir: Path = paddleHome.resolve(".venv")
+
+    val indexDir: Path = paddleHome.resolve(".index")
+        get() = field.also { if (!field.exists()) field.toFile().mkdirs() }
 }

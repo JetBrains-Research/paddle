@@ -3,7 +3,7 @@ package io.paddle.plugin.python.dependencies.index
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class JsonPackageGeneralInfo(
+data class JsonPackageMetadataGeneralInfo(
     val author: String? = null,
     val author_email: String? = null,
     val bugtrack_url: String? = null,
