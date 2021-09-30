@@ -3,6 +3,7 @@ package io.paddle.plugin.python.dependencies.index
 import io.paddle.utils.StringHashable
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
+import java.util.concurrent.ConcurrentHashMap
 
 typealias PyPackageName = String
 typealias PyDistributionFilename = String
@@ -16,5 +17,5 @@ data class PyPackagesRepository(val url: PyPackageRepositoryUrl) {
     @Transient
     val name: String = StringHashable(url).hash()
 
-    val index: MutableMap<PyPackageName, List<PyDistributionFilename>> = hashMapOf()
+    val index: MutableMap<PyPackageName, List<PyDistributionFilename>> = ConcurrentHashMap()
 }
