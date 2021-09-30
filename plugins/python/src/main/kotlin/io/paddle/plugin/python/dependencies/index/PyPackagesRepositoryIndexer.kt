@@ -9,7 +9,6 @@ import io.ktor.client.statement.*
 import io.paddle.plugin.python.Config
 import io.paddle.plugin.python.dependencies.index.metadata.JsonPackageMetadataInfo
 import io.paddle.plugin.python.dependencies.isValidUrl
-import io.paddle.plugin.python.dependencies.parallelForEach
 import kotlinx.coroutines.*
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
@@ -25,8 +24,8 @@ const val PYPI_URL = "https://pypi.org"
 object PyPackagesRepositoryIndexer {
     private val log = LoggerFactory.getLogger(javaClass)
 
-    private val repositories: MutableSet<PyPackagesRepository> = hashSetOf(PyPackagesRepository(PYPI_URL))
-    private val packagesNamesCache: MutableSet<String> = hashSetOf()
+    private val repositories: MutableSet<PyPackagesRepository> = hashSetOf()
+    private val packagesNamesCache: MutableMap<PyPackagesRepository, MutableList<PyPackageName>> = hashMapOf()
 
     private val jsonParser = Json {
         ignoreUnknownKeys = true
@@ -43,12 +42,13 @@ object PyPackagesRepositoryIndexer {
     init {
         Config.indexDir.toFile().listFiles()?.forEach { file ->
             val repo: PyPackagesRepository = jsonParser.decodeFromString(file.readText())
+            packagesNamesCache[repo] = repo.index.keys.toMutableList()
             repositories.add(repo)
         }
     }
 
-    fun findAvailablePackagesByPrefix(prefix: String): Map<PyPackageRepositoryUrl, List<PyPackageName>> {
-        return repositories.associateBy(PyPackagesRepository::url) { repo -> repo.index.keys.filter { it.startsWith(prefix) } }
+    fun findAvailablePackagesByPrefix(prefix: String): Map<PyPackagesRepository, List<PyPackageName>> {
+        return packagesNamesCache.mapValues { it.value.filter { name -> name.startsWith(prefix) } }
     }
 
     fun findAvailableDistributionsByPackage(packageName: String): Map<PyPackageRepositoryUrl, List<PyDistributionFilename>> {
@@ -60,10 +60,10 @@ object PyPackagesRepositoryIndexer {
     fun updateIndex(repository: PyPackagesRepository) = runBlocking {
         val allNamesDocument = Jsoup.connect(repository.urlSimple).get()
         val progressCounter = AtomicInteger(0)
-        allNamesDocument.body().getElementsByTag("a").parallelForEach { link ->
+        allNamesDocument.body().getElementsByTag("a").forEach { link ->
             val packageName = link.text()
             val href = link.attr("href")
-            packagesNamesCache.add(packageName)
+            packagesNamesCache.putIfAbsent(repository, arrayListOf())?.add(packageName)
             try {
                 val response = httpClient.request<HttpResponse>(repository.url + href)
                 val distributionsPage = Jsoup.parse(response.readText())
@@ -73,7 +73,7 @@ object PyPackagesRepositoryIndexer {
             } catch (cause: Throwable) {
                 log.warn("Failed to process package: #${progressCounter.incrementAndGet()}: $packageName")
                 log.warn(cause.stackTraceToString())
-                return@parallelForEach
+                return@forEach
             }
         }
         val repoIndexFile = Config.indexDir.resolve("${repository.name}.json").toFile()
