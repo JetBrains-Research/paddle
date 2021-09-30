@@ -1,4 +1,4 @@
-package io.paddle.plugin.python.dependencies.index
+package io.paddle.plugin.python.dependencies.index.metadata
 
 import kotlinx.serialization.Serializable
 

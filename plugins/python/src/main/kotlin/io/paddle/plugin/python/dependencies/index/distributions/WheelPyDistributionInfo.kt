@@ -1,4 +1,4 @@
-package io.paddle.plugin.python.dependencies.index
+package io.paddle.plugin.python.dependencies.index.distributions
 
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient

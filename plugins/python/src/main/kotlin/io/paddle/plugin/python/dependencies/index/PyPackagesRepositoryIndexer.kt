@@ -7,6 +7,7 @@ import io.ktor.client.features.HttpTimeout.Feature.INFINITE_TIMEOUT_MS
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.paddle.plugin.python.Config
+import io.paddle.plugin.python.dependencies.index.metadata.JsonPackageMetadataInfo
 import io.paddle.plugin.python.dependencies.isValidUrl
 import io.paddle.plugin.python.dependencies.parallelForEach
 import kotlinx.coroutines.*
