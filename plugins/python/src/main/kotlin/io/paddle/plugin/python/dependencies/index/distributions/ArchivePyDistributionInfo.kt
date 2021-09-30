@@ -7,7 +7,7 @@ data class ArchivePyDistributionInfo(
     override val version: String,
     override val buildTag: String? = null,
     val ext: String,
-    override val distrFilename: String
+    override val distributionFilename: String
 ) : PyDistributionInfo() {
 
     companion object {

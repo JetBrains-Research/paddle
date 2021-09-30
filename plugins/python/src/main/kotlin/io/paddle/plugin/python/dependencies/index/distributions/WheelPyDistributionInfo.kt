@@ -11,7 +11,7 @@ data class WheelPyDistributionInfo(
     val requiresPython: String? = null,
     val abiTag: String? = null,
     val platformTag: String? = null,
-    override val distrFilename: String
+    override val distributionFilename: String
 ) : PyDistributionInfo() {
 
     @Transient

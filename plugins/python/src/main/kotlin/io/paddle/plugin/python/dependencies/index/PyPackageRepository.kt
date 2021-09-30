@@ -4,13 +4,17 @@ import io.paddle.utils.StringHashable
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 
+typealias PyPackageName = String
+typealias PyDistributionFilename = String
+typealias PyPackageRepositoryUrl = String
+
 @Serializable
-data class PyPackagesRepository(val url: String) {
+data class PyPackagesRepository(val url: PyPackageRepositoryUrl) {
     @Transient
-    val urlSimple: String = "$url/simple"
+    val urlSimple: PyPackageRepositoryUrl = "$url/simple"
 
     @Transient
     val name: String = StringHashable(url).hash()
 
-    val index: MutableMap<String, List<String>> = hashMapOf()
+    val index: MutableMap<PyPackageName, List<PyDistributionFilename>> = hashMapOf()
 }

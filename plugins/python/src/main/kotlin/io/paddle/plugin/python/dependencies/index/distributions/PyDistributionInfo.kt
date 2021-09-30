@@ -6,5 +6,5 @@ import kotlinx.serialization.Serializable
 sealed class PyDistributionInfo {
     abstract val version: String
     abstract val buildTag: String?
-    abstract val distrFilename: String
+    abstract val distributionFilename: String
 }

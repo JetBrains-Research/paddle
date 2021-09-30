@@ -28,7 +28,10 @@ object PyPackagesRepositoryIndexer {
     private val repositories: MutableSet<PyPackagesRepository> = hashSetOf(PyPackagesRepository(PYPI_URL))
     private val packagesNamesCache: MutableSet<String> = hashSetOf()
 
-    private val jsonParser = Json { ignoreUnknownKeys = true }
+    private val jsonParser = Json {
+        ignoreUnknownKeys = true
+    }
+
     private val httpClient = HttpClient(CIO) {
         install(HttpTimeout) {
             requestTimeoutMillis = INFINITE_TIMEOUT_MS
@@ -37,24 +40,34 @@ object PyPackagesRepositoryIndexer {
         }
     }
 
-    fun updateAllIndices() {
-        for (repository in repositories) {
-            updateIndex(repository.url)
+    init {
+        Config.indexDir.toFile().listFiles()?.forEach { file ->
+            val repo: PyPackagesRepository = jsonParser.decodeFromString(file.readText())
+            repositories.add(repo)
         }
     }
 
-    fun updateIndex(repositoryUrl: String) = runBlocking {
-        val repository = getRepositoryByUrl(repositoryUrl) ?: return@runBlocking
+    fun findAvailablePackagesByPrefix(prefix: String): Map<PyPackageRepositoryUrl, List<PyPackageName>> {
+        return repositories.associateBy(PyPackagesRepository::url) { repo -> repo.index.keys.filter { it.startsWith(prefix) } }
+    }
+
+    fun findAvailableDistributionsByPackage(packageName: String): Map<PyPackageRepositoryUrl, List<PyDistributionFilename>> {
+        return repositories.associateBy(PyPackagesRepository::url) { repo -> repo.index[packageName] ?: emptyList() }
+    }
+
+    fun updateAllIndices() = repositories.forEach { updateIndex(it) }
+
+    fun updateIndex(repository: PyPackagesRepository) = runBlocking {
         val allNamesDocument = Jsoup.connect(repository.urlSimple).get()
         val progressCounter = AtomicInteger(0)
-        allNamesDocument.body().getElementsByTag("a").subList(0, 1000).parallelForEach { link ->
+        allNamesDocument.body().getElementsByTag("a").parallelForEach { link ->
             val packageName = link.text()
             val href = link.attr("href")
             packagesNamesCache.add(packageName)
             try {
                 val response = httpClient.request<HttpResponse>(repository.url + href)
-                val downloadsPage = Jsoup.parse(response.readText())
-                val distributions = downloadsPage.body().getElementsByTag("a").map { it.text() }
+                val distributionsPage = Jsoup.parse(response.readText())
+                val distributions = distributionsPage.body().getElementsByTag("a").map { it.text() }
                 repository.index[packageName] = distributions
                 log.info("Done with package #${progressCounter.incrementAndGet()}: $packageName")
             } catch (cause: Throwable) {
@@ -86,7 +99,7 @@ object PyPackagesRepositoryIndexer {
 
     fun removeRepository(url: String) = repositories.removeIf { it.url == url }
 
-    fun getRepositoryByUrl(url: String) = repositories.find { it.url == url }
+    fun getRepositoryByUrl(url: String): PyPackagesRepository? = repositories.find { it.url == url }
 
     fun getAvailableRepositories(): Set<PyPackagesRepository> = repositories.toSet()
 }
