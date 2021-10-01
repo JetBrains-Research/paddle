@@ -32,3 +32,9 @@ intellij {
 
     // updateSinceUntilBuild.set(false)
 }
+
+tasks {
+    runIde {
+        jvmArgs = listOf("-Xmx2048m")
+    }
+}

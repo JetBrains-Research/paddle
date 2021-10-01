@@ -3,7 +3,7 @@ package io.paddle.plugin.python.dependencies.index
 import io.paddle.plugin.python.Config
 import io.paddle.utils.StringHashable
 import kotlinx.serialization.*
-import kotlinx.serialization.json.Json
+import java.io.File
 import java.util.concurrent.ConcurrentHashMap
 
 typealias PyPackageName = String
@@ -20,5 +20,14 @@ data class PyPackagesRepository(val url: PyPackageRepositoryUrl) {
 
     val index: MutableMap<PyPackageName, List<PyDistributionFilename>> = ConcurrentHashMap()
 
-    fun save() = Config.indexDir.resolve("$name.json").toFile().writeText(Json.encodeToString(this))
+    companion object {
+        fun loadFromCache(file: File): PyPackagesRepository {
+            return PyPackagesRepositoryIndexer.jsonParser.decodeFromString(file.readText())
+        }
+    }
+
+    fun save() {
+        Config.indexDir.resolve("$name.json").toFile()
+            .writeText(PyPackagesRepositoryIndexer.jsonParser.encodeToString(this))
+    }
 }

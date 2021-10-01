@@ -6,7 +6,7 @@ import kotlinx.serialization.Serializable
 data class ArchivePyDistributionInfo(
     override val version: String,
     override val buildTag: String? = null,
-    val ext: String,
+    override val ext: String,
     override val distributionFilename: String
 ) : PyDistributionInfo() {
 

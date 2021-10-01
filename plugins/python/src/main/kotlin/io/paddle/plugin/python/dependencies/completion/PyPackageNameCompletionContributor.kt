@@ -8,7 +8,7 @@ import com.intellij.util.ProcessingContext
 import io.paddle.plugin.python.dependencies.index.PyPackagesRepositoryIndexer
 import org.jetbrains.yaml.psi.YAMLDocument
 
-class DependenciesCompletionContributor : CompletionContributor() {
+class PyPackageNameCompletionContributor : CompletionContributor() {
     init {
         extend(
             CompletionType.BASIC,

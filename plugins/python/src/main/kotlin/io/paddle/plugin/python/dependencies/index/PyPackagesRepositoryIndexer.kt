@@ -29,10 +29,10 @@ object PyPackagesRepositoryIndexer {
 
     private val log = LoggerFactory.getLogger(javaClass)
 
-    private val repositories: MutableSet<PyPackagesRepository> = hashSetOf(PyPackagesRepository(PYPI_URL))
+    private val repositories: MutableSet<PyPackagesRepository> = hashSetOf()
     private val packagesNamesCache: MutableMap<PyPackagesRepository, MutableList<PyPackageName>> = ConcurrentHashMap()
 
-    private val jsonParser = Json {
+    internal val jsonParser = Json {
         ignoreUnknownKeys = true
     }
 
@@ -50,8 +50,12 @@ object PyPackagesRepositoryIndexer {
     }
 
     init {
+        loadFromCache()
+    }
+
+    fun loadFromCache() {
         Config.indexDir.toFile().listFiles()?.forEach { file ->
-            val repo: PyPackagesRepository = jsonParser.decodeFromString(file.readText())
+            val repo = PyPackagesRepository.loadFromCache(file)
             packagesNamesCache[repo] = repo.index.keys.toMutableList()
             repositories.add(repo)
         }

@@ -15,7 +15,7 @@ data class WheelPyDistributionInfo(
 ) : PyDistributionInfo() {
 
     @Transient
-    val ext: String = ".whl"
+    override val ext: String = ".whl"
 
     companion object {
         private val WHEEL_DISTRIBUTION_PATTERN = Regex(
