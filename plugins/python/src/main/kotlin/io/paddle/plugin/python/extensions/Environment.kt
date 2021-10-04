@@ -3,6 +3,7 @@ package io.paddle.plugin.python.extensions
 import io.paddle.execution.ExecutionResult
 import io.paddle.plugin.python.dependencies.GlobalCacheRepository
 import io.paddle.plugin.python.dependencies.VenvDir
+import io.paddle.plugin.python.dependencies.index.PyPackageRepositoryUrl
 import io.paddle.project.Project
 import io.paddle.utils.config.ConfigurationView
 import io.paddle.utils.ext.Extendable
@@ -37,9 +38,9 @@ class Environment(val project: Project, val venv: VenvDir, val workDir: File) {
         return project.executor.execute("${venv.absolutePath}/bin/python", listOf(file, *arguments.toTypedArray()), workDir, project.terminal)
     }
 
-    fun install(dependencyDescriptor: Requirements.Descriptor) {
+    fun install(dependencyDescriptor: Requirements.Descriptor, repositories: List<PyPackageRepositoryUrl>) {
         if (venv.hasInstalledPackage(dependencyDescriptor)) return
-        val pkg = GlobalCacheRepository.findPackage(dependencyDescriptor)
+        val pkg = GlobalCacheRepository.findPackage(dependencyDescriptor, repositories)
         GlobalCacheRepository.createSymlinkToPackageRecursively(pkg, symlinkDir = venv.sitePackages.toPath())
     }
 

@@ -4,6 +4,7 @@ import io.paddle.execution.CommandExecutor
 import io.paddle.execution.ExecutionResult
 import io.paddle.execution.local.LocalCommandExecutor
 import io.paddle.plugin.python.Config
+import io.paddle.plugin.python.dependencies.index.PyPackageRepositoryUrl
 import io.paddle.plugin.python.extensions.Requirements
 import io.paddle.terminal.Terminal
 import io.paddle.terminal.TextOutput
@@ -25,8 +26,8 @@ object GlobalVenvManager {
         globalVenv = VenvDir(Config.venvDir.toFile())
     }
 
-    fun smartInstall(dependency: Requirements.Descriptor): ExecutionResult {
-        return createVenv(venvArgs = listOf("--clear")).then { install(dependency) }
+    fun smartInstall(dependency: Requirements.Descriptor, repositories: List<PyPackageRepositoryUrl>): ExecutionResult {
+        return createVenv(venvArgs = listOf("--clear")).then { install(dependency, repositories) }
     }
 
     private fun createVenv(venvArgs: List<String> = emptyList()): ExecutionResult {
@@ -38,10 +39,11 @@ object GlobalVenvManager {
         )
     }
 
-    private fun install(dependency: Requirements.Descriptor): ExecutionResult {
+    private fun install(dependency: Requirements.Descriptor, repositories: List<PyPackageRepositoryUrl>): ExecutionResult {
         return executor.execute(
             command = "${Config.venvDir}/bin/pip",
-            args = listOf("install", "${dependency.name}==${dependency.version}"),
+            args = listOf("install", "${dependency.name}==${dependency.version}") +
+                repositories.map { "--extra-index-url $it" },
             workingDir = Config.paddleHome.toFile(),
             terminal = terminal
         )

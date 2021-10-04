@@ -29,7 +29,7 @@ class VenvTask(project: Project) : IncrementalTask(project) {
         }
 
         for (pkg in project.requirements.descriptors) {
-            project.environment.install(pkg)
+            project.environment.install(pkg, project.requirements.repositories)
         }
     }
 }

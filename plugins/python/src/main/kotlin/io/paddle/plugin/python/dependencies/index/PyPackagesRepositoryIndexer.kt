@@ -21,9 +21,9 @@ import kotlin.collections.set
 import kotlin.system.exitProcess
 import kotlin.system.measureTimeMillis
 
+const val PYPI_URL = "https://pypi.org"
 
 object PyPackagesRepositoryIndexer {
-    const val PYPI_URL = "https://pypi.org"
     private const val THREADS_COUNT = 24
     private const val TIMEOUT_MS = 10000L
 

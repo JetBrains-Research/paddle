@@ -13,6 +13,9 @@ environment:
   path: .venv
 
 requirements:
+  repositories:
+    - https://pypi.org
+    - https://repo.labs.intellij.net/artifactory/api/pypi/intellij-ml/simple
   libraries:
     - name: redis
       version: 3.5.3

@@ -129,61 +129,41 @@
     "environment": {
       "description": "Environment that should be used by Paddle for Python build process",
       "properties": {
+        "required": [
+          "type",
+          "path"
+        ],
         "type": {
+          "description": "Type of the virtual environment (only `virtualenv` currently supported)",
           "type": "string",
           "enum": [
-            "virtualenv",
-            "global"
+            "virtualenv"
           ]
-        }
-      },
-      "allOf": [
-        {
-          "if": {
-            "properties": {
-              "type": {
-                "const": "virtualenv"
-              }
-            }
-          },
-          "then": {
-            "required": [
-              "path"
-            ],
-            "properties": {
-              "path": {
-                "description": "Path to virtual environment location",
-                "type": "string"
-              }
-            }
-          }
         },
-        {
-          "if": {
-            "properties": {
-              "type": {
-                "const": "global"
-              }
-            }
-          },
-          "then": {
-          }
+        "path": {
+          "description": "Path to virtual environment location",
+          "type": "string"
         }
-      ]
+      }
     },
     "requirements": {
       "type": "object",
-      "anyOf": [
-        {
-          "properties": {
+      "properties": {
+        "repositories": {
+          "description": "List of the available repositories PyPi repositories",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "anyOf": [
+          {
             "file": {
               "description": "Path to the requirements.txt file",
               "type": "string"
             }
-          }
-        },
-        {
-          "properties": {
+          },
+          {
             "libraries": {
               "type": "array",
               "items": {
@@ -203,8 +183,8 @@
               }
             }
           }
-        }
-      ]
+        ]
+      }
     },
     "plugins": {
       "type": "object",
