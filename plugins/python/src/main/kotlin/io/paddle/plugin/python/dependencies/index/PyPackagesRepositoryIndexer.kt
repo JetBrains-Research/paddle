@@ -2,7 +2,6 @@ package io.paddle.plugin.python.dependencies.index
 
 import io.ktor.client.*
 import io.ktor.client.engine.cio.*
-import io.ktor.client.features.HttpTimeout.Feature.INFINITE_TIMEOUT_MS
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.paddle.plugin.python.Config
@@ -26,6 +25,7 @@ import kotlin.system.measureTimeMillis
 object PyPackagesRepositoryIndexer {
     const val PYPI_URL = "https://pypi.org"
     private const val THREADS_COUNT = 24
+    private const val TIMEOUT_MS = 10000L
 
     private val log = LoggerFactory.getLogger(javaClass)
 
@@ -36,28 +36,27 @@ object PyPackagesRepositoryIndexer {
         ignoreUnknownKeys = true
     }
 
-    internal val httpClient = HttpClient(CIO) {
+    private val httpClient = HttpClient(CIO) {
         engine {
             threadsCount = THREADS_COUNT
             maxConnectionsCount = 1000
             endpoint {
                 connectAttempts = 5
-                connectTimeout = INFINITE_TIMEOUT_MS
-                requestTimeout = INFINITE_TIMEOUT_MS
-                socketTimeout = INFINITE_TIMEOUT_MS
+                connectTimeout = TIMEOUT_MS
+                requestTimeout = TIMEOUT_MS
+                socketTimeout = TIMEOUT_MS
             }
         }
     }
 
     init {
-        loadFromCache()
-    }
-
-    fun loadFromCache() {
         Config.indexDir.toFile().listFiles()?.forEach { file ->
             val repo = PyPackagesRepository.loadFromCache(file)
             packagesNamesCache[repo] = repo.index.keys.toMutableList()
             repositories.add(repo)
+        }
+        if (getRepositoryByUrl(PYPI_URL) == null) {
+            repositories.add(PyPackagesRepository(PYPI_URL))
         }
     }
 
@@ -117,12 +116,15 @@ object PyPackagesRepositoryIndexer {
 
     fun addRepository(url: String) {
         if (!url.isValidUrl()) {
-            error("The specified repository URL=$url is not a valid URL.")
+            error("The specified URL=$url is not valid.")
         }
         if (url.endsWith('/')) {
             url.dropLast(1)
         }
-        repositories.add(PyPackagesRepository(url))
+        PyPackagesRepository(url).also {
+            repositories.add(it)
+            updateIndex(it)
+        }
     }
 
     fun removeRepository(url: String) = repositories.removeIf { it.url == url }
