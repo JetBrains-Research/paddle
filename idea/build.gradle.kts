@@ -35,6 +35,6 @@ intellij {
 
 tasks {
     runIde {
-        jvmArgs = listOf("-Xmx2048m")
+        jvmArgs = listOf("-Xmx1024m")
     }
 }

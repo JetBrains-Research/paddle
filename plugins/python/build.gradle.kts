@@ -27,6 +27,7 @@ dependencies {
     implementation("org.jsoup:jsoup:1.14.2")
     implementation("io.ktor:ktor-client-core:1.6.3")
     implementation("io.ktor:ktor-client-cio:1.6.3")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-cbor:1.3.0")
 
     implementation("org.slf4j:slf4j-api:2.0.0-alpha5")
     implementation("org.slf4j:slf4j-simple:2.0.0-alpha5")

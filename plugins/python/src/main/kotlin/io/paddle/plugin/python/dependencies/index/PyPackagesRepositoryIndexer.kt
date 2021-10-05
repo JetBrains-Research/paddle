@@ -1,5 +1,6 @@
 package io.paddle.plugin.python.dependencies.index
 
+import com.intellij.util.containers.CollectionFactory
 import io.ktor.client.*
 import io.ktor.client.engine.cio.*
 import io.ktor.client.request.*
@@ -10,12 +11,12 @@ import io.paddle.plugin.python.dependencies.isValidUrl
 import kotlinx.coroutines.*
 import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withPermit
-import kotlinx.serialization.decodeFromString
-import kotlinx.serialization.json.Json
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.cbor.Cbor
+import kotlinx.serialization.decodeFromByteArray
 import org.jsoup.Jsoup
 import org.slf4j.LoggerFactory
 import sun.misc.Signal
-import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.collections.set
 import kotlin.system.exitProcess
@@ -23,6 +24,7 @@ import kotlin.system.measureTimeMillis
 
 const val PYPI_URL = "https://pypi.org"
 
+@ExperimentalSerializationApi
 object PyPackagesRepositoryIndexer {
     private const val THREADS_COUNT = 24
     private const val TIMEOUT_MS = 10000L
@@ -30,9 +32,9 @@ object PyPackagesRepositoryIndexer {
     private val log = LoggerFactory.getLogger(javaClass)
 
     private val repositories: MutableSet<PyPackagesRepository> = hashSetOf()
-    private val packagesNamesCache: MutableMap<PyPackagesRepository, MutableList<PyPackageName>> = ConcurrentHashMap()
+    private val packagesNamesCache: MutableMap<PyPackagesRepository, MutableList<PyPackageName>> = CollectionFactory.createSmallMemoryFootprintMap()
 
-    internal val jsonParser = Json {
+    internal val cborParser = Cbor {
         ignoreUnknownKeys = true
     }
 
@@ -85,15 +87,15 @@ object PyPackagesRepositoryIndexer {
             allNamesDocument.body().getElementsByTag("a").map { link ->
                 launch {
                     val packageName = link.text()
-                    val href = link.attr("href")
-                    packagesNamesCache.putIfAbsent(repository, arrayListOf())?.add(packageName)
+                    updatePackagesNamesCache(repository, packageName)
                     try {
+                        val href = link.attr("href")
                         val response = requestSemaphore.withPermit {
                             httpClient.request<HttpResponse>(repository.url + href)
                         }
                         val distributionsPage = Jsoup.parse(response.readText())
                         val distributions = distributionsPage.body().getElementsByTag("a").map { it.text() }
-                        repository.index[packageName] = distributions
+                        repository.updateIndex(packageName, distributions)
                         log.info("Done with package #${progressCounter.incrementAndGet()}: $packageName")
                     } catch (cause: Throwable) {
                         log.warn("Failed to process package: #${progressCounter.incrementAndGet()}: $packageName")
@@ -107,11 +109,16 @@ object PyPackagesRepositoryIndexer {
         repository.save()
     }
 
+    @Synchronized
+    private fun updatePackagesNamesCache(repository: PyPackagesRepository, packageName: PyPackageName) {
+        packagesNamesCache.putIfAbsent(repository, arrayListOf())?.add(packageName)
+    }
+
     fun downloadMetadata(packageName: String, repositoryUrl: String = PYPI_URL): JsonPackageMetadataInfo = runBlocking {
-        val response: String = withContext(Dispatchers.Default) {
-            httpClient.use { it.request<HttpResponse>("$repositoryUrl/pypi/$packageName/json").readText() }
+        val response: ByteArray = withContext(Dispatchers.Default) {
+            httpClient.use { it.request<HttpResponse>("$repositoryUrl/pypi/$packageName/json").readBytes() }
         }
-        return@runBlocking jsonParser.decodeFromString(response)
+        return@runBlocking cborParser.decodeFromByteArray<JsonPackageMetadataInfo>(response)
     }
 
     fun addRepository(url: String) {
