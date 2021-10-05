@@ -4,6 +4,8 @@ import io.paddle.execution.CommandExecutor
 import io.paddle.execution.local.LocalCommandExecutor
 import io.paddle.plugin.Plugin
 import io.paddle.plugin.standard.extensions.Plugins
+import io.paddle.schema.extensions.BaseJsonSchemaExtension
+import io.paddle.schema.extensions.JsonSchema
 import io.paddle.terminal.*
 import io.paddle.utils.config.Configuration
 import io.paddle.utils.ext.Extendable
@@ -23,11 +25,18 @@ class Project(val config: Configuration, val workDir: File = File("."), val outp
 
     init {
         extensions.register(Plugins.Extension.key, Plugins.Extension.create(this))
+        extensions.register(JsonSchema.Extension.key, JsonSchema.Extension.create(this))
     }
 
     fun register(plugin: Plugin) {
         for (extension in plugin.extensions(this)) {
-            extensions.register(extension.key, extension.create(this))
+            val extensionToStorage = extension.create(this)
+            // zhvkgj: implementation via marker annotation checks can be better than this one
+            if (extensionToStorage is BaseJsonSchemaExtension) {
+                extensions.get(JsonSchema.Extension.key)?.extensions?.add(extensionToStorage)
+            } else {
+                extensions.register(extension.key, extensionToStorage)
+            }
         }
 
         for (task in plugin.tasks(this)) {
