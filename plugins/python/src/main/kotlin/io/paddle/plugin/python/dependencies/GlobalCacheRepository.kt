@@ -13,13 +13,22 @@ import java.nio.file.Path
  * @see Config.cacheDir
  */
 object GlobalCacheRepository {
-    private val cachedPackages: MutableList<CachedPackage> = mutableListOf()
+    private val cachedPackages: MutableCollection<CachedPackage>
 
     init {
+        cachedPackages = hashSetOf()
         Config.cacheDir.toFile().listFiles()?.forEach { packageDir ->
             packageDir.listFiles()?.forEach { versionDir ->
                 val descriptor = Requirements.Descriptor(name = packageDir.name, version = versionDir.name)
                 cachedPackages.add(CachedPackage(descriptor, versionDir.toPath()))
+            }
+        }
+        cachedPackages.forEach { pkg ->
+            for (dependencySpec in pkg.metadata.requiresDist) {
+                val dependencyName = dependencySpec.nameReq().name().text
+                // TODO: implement dependency resolution
+                val dependency = cachedPackages.findLast { it.name == dependencyName } ?: continue
+                pkg.dependencies.register(dependency)
             }
         }
     }
