@@ -19,11 +19,14 @@ data class PyPackagesRepository(val url: PyPackageRepositoryUrl) {
     @Transient
     val name: String = StringHashable(url).hash()
 
-    val index: MutableMap<PyPackageName, List<PyDistributionFilename>> = CollectionFactory.createSmallMemoryFootprintMap()
+    var index: MutableMap<PyPackageName, List<PyDistributionFilename>> = CollectionFactory.createSmallMemoryFootprintMap()
+        private set
 
     companion object {
         fun loadFromCache(file: File): PyPackagesRepository {
-            return PyPackagesRepositoryIndexer.cborParser.decodeFromByteArray(file.readBytes())
+            return PyPackagesRepositoryIndexer.cborParser.decodeFromByteArray<PyPackagesRepository>(file.readBytes()).also {
+                it.index = CollectionFactory.createSmallMemoryFootprintMap(it.index)
+            }
         }
     }
 
