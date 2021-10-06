@@ -173,38 +173,26 @@
     },
     "requirements": {
       "type": "object",
-      "anyOf": [
-        {
-          "properties": {
-            "file": {
-              "description": "Path to the requirements.txt file",
-              "type": "string"
-            }
-          }
-        },
-        {
-          "properties": {
-            "libraries": {
-              "type": "array",
-              "items": {
-                "type": "object",
-                "required": [
-                  "name",
-                  "version"
-                ],
-                "properties": {
-                  "name": {
-                    "type": "string"
-                  },
-                  "version": {
-                    "type": "string"
-                  }
-                }
+      "properties": {
+        "libraries": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "name",
+              "version"
+            ],
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "version": {
+                "type": "string"
               }
             }
           }
         }
-      ]
+      }
     },
     "plugins": {
       "type": "object",
