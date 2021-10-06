@@ -56,7 +56,7 @@ object GlobalVenvManager {
 
     fun getInstalledPackageVersionByName(name: String): String? {
         return globalVenv.sitePackages.listFiles()
-            ?.find { it.isDirectory && it.name.matches(Regex("^$name-[.0-9]+\\.dist-info\$")) }
+            ?.find { it.isDirectory && it.name.matches(RegexCache.getDistInfoRegex(name)) }
             ?.name?.substringAfter("$name-")?.substringBefore(".dist-info")
     }
 
@@ -76,7 +76,7 @@ object GlobalVenvManager {
         // Otherwise, for instance, package "attrs" has top-level name "attr", so we need to extract and consider it as well
         val topLevelName = resolveTopLevelName(dependency.distInfoDirName, dependency.name)
         return globalVenv.sitePackages.listFiles()
-            ?.filter { it.name.matches(Regex("^.*[\\-_]*(${dependency.name}|${topLevelName})(-|\\.|_|c\$|c\\.|\$|).*\$")) }
+            ?.filter { it.name.matches(RegexCache.getPackageRelatedRegex(dependency.name, topLevelName)) }
             ?: error("Paddle's internal virtualenv is empty or corrupted.")
     }
 
