@@ -1,7 +1,7 @@
 package io.paddle.plugin.python.dependencies
 
-import com.intellij.util.io.exists
 import io.paddle.plugin.python.extensions.Requirements
+import io.paddle.utils.exists
 import java.nio.file.Files
 import java.nio.file.Path
 import java.util.*
@@ -13,7 +13,7 @@ import kotlin.concurrent.schedule
  * @see PythonDependenciesConfig.cacheDir
  */
 object GlobalCacheRepository {
-    private const val CACHE_SYNC_PERIOD_MS: Long = 10000L
+    private const val CACHE_SYNC_PERIOD_MS: Long = 60000L
     private val cachedPackages: MutableCollection<CachedPackage> = HashSet()
 
     init {

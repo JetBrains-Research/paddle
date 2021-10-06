@@ -1,6 +1,6 @@
 package io.paddle.plugin.python.dependencies
 
-import com.intellij.util.io.exists
+import io.paddle.utils.exists
 import java.nio.file.Path
 import java.nio.file.Paths
 

@@ -2,6 +2,7 @@ package io.paddle.utils
 
 import java.io.File
 import java.nio.file.Files
+import java.nio.file.Path
 
 fun File.deleteRecursivelyWithoutSymlinks() {
     if (this.isDirectory && !Files.isSymbolicLink(this.toPath())) {
@@ -10,3 +11,5 @@ fun File.deleteRecursivelyWithoutSymlinks() {
     }
     this.delete()
 }
+
+fun Path.exists(): Boolean = Files.exists(this)
