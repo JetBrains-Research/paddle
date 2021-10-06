@@ -3,7 +3,6 @@ package io.paddle.plugin.python.dependencies
 import io.paddle.execution.CommandExecutor
 import io.paddle.execution.ExecutionResult
 import io.paddle.execution.local.LocalCommandExecutor
-import io.paddle.plugin.python.Config
 import io.paddle.plugin.python.extensions.Requirements
 import io.paddle.terminal.Terminal
 import io.paddle.terminal.TextOutput
@@ -22,7 +21,7 @@ object GlobalVenvManager {
 
     init {
         createVenv().orElse { error("Failed to create Paddle's internal virtualenv. Check your python installation.") }
-        globalVenv = VenvDir(Config.venvDir.toFile())
+        globalVenv = VenvDir(PythonDependenciesConfig.venvDir.toFile())
     }
 
     fun smartInstall(dependency: Requirements.Descriptor): ExecutionResult {
@@ -32,17 +31,17 @@ object GlobalVenvManager {
     private fun createVenv(venvArgs: List<String> = emptyList()): ExecutionResult {
         return executor.execute(
             command = "python3",
-            args = listOf("-m", "venv") + venvArgs + Config.venvDir.toAbsolutePath().toString(),
-            workingDir = Config.paddleHome.toFile(),
+            args = listOf("-m", "venv") + venvArgs + PythonDependenciesConfig.venvDir.toAbsolutePath().toString(),
+            workingDir = PythonDependenciesConfig.paddleHome.toFile(),
             terminal = terminal
         )
     }
 
     private fun install(dependency: Requirements.Descriptor): ExecutionResult {
         return executor.execute(
-            command = "${Config.venvDir}/bin/pip",
+            command = "${PythonDependenciesConfig.venvDir}/bin/pip",
             args = listOf("install", "${dependency.name}==${dependency.version}"),
-            workingDir = Config.paddleHome.toFile(),
+            workingDir = PythonDependenciesConfig.paddleHome.toFile(),
             terminal = terminal
         )
     }

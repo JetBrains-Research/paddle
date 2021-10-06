@@ -1,7 +1,6 @@
 package io.paddle.plugin.python.dependencies
 
 import com.intellij.util.io.exists
-import io.paddle.plugin.python.Config
 import io.paddle.plugin.python.extensions.Requirements
 import java.nio.file.Files
 import java.nio.file.Path
@@ -11,7 +10,7 @@ import kotlin.concurrent.schedule
 /**
  * A service class for managing Paddle's cache.
  *
- * @see Config.cacheDir
+ * @see PythonDependenciesConfig.cacheDir
  */
 object GlobalCacheRepository {
     private const val CACHE_SYNC_PERIOD_MS: Long = 10000L
@@ -21,7 +20,7 @@ object GlobalCacheRepository {
         Timer("CachedPackagesSynchronizer", true).schedule(delay = 0, period = CACHE_SYNC_PERIOD_MS) {
             synchronized(cachedPackages) {
                 cachedPackages.clear()
-                Config.cacheDir.toFile().listFiles()?.forEach { packageDir ->
+                PythonDependenciesConfig.cacheDir.toFile().listFiles()?.forEach { packageDir ->
                     packageDir.listFiles()?.forEach { versionDir ->
                         val descriptor = Requirements.Descriptor(name = packageDir.name, version = versionDir.name)
                         cachedPackages.add(CachedPackage(descriptor, versionDir.toPath()))
@@ -44,7 +43,7 @@ object GlobalCacheRepository {
     }
 
     fun getPathToPackage(dependencyDescriptor: Requirements.Descriptor): Path =
-        Config.cacheDir.resolve(dependencyDescriptor.name).resolve(dependencyDescriptor.version)
+        PythonDependenciesConfig.cacheDir.resolve(dependencyDescriptor.name).resolve(dependencyDescriptor.version)
 
     fun findPackage(dependencyDescriptor: Requirements.Descriptor): CachedPackage {
         return if (!hasCached(dependencyDescriptor)) {

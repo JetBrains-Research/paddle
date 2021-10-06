@@ -1,10 +1,10 @@
-package io.paddle.plugin.python
+package io.paddle.plugin.python.dependencies
 
 import com.intellij.util.io.exists
 import java.nio.file.Path
 import java.nio.file.Paths
 
-object Config {
+object PythonDependenciesConfig {
     /**
      * A home directory for Paddle. Contains installed package caches and internal virtual environment. Planning to support caching wheels, etc.
      */
