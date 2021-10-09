@@ -5,7 +5,8 @@ import com.intellij.codeInsight.completion.CompletionUtilCore.DUMMY_IDENTIFIER_T
 import com.intellij.codeInsight.lookup.LookupElementBuilder
 import com.intellij.patterns.PlatformPatterns.*
 import com.intellij.util.ProcessingContext
-import io.paddle.plugin.python.dependencies.index.PyPackagesRepositoryIndexer
+import io.paddle.plugin.python.dependencies.index.PyPackageRepositories
+import kotlinx.serialization.ExperimentalSerializationApi
 import org.jetbrains.yaml.psi.YAMLDocument
 
 class PyPackageNameCompletionContributor : CompletionContributor() {
@@ -23,10 +24,11 @@ class PyPackageNameCompletionContributor : CompletionContributor() {
     }
 }
 
+@ExperimentalSerializationApi
 class PyPackageNameCompletionProvider : CompletionProvider<CompletionParameters>() {
     override fun addCompletions(parameters: CompletionParameters, context: ProcessingContext, result: CompletionResultSet) {
         val prefix = parameters.position.text.trim().removeSuffix(DUMMY_IDENTIFIER_TRIMMED)
-        val variants = PyPackagesRepositoryIndexer.findAvailablePackagesByPrefix(prefix)
+        val variants = PyPackageRepositories.findAvailablePackagesByPrefix(prefix)
         for ((repository, names) in variants) {
             result.addAllElements(
                 names.map { LookupElementBuilder.create(it).withTypeText(repository.url, true) }
