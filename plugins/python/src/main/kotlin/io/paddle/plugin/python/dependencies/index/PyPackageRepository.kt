@@ -2,6 +2,8 @@ package io.paddle.plugin.python.dependencies.index
 
 import io.paddle.plugin.python.Config
 import io.paddle.plugin.python.dependencies.index.distributions.PyDistributionInfo
+import io.paddle.plugin.python.dependencies.index.wordlist.PackedWordList
+import io.paddle.plugin.python.dependencies.index.wordlist.WordList
 import io.paddle.plugin.python.dependencies.isValidUrl
 import io.paddle.utils.StringHashable
 import kotlinx.coroutines.runBlocking
@@ -13,12 +15,15 @@ typealias PyPackageRepositoryUrl = String
 
 const val PYPI_URL = "https://pypi.org"
 
-@ExperimentalSerializationApi
 val PYPI_REPOSITORY = PyPackagesRepository(PYPI_URL)
 
-@ExperimentalSerializationApi
 @Serializable
 data class PyPackagesRepository(val url: PyPackageRepositoryUrl) {
+    @Transient
+    private lateinit var packagesNamesCache: WordList
+
+    private val distributionsCache: MutableMap<PyPackageName, List<PyDistributionInfo>> = HashMap()
+
     @Transient
     val urlSimple: PyPackageRepositoryUrl = "$url/simple"
 
@@ -32,21 +37,21 @@ data class PyPackagesRepository(val url: PyPackageRepositoryUrl) {
         }
     }
 
-    val packageNamesCache: MutableSet<PyPackageName> = HashSet()
-    private val distributionsCache: MutableMap<PyPackageName, List<PyDistributionInfo>> = HashMap()
-
     companion object {
         fun loadFromFile(file: File): PyPackagesRepository {
-            return cborParser.decodeFromByteArray(file.readBytes())
+            return jsonParser.decodeFromString(file.readText())
         }
     }
 
-    suspend fun updatePackageNamesCache() {
-        packageNamesCache.clear()
-        packageNamesCache.addAll(PyPackagesRepositoryIndexer.downloadPackageNames(this))
+    suspend fun updateCache() {
+        this.packagesNamesCache = PackedWordList(
+            words = PyPackagesRepositoryIndexer.downloadPackagesNames(this).toSet()
+        )
     }
 
-    operator fun get(packageName: PyPackageName): List<PyDistributionInfo> {
+    fun getPackagesNamesByPrefix(prefix: String): Sequence<PyPackageName> = packagesNamesCache.prefix(prefix)
+
+    fun getDistributions(packageName: PyPackageName): List<PyDistributionInfo> {
         return distributionsCache.getOrPut(packageName) {
             runBlocking {
                 PyPackagesRepositoryIndexer.downloadDistributionsList(packageName, this@PyPackagesRepository)
@@ -56,6 +61,6 @@ data class PyPackagesRepository(val url: PyPackageRepositoryUrl) {
 
     fun save() {
         Config.indexDir.resolve("$hashcode.json").toFile()
-            .writeBytes(cborParser.encodeToByteArray(this))
+            .writeText(jsonParser.encodeToString(this))
     }
 }

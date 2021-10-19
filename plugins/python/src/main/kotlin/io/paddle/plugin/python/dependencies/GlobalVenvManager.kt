@@ -40,10 +40,17 @@ object GlobalVenvManager {
     }
 
     private fun install(dependency: Requirements.Descriptor, repositories: List<PyPackageRepositoryUrl>): ExecutionResult {
+        val args = ArrayList<String>().also { args ->
+            args.add("install")
+            for (repoUrl in repositories) {
+                args.add("--extra-index-url")
+                args.add(repoUrl)
+            }
+            args.add("${dependency.name}==${dependency.version}")
+        }
         return executor.execute(
             command = "${Config.venvDir}/bin/pip",
-            args = listOf("install", "${dependency.name}==${dependency.version}") +
-                repositories.map { "--extra-index-url $it" },
+            args = args,
             workingDir = Config.paddleHome.toFile(),
             terminal = terminal
         )

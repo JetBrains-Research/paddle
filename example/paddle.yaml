@@ -14,8 +14,7 @@ environment:
 
 requirements:
   repositories:
-    - https://pypi.org
-    - https://repo.labs.intellij.net/artifactory/api/pypi/intellij-ml/simple
+    - https://pypi.org/simple
   libraries:
     - name: redis
       version: 3.5.3

@@ -6,7 +6,6 @@ import com.intellij.codeInsight.lookup.LookupElementBuilder
 import com.intellij.patterns.PlatformPatterns.*
 import com.intellij.util.ProcessingContext
 import io.paddle.plugin.python.dependencies.index.PyPackageRepositories
-import kotlinx.serialization.ExperimentalSerializationApi
 import org.jetbrains.yaml.psi.YAMLDocument
 
 class PyPackageNameCompletionContributor : CompletionContributor() {
@@ -24,7 +23,6 @@ class PyPackageNameCompletionContributor : CompletionContributor() {
     }
 }
 
-@ExperimentalSerializationApi
 class PyPackageNameCompletionProvider : CompletionProvider<CompletionParameters>() {
     override fun addCompletions(parameters: CompletionParameters, context: ProcessingContext, result: CompletionResultSet) {
         val prefix = parameters.position.text.trim().removeSuffix(DUMMY_IDENTIFIER_TRIMMED)

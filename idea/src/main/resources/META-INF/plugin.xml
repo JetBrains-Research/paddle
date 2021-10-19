@@ -40,6 +40,8 @@
 
         <externalSystemOutputParserProvider implementation="io.paddle.idea.runner.parser.PaddleParserProvider"/>
 
+        <backgroundPostStartupActivity implementation="io.paddle.plugin.python.dependencies.completion.LoadPyPackageRepositoriesIndexStartupActivity"/>
+
         <completion.contributor language="yaml"
                                 implementationClass="io.paddle.plugin.python.dependencies.completion.PyPackageNameCompletionContributor"/>
 
