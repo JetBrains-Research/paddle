@@ -4,7 +4,7 @@ import io.paddle.execution.CommandExecutor
 import io.paddle.execution.ExecutionResult
 import io.paddle.execution.local.LocalCommandExecutor
 import io.paddle.plugin.python.Config
-import io.paddle.plugin.python.dependencies.index.PyPackageRepositoryUrl
+import io.paddle.plugin.python.dependencies.index.PyPackagesRepositories
 import io.paddle.plugin.python.extensions.Requirements
 import io.paddle.terminal.Terminal
 import io.paddle.terminal.TextOutput
@@ -26,7 +26,7 @@ object GlobalVenvManager {
         globalVenv = VenvDir(Config.venvDir.toFile())
     }
 
-    fun smartInstall(dependency: Requirements.Descriptor, repositories: List<PyPackageRepositoryUrl>): ExecutionResult {
+    fun smartInstall(dependency: Requirements.Descriptor, repositories: PyPackagesRepositories): ExecutionResult {
         return createVenv(venvArgs = listOf("--clear")).then { install(dependency, repositories) }
     }
 
@@ -39,12 +39,12 @@ object GlobalVenvManager {
         )
     }
 
-    private fun install(dependency: Requirements.Descriptor, repositories: List<PyPackageRepositoryUrl>): ExecutionResult {
+    private fun install(dependency: Requirements.Descriptor, repositories: PyPackagesRepositories): ExecutionResult {
         val args = ArrayList<String>().also { args ->
             args.add("install")
-            for (repoUrl in repositories) {
+            for (repo in repositories.all) {
                 args.add("--extra-index-url")
-                args.add(repoUrl)
+                args.add(repo.urlSimple)
             }
             args.add("${dependency.name}==${dependency.version}")
         }

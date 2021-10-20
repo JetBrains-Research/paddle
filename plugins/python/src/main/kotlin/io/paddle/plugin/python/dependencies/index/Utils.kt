@@ -2,6 +2,7 @@ package io.paddle.plugin.python.dependencies.index
 
 import io.ktor.client.*
 import io.ktor.client.engine.cio.*
+import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.json.Json
 
 private const val THREADS_COUNT = 24
@@ -12,6 +13,8 @@ internal val jsonParser = Json {
 }
 
 internal val httpClient = HttpClient(CIO) {
+    followRedirects = true
+    expectSuccess = false
     engine {
         threadsCount = THREADS_COUNT
         maxConnectionsCount = 1000
@@ -43,3 +46,5 @@ internal fun ByteArray.compare(start: Int, size: Int, other: ByteArray): Int {
 
 private val emptyByteArray = ByteArray(0)
 internal fun emptyByteArray() = emptyByteArray
+
+class WrappedSerialDescriptor(override val serialName: String, original: SerialDescriptor) : SerialDescriptor by original

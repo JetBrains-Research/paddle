@@ -1,8 +1,7 @@
 package io.paddle.plugin.python.dependencies
 
-import com.intellij.util.io.exists
 import io.paddle.plugin.python.Config
-import io.paddle.plugin.python.dependencies.index.PyPackageRepositoryUrl
+import io.paddle.plugin.python.dependencies.index.PyPackagesRepositories
 import io.paddle.plugin.python.extensions.Requirements
 import java.nio.file.Files
 import java.nio.file.Path
@@ -38,7 +37,7 @@ object GlobalCacheRepository {
     fun getPathToPackage(dependencyDescriptor: Requirements.Descriptor): Path =
         Config.cacheDir.resolve(dependencyDescriptor.name).resolve(dependencyDescriptor.version)
 
-    fun findPackage(dependencyDescriptor: Requirements.Descriptor, repositories: List<PyPackageRepositoryUrl>): CachedPackage {
+    fun findPackage(dependencyDescriptor: Requirements.Descriptor, repositories: PyPackagesRepositories): CachedPackage {
         return if (!hasCached(dependencyDescriptor)) {
             installToCache(dependencyDescriptor, repositories)
         } else {
@@ -46,7 +45,7 @@ object GlobalCacheRepository {
         }
     }
 
-    fun installToCache(dependencyDescriptor: Requirements.Descriptor, repositories: List<PyPackageRepositoryUrl>): CachedPackage {
+    fun installToCache(dependencyDescriptor: Requirements.Descriptor, repositories: PyPackagesRepositories): CachedPackage {
         return GlobalVenvManager.smartInstall(dependencyDescriptor, repositories).expose(
             onSuccess = { copyPackageRecursivelyFromGlobalVenv(dependencyDescriptor) },
             onFail = { error("Some conflict occurred during installation of ${dependencyDescriptor.name}.") }

@@ -1,8 +1,12 @@
 package io.paddle.plugin.python.dependencies.index.wordlist
 
-import gnu.trove.THashMap
-import io.paddle.plugin.python.dependencies.index.compare
-import io.paddle.plugin.python.dependencies.index.emptyByteArray
+import io.paddle.plugin.python.dependencies.index.*
+import kotlinx.serialization.KSerializer
+import kotlinx.serialization.builtins.SetSerializer
+import kotlinx.serialization.builtins.serializer
+import kotlinx.serialization.descriptors.SerialDescriptor
+import kotlinx.serialization.encoding.Decoder
+import kotlinx.serialization.encoding.Encoder
 
 
 /**
@@ -11,11 +15,11 @@ import io.paddle.plugin.python.dependencies.index.emptyByteArray
  * Will use binary search for [contains] operation.
  * Suggestions take linear time, since it requires full scan.
  */
-open class PackedWordList(words: Set<String>) : WordList {
+open class PackedWordList(words: Set<String>) {
     private val alphabet = AlphabetCompression(words)
 
     /** Sizes of words to indices in [words] matrix */
-    private val sizeToIndex = THashMap<Int, Int>()
+    private val sizeToIndex = HashMap<Int, Int>()
 
     /**
      * Matrix of all words.
@@ -50,7 +54,7 @@ open class PackedWordList(words: Set<String>) : WordList {
         }
     }
 
-    override val all: Sequence<String>
+    open val all: Sequence<String>
         get() = sequence {
             val builder = StringBuilder(sizeToIndex.keys.maxOrNull() ?: 1)
 
@@ -67,9 +71,9 @@ open class PackedWordList(words: Set<String>) : WordList {
             }
         }
 
-    override fun contains(word: String): Boolean = findIndex(word) != null
+    open fun contains(word: String): Boolean = findIndex(word) != null
 
-    override fun isAlien(word: String): Boolean = alphabet.isAlien(word)
+    open fun isAlien(word: String): Boolean = alphabet.isAlien(word)
 
     protected fun findArray(word: String): Int? {
         return alphabet.compressOrNull(word)?.size?.let { sizeToIndex[it] }
@@ -92,7 +96,7 @@ open class PackedWordList(words: Set<String>) : WordList {
     }
 
     //TODO-tanvd here we can use binary search instead of full scan
-    override fun prefix(prefix: String): Sequence<String> {
+    open fun prefix(prefix: String): Sequence<String> {
         if (prefix.isEmpty()) return emptySequence()
 
         val original = alphabet.compressOrNull(prefix) ?: return emptySequence()
@@ -144,5 +148,39 @@ open class PackedWordList(words: Set<String>) : WordList {
         for (i in 0 until arr.size / size) {
             body(i, i * size, i * size + size)
         }
+    }
+
+    /**
+     * Empty word lists that suggests nothing, contains
+     * nothing and every word for it is alien
+     */
+    private class Empty : PackedWordList(words = emptySet()) {
+        override val all: Sequence<String> = emptySequence()
+
+        override fun contains(word: String): Boolean = false
+
+        override fun prefix(prefix: String): Sequence<String> = emptySequence()
+
+        override fun isAlien(word: String): Boolean = true
+    }
+
+    companion object {
+        /** Empty word list, that always returns false on contains */
+        val empty: PackedWordList = Empty()
+    }
+}
+
+object PackedWordListSerializer : KSerializer<PackedWordList> {
+    private val delegateSerializer = SetSerializer(String.serializer())
+    override val descriptor: SerialDescriptor = WrappedSerialDescriptor(serialName = "WordList", original = delegateSerializer.descriptor)
+
+    override fun deserialize(decoder: Decoder): PackedWordList {
+        val words = decoder.decodeSerializableValue(delegateSerializer)
+        return PackedWordList(words)
+    }
+
+    override fun serialize(encoder: Encoder, value: PackedWordList) {
+        val words = value.all.toSet()
+        encoder.encodeSerializableValue(delegateSerializer, words)
     }
 }

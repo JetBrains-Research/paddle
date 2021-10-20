@@ -15,13 +15,19 @@ object PyPackagesRepositoryIndexer {
         return allNamesDocument.body().getElementsByTag("a").map { it.text() }
     }
 
-    suspend fun downloadDistributionsList(packageName: String, repository: PyPackagesRepository = PYPI_REPOSITORY): List<PyDistributionInfo> {
-        val response: HttpResponse = httpClient.use {
-            it.request("${repository.urlSimple}/$packageName")
+    suspend fun downloadDistributionsList(
+        packageName: String,
+        repository: PyPackagesRepository = PyPackagesRepository.PYPI_REPOSITORY
+    ): List<PyDistributionInfo> {
+        return try {
+            httpClient.request<HttpStatement>("${repository.urlSimple}/$packageName").execute { response ->
+                val distributionsPage = Jsoup.parse(response.readText())
+                return@execute distributionsPage.body().getElementsByTag("a")
+                    .mapNotNull { PyDistributionInfo.fromString(it.text()) }
+            }
+        } catch (exception: Throwable) {
+            emptyList()
         }
-        val distributionsPage = Jsoup.parse(response.readText())
-        return distributionsPage.body().getElementsByTag("a")
-            .mapNotNull { PyDistributionInfo.fromString(it.text()) }
     }
 
     suspend fun downloadMetadata(packageName: String, repository: PyPackagesRepository): JsonPackageMetadataInfo {

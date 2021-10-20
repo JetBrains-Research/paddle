@@ -153,37 +153,45 @@
           "description": "List of the available repositories PyPi repositories",
           "type": "array",
           "items": {
-            "type": "string"
-          }
-        },
-        "anyOf": [
-          {
-            "file": {
-              "description": "Path to the requirements.txt file",
-              "type": "string"
-            }
-          },
-          {
-            "libraries": {
-              "type": "array",
-              "items": {
-                "type": "object",
-                "required": [
-                  "name",
-                  "version"
-                ],
-                "properties": {
-                  "name": {
-                    "type": "string"
-                  },
-                  "version": {
-                    "type": "string"
-                  }
-                }
+            "type": "object",
+            "required": [
+              "name",
+              "url"
+            ],
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "url": {
+                "format": "uri"
+              },
+              "default": {
+                "type": "boolean"
               }
             }
           }
-        ]
+        },
+        "libraries": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "name",
+              "version"
+            ],
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "version": {
+                "type": "string"
+              },
+              "repository": {
+                "type": "string"
+              }
+            }
+          }
+        }
       }
     },
     "plugins": {

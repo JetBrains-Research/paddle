@@ -40,13 +40,13 @@
 
         <externalSystemOutputParserProvider implementation="io.paddle.idea.runner.parser.PaddleParserProvider"/>
 
-        <backgroundPostStartupActivity implementation="io.paddle.plugin.python.dependencies.completion.LoadPyPackageRepositoriesIndexStartupActivity"/>
+        <backgroundPostStartupActivity implementation="io.paddle.idea.completion.LoadPyPackageRepositoriesIndexStartupActivity"/>
 
         <completion.contributor language="yaml"
-                                implementationClass="io.paddle.plugin.python.dependencies.completion.PyPackageNameCompletionContributor"/>
+                                implementationClass="io.paddle.idea.completion.PyPackageNameCompletionContributor"/>
 
         <completion.contributor language="yaml"
-                                implementationClass="io.paddle.plugin.python.dependencies.completion.PyPackageVersionCompletionContributor"/>
+                                implementationClass="io.paddle.idea.completion.PyPackageVersionCompletionContributor"/>
     </extensions>
 
     <extensions defaultExtensionNs="JavaScript.JsonSchema">
