@@ -8,6 +8,9 @@ import kotlinx.serialization.json.Json
 private const val THREADS_COUNT = 24
 private const val TIMEOUT_MS = 5000L
 
+typealias PyPackageName = String
+typealias PyPackagesRepositoryUrl = String
+
 internal val jsonParser = Json {
     ignoreUnknownKeys = true
 }
@@ -26,6 +29,8 @@ internal val httpClient = HttpClient(CIO) {
         }
     }
 }
+
+fun PyPackagesRepositoryUrl.join(urlPart: String): String = "${this.trimEnd('/')}/${urlPart.trimEnd('/')}/"
 
 internal fun Iterable<String>.letters(): Set<Char> = flatMap { it.toSet() }.toSet()
 

@@ -10,9 +10,10 @@ import org.jsoup.Jsoup
 
 object PyPackagesRepositoryIndexer {
     suspend fun downloadPackagesNames(repository: PyPackagesRepository): Collection<PyPackageName> {
-        val allNamesHtml = httpClient.request<HttpResponse>(repository.urlSimple).readText()
-        val allNamesDocument = Jsoup.parse(allNamesHtml)
-        return allNamesDocument.body().getElementsByTag("a").map { it.text() }
+        return httpClient.request<HttpStatement>(repository.urlSimple).execute { response ->
+            val allNamesDocument = Jsoup.parse(response.readText())
+            return@execute allNamesDocument.body().getElementsByTag("a").map { it.text() }
+        }
     }
 
     suspend fun downloadDistributionsList(
@@ -20,7 +21,7 @@ object PyPackagesRepositoryIndexer {
         repository: PyPackagesRepository = PyPackagesRepository.PYPI_REPOSITORY
     ): List<PyDistributionInfo> {
         return try {
-            httpClient.request<HttpStatement>("${repository.urlSimple}/$packageName").execute { response ->
+            httpClient.request<HttpStatement>(repository.urlSimple.join(packageName)).execute { response ->
                 val distributionsPage = Jsoup.parse(response.readText())
                 return@execute distributionsPage.body().getElementsByTag("a")
                     .mapNotNull { PyDistributionInfo.fromString(it.text()) }

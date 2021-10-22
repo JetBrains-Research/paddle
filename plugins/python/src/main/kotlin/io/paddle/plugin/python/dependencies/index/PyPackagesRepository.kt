@@ -8,9 +8,6 @@ import io.paddle.utils.StringHashable
 import kotlinx.serialization.*
 import java.io.File
 
-typealias PyPackageName = String
-typealias PyPackagesRepositoryUrl = String
-
 @Serializable
 data class PyPackagesRepository(val url: PyPackagesRepositoryUrl, val name: String) {
     @Serializable(with = PackedWordListSerializer::class)
@@ -19,7 +16,7 @@ data class PyPackagesRepository(val url: PyPackagesRepositoryUrl, val name: Stri
     private val distributionsCache: MutableMap<PyPackageName, List<PyDistributionInfo>> = HashMap()
 
     @Transient
-    val urlSimple: PyPackagesRepositoryUrl = "$url/simple"
+    val urlSimple: PyPackagesRepositoryUrl = url.join("simple")
 
     @Transient
     val cacheFileName: String = StringHashable(url).hash()
