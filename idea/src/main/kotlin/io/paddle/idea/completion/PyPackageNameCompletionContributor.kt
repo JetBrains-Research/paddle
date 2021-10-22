@@ -14,7 +14,6 @@ import java.nio.file.Path
 
 class PyPackageNameCompletionContributor : CompletionContributor() {
     init {
-
         extend(
             CompletionType.BASIC,
             psiElement()
@@ -39,7 +38,7 @@ class PyPackageNameCompletionProvider : CompletionProvider<CompletionParameters>
 
         for ((repository, names) in variants) {
             result.addAllElements(
-                names.map { LookupElementBuilder.create(it).withTypeText(repository.url, true) }
+                names.map { LookupElementBuilder.create(it).withTypeText(repository.name, true) }
             )
         }
     }

@@ -43,7 +43,7 @@ class PyPackageVersionCompletionProvider : CompletionProvider<CompletionParamete
                     .map {
                         LookupElementBuilder.create(it.version)
                             .withTailText("  ${it.ext}", true)
-                            .withTypeText(repository.url, true)
+                            .withTypeText(repository.name, true)
                     }
             )
         }
