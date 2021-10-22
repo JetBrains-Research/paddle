@@ -2,6 +2,7 @@ package io.paddle.plugin.python.dependencies.index
 
 import io.paddle.plugin.python.Config
 import io.paddle.plugin.python.dependencies.index.distributions.PyDistributionInfo
+import io.paddle.plugin.python.dependencies.index.utils.*
 import io.paddle.plugin.python.dependencies.index.wordlist.PackedWordList
 import io.paddle.plugin.python.dependencies.index.wordlist.PackedWordListSerializer
 import io.paddle.utils.StringHashable

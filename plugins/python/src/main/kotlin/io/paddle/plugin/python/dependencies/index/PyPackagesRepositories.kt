@@ -2,6 +2,7 @@ package io.paddle.plugin.python.dependencies.index
 
 import io.paddle.plugin.python.Config
 import io.paddle.plugin.python.dependencies.index.distributions.PyDistributionInfo
+import io.paddle.plugin.python.dependencies.index.utils.PyPackageName
 import kotlinx.coroutines.*
 import java.util.*
 import kotlin.concurrent.schedule

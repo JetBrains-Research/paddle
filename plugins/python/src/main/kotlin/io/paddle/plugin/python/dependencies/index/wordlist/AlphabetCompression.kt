@@ -1,7 +1,7 @@
 package io.paddle.plugin.python.dependencies.index.wordlist
 
-import io.paddle.plugin.python.dependencies.index.letters
-import io.paddle.plugin.python.dependencies.index.withIndexAt
+import io.paddle.plugin.python.dependencies.index.utils.letters
+import io.paddle.plugin.python.dependencies.index.utils.withIndexAt
 
 
 /**
@@ -79,7 +79,7 @@ class AlphabetCompression(words: Set<String>) {
      * Decompress word. Array expected to be compressed
      * by this [AlphabetCompression] instance.
      */
-    fun decompress(array: ByteArray, from: Int, to: Int, builder: java.lang.StringBuilder) {
+    fun decompress(array: ByteArray, from: Int, to: Int, builder: StringBuilder) {
         for (i in from until to) {
             val byte = array[i]
             builder.append(backward[byte] ?: error("Unknown byte $byte found during decompression in AlphabetCompression."))
