@@ -163,9 +163,12 @@
                 "type": "string"
               },
               "url": {
-                "format": "uri"
+                "type": "string"
               },
               "default": {
+                "type": "boolean"
+              },
+              "secondary": {
                 "type": "boolean"
               }
             }

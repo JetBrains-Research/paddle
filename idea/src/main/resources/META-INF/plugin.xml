@@ -40,7 +40,11 @@
 
         <externalSystemOutputParserProvider implementation="io.paddle.idea.runner.parser.PaddleParserProvider"/>
 
-        <backgroundPostStartupActivity implementation="io.paddle.idea.completion.LoadPyPackageRepositoriesIndexStartupActivity"/>
+        <localInspection language="yaml"
+                         displayName="Wrong Paddle repositories configuration"
+                         groupName="YAML"
+                         enabledByDefault="true"
+                         implementationClass="io.paddle.idea.inspections.PyPackagesRepositoryYAMLInspection"/>
 
         <completion.contributor language="yaml"
                                 implementationClass="io.paddle.idea.completion.PyPackageNameCompletionContributor"/>

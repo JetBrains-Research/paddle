@@ -27,7 +27,9 @@ object GlobalVenvManager {
     }
 
     fun smartInstall(dependency: Requirements.Descriptor, repositories: PyPackagesRepositories): ExecutionResult {
-        return createVenv(venvArgs = listOf("--clear")).then { install(dependency, repositories) }
+        return createVenv(venvArgs = listOf("--clear")).then {
+            install(dependency, repositories)
+        }
     }
 
     private fun createVenv(venvArgs: List<String> = emptyList()): ExecutionResult {
@@ -40,14 +42,19 @@ object GlobalVenvManager {
     }
 
     private fun install(dependency: Requirements.Descriptor, repositories: PyPackagesRepositories): ExecutionResult {
-        val args = ArrayList<String>().also { args ->
-            args.add("install")
+        val args = ArrayList<String>().apply {
+            add("install")
+            add("--index-url")
+            add(repositories.primarySource.urlSimple)
             for (repo in repositories.all) {
-                args.add("--extra-index-url")
-                args.add(repo.urlSimple)
+                if (repo != repositories.primarySource) {
+                    add("--extra-index-url")
+                    add(repo.urlSimple)
+                }
             }
-            args.add("${dependency.name}==${dependency.version}")
+            add("${dependency.name}==${dependency.version}")
         }
+
         return executor.execute(
             command = "${Config.venvDir}/bin/pip",
             args = args,

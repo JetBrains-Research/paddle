@@ -25,20 +25,7 @@ class Requirements(val descriptors: MutableList<Descriptor>, val files: MutableL
             }
 
             val libraries = config.libraries.map { Descriptor(it["name"]!!, it["version"]!!) }.toMutableList()
-            val repositories = PyPackagesRepositories(
-                repositories = config.repositories.map {
-                    // TODO: design a better way of parameters validation
-                    val (url, name) = it["url"]!! to it["name"]!!
-                    require(url.isValidUrl()) { "The specified URL=$url is not valid." }
-
-                    PyPackagesRepository(
-                        url = url.removeSuffix("/").removeSuffix("/simple"),
-                        name = name
-                    )
-                }.toMutableSet(),
-                useCached = true,
-                updateAllIndex = false
-            )
+            val repositories = PyPackagesRepositories.parse(config.repositories)
 
             return Requirements(libraries, mutableListOf(File(project.workDir, config.requirementsFile)), repositories)
         }

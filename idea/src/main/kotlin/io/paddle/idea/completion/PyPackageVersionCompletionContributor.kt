@@ -36,15 +36,12 @@ class PyPackageVersionCompletionProvider : CompletionProvider<CompletionParamete
         val packageName = parameters.originalPosition?.parent?.parent?.prevSibling?.prevSibling?.prevSibling?.lastChild?.text ?: return
         val variants = project.requirements.repositories.findAvailableDistributionsByPackage(packageName)
 
-        for ((repository, distributions) in variants) {
-            result.addAllElements(
-                distributions
-                    .filter { it.version.startsWith(prefix) }
-                    .map {
-                        LookupElementBuilder.create(it.version)
-                            .withTailText("  ${it.ext}", true)
-                            .withTypeText(repository.name, true)
-                    }
+        for ((distribution, repo) in variants) {
+            if (!distribution.version.startsWith(prefix)) continue
+            result.addElement(
+                LookupElementBuilder.create(distribution.version)
+                    .withTailText("  ${distribution.ext}", true)
+                    .withTypeText(repo.name, true)
             )
         }
     }

@@ -36,10 +36,8 @@ class PyPackageNameCompletionProvider : CompletionProvider<CompletionParameters>
         val prefix = parameters.position.text.trim().removeSuffix(DUMMY_IDENTIFIER_TRIMMED)
         val variants = project.requirements.repositories.findAvailablePackagesByPrefix(prefix)
 
-        for ((repository, names) in variants) {
-            result.addAllElements(
-                names.map { LookupElementBuilder.create(it).withTypeText(repository.name, true) }
-            )
+        for ((pkgName, repo) in variants) {
+            result.addElement(LookupElementBuilder.create(pkgName).withTypeText(repo.name, true))
         }
     }
 }
