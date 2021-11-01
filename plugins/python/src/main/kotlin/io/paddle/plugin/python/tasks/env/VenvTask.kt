@@ -24,10 +24,6 @@ class VenvTask(project: Project) : IncrementalTask(project) {
     override fun act() {
         project.environment.initialize().orElse { throw ActException("VirtualEnv creation has failed") }
 
-        for (file in project.requirements.files) {
-            project.environment.install(file).orElse { throw ActException("Requirements.txt installation has failed") }
-        }
-
         for (pkg in project.requirements.descriptors) {
             project.environment.install(pkg, project.requirements.repositories)
         }

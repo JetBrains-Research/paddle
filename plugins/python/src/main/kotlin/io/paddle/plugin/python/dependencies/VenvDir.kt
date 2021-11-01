@@ -15,7 +15,7 @@ class VenvDir(private val directory: File) : File(directory.path) {
     val sitePackages: File
         get() {
             val libDir = directory.resolve("lib")
-            val pythonDir = libDir.listFiles()?.find { it.name.matches(Regex("python\\d.\\d")) } ?: error("Incorrect venv structure")
+            val pythonDir = libDir.listFiles()?.find { it.name.matches(RegexCache.PYTHON_DIR_NAME_REGEX) } ?: error("Incorrect venv structure")
             return pythonDir.resolve("site-packages")
         }
 

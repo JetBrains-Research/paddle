@@ -1,47 +1,55 @@
 package io.paddle.plugin.python.dependencies
 
-import io.paddle.plugin.python.Config
 import io.paddle.plugin.python.dependencies.index.PyPackagesRepositories
 import io.paddle.plugin.python.extensions.Requirements
 import java.nio.file.Files
 import java.nio.file.Path
+import java.util.*
+import kotlin.concurrent.schedule
 
 /**
  * A service class for managing Paddle's cache.
  *
- * @see Config.cacheDir
+ * @see PythonDependenciesConfig.cacheDir
  */
 object GlobalCacheRepository {
-    private val cachedPackages: MutableCollection<CachedPackage>
+    private const val CACHE_SYNC_PERIOD_MS: Long = 60000L
+    private val cachedPackages: MutableCollection<CachedPackage> = HashSet()
 
     init {
-        cachedPackages = hashSetOf()
-        Config.cacheDir.toFile().listFiles()?.forEach { packageDir ->
-            packageDir.listFiles()?.forEach { versionDir ->
-                val descriptor = Requirements.Descriptor(name = packageDir.name, version = versionDir.name)
-                cachedPackages.add(CachedPackage(descriptor, versionDir.toPath()))
-            }
-        }
-        cachedPackages.forEach { pkg ->
-            for (dependencySpec in pkg.metadata.requiresDist) {
-                val dependencyName = dependencySpec.nameReq().name().text
-                // TODO: implement dependency resolution
-                val dependency = cachedPackages.findLast { it.name == dependencyName } ?: continue
-                pkg.dependencies.register(dependency)
+        Timer("CachedPackagesSynchronizer", true).schedule(delay = 0, period = CACHE_SYNC_PERIOD_MS) {
+            synchronized(cachedPackages) {
+                cachedPackages.clear()
+                PythonDependenciesConfig.cacheDir.toFile().listFiles()?.forEach { packageDir ->
+                    packageDir.listFiles()?.forEach { versionDir ->
+                        val descriptor = Requirements.Descriptor(name = packageDir.name, version = versionDir.name)
+                        cachedPackages.add(CachedPackage(descriptor, versionDir.toPath()))
+                    }
+                }
+                for (pkg in cachedPackages) {
+                    for (dependencySpec in pkg.metadata.requiresDist) {
+                        val dependencyName = dependencySpec.nameReq().name().text
+                        // TODO: implement dependency resolution
+                        val dependency = cachedPackages.findLast { it.name == dependencyName } ?: continue
+                        pkg.dependencies.register(dependency)
+                    }
+                }
             }
         }
     }
 
-    fun hasCached(descriptor: Requirements.Descriptor) = cachedPackages.any { it.descriptor == descriptor && it.srcPath.exists() }
+    fun hasCached(descriptor: Requirements.Descriptor) = synchronized(cachedPackages) {
+        cachedPackages.any { it.descriptor == descriptor && it.srcPath.exists() }
+    }
 
     fun getPathToPackage(dependencyDescriptor: Requirements.Descriptor): Path =
-        Config.cacheDir.resolve(dependencyDescriptor.name).resolve(dependencyDescriptor.version)
+        PythonDependenciesConfig.cacheDir.resolve(dependencyDescriptor.name).resolve(dependencyDescriptor.version)
 
     fun findPackage(dependencyDescriptor: Requirements.Descriptor, repositories: PyPackagesRepositories): CachedPackage {
         return if (!hasCached(dependencyDescriptor)) {
             installToCache(dependencyDescriptor, repositories)
         } else {
-            cachedPackages.find { it.descriptor == dependencyDescriptor }!!
+            synchronized(cachedPackages) { cachedPackages.find { it.descriptor == dependencyDescriptor }!! }
         }
     }
 
@@ -72,7 +80,7 @@ object GlobalCacheRepository {
             pkg.dependencies.register(dependentPkg)
         }
 
-        cachedPackages.add(pkg)
+        synchronized(cachedPackages) { cachedPackages.add(pkg) }
         return pkg
     }
 

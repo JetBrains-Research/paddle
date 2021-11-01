@@ -13,6 +13,10 @@ data class CachedPackage(val descriptor: Requirements.Descriptor, val srcPath: P
     val distInfo: File = srcPath.toFile().resolve(descriptor.distInfoDirName)
     val dependencies = Dependencies()
 
+    private val hashCode by lazy {
+        StringHashable("$name:$version").hash().hashCode()
+    }
+
     val metadata: PackageMetadata by lazy {
         PackageMetadata.parse(distInfo.resolve("METADATA"))
     }
@@ -21,7 +25,5 @@ data class CachedPackage(val descriptor: Requirements.Descriptor, val srcPath: P
         distInfo.resolve("top_level.txt").let { if (it.exists()) it.readText().trim() else name }
     }
 
-    override fun hashCode(): Int {
-        return StringHashable("$name:$version").hash().hashCode()
-    }
+    override fun hashCode(): Int = hashCode
 }

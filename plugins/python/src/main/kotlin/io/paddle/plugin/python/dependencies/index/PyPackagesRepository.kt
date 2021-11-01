@@ -1,6 +1,6 @@
 package io.paddle.plugin.python.dependencies.index
 
-import io.paddle.plugin.python.Config
+import io.paddle.plugin.python.dependencies.PythonDependenciesConfig
 import io.paddle.plugin.python.dependencies.index.distributions.PyDistributionInfo
 import io.paddle.plugin.python.dependencies.index.utils.*
 import io.paddle.plugin.python.dependencies.index.wordlist.PackedWordList
@@ -49,7 +49,7 @@ data class PyPackagesRepository(val url: PyPackagesRepositoryUrl, val name: Stri
     }
 
     fun save() {
-        Config.indexDir.resolve(this.cacheFileName).toFile()
+        PythonDependenciesConfig.indexDir.resolve(this.cacheFileName).toFile()
             .writeText(jsonParser.encodeToString(this))
     }
 

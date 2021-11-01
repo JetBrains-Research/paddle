@@ -1,6 +1,6 @@
 package io.paddle.plugin.python.dependencies.index
 
-import io.paddle.plugin.python.Config
+import io.paddle.plugin.python.dependencies.PythonDependenciesConfig
 import io.paddle.plugin.python.dependencies.index.distributions.PyDistributionInfo
 import io.paddle.plugin.python.dependencies.index.utils.PyPackageName
 import io.paddle.plugin.python.dependencies.isValidUrl
@@ -55,7 +55,7 @@ class PyPackagesRepositories(
 
     init {
         if (useCachedIndex) {
-            val cachedFiles = Config.indexDir.toFile().listFiles() ?: emptyArray()
+            val cachedFiles = PythonDependenciesConfig.indexDir.toFile().listFiles() ?: emptyArray()
             val newRepositories = HashSet<PyPackagesRepository>()
             for (repo in repositories) {
                 cachedFiles.find { it.name == repo.cacheFileName }

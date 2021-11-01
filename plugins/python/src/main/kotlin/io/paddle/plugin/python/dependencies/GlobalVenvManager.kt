@@ -3,7 +3,6 @@ package io.paddle.plugin.python.dependencies
 import io.paddle.execution.CommandExecutor
 import io.paddle.execution.ExecutionResult
 import io.paddle.execution.local.LocalCommandExecutor
-import io.paddle.plugin.python.Config
 import io.paddle.plugin.python.dependencies.index.PyPackagesRepositories
 import io.paddle.plugin.python.extensions.Requirements
 import io.paddle.terminal.Terminal
@@ -23,7 +22,7 @@ object GlobalVenvManager {
 
     init {
         createVenv().orElse { error("Failed to create Paddle's internal virtualenv. Check your python installation.") }
-        globalVenv = VenvDir(Config.venvDir.toFile())
+        globalVenv = VenvDir(PythonDependenciesConfig.venvDir.toFile())
     }
 
     fun smartInstall(dependency: Requirements.Descriptor, repositories: PyPackagesRepositories): ExecutionResult {
@@ -35,8 +34,8 @@ object GlobalVenvManager {
     private fun createVenv(venvArgs: List<String> = emptyList()): ExecutionResult {
         return executor.execute(
             command = "python3",
-            args = listOf("-m", "venv") + venvArgs + Config.venvDir.toAbsolutePath().toString(),
-            workingDir = Config.paddleHome.toFile(),
+            args = listOf("-m", "venv") + venvArgs + PythonDependenciesConfig.venvDir.toAbsolutePath().toString(),
+            workingDir = PythonDependenciesConfig.paddleHome.toFile(),
             terminal = terminal
         )
     }
@@ -56,9 +55,9 @@ object GlobalVenvManager {
         }
 
         return executor.execute(
-            command = "${Config.venvDir}/bin/pip",
+            command = "${PythonDependenciesConfig.venvDir}/bin/pip",
             args = args,
-            workingDir = Config.paddleHome.toFile(),
+            workingDir = PythonDependenciesConfig.paddleHome.toFile(),
             terminal = terminal
         )
     }
@@ -73,7 +72,7 @@ object GlobalVenvManager {
 
     fun getInstalledPackageVersionByName(name: String): String? {
         return globalVenv.sitePackages.listFiles()
-            ?.find { it.isDirectory && it.name.matches(Regex("^$name-[.0-9]+\\.dist-info\$")) }
+            ?.find { it.isDirectory && it.name.matches(RegexCache.getDistInfoRegex(name)) }
             ?.name?.substringAfter("$name-")?.substringBefore(".dist-info")
     }
 
@@ -93,7 +92,7 @@ object GlobalVenvManager {
         // Otherwise, for instance, package "attrs" has top-level name "attr", so we need to extract and consider it as well
         val topLevelName = resolveTopLevelName(dependency.distInfoDirName, dependency.name)
         return globalVenv.sitePackages.listFiles()
-            ?.filter { it.name.matches(Regex("^.*[\\-_]*(${dependency.name}|${topLevelName})(-|\\.|_|c\$|c\\.|\$|).*\$")) }
+            ?.filter { it.name.matches(RegexCache.getPackageRelatedRegex(dependency.name, topLevelName)) }
             ?: error("Paddle's internal virtualenv is empty or corrupted.")
     }
 

@@ -1,13 +1,13 @@
 package io.paddle.plugin.python.dependencies
 
 class Dependencies {
-    private val _dependencies: MutableList<CachedPackage> = arrayListOf()
+    private val dependencies: MutableList<CachedPackage> = ArrayList()
 
     fun all(): Set<CachedPackage> {
-        return _dependencies.toSet()
+        return dependencies.toSet()
     }
 
     fun register(dependency: CachedPackage) {
-        _dependencies.add(dependency)
+        dependencies.add(dependency)
     }
 }
