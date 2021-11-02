@@ -43,9 +43,4 @@ class Environment(val project: Project, val venv: VenvDir, val workDir: File) {
         val pkg = GlobalCacheRepository.findPackage(dependencyDescriptor, repositories)
         GlobalCacheRepository.createSymlinkToPackageRecursively(pkg, symlinkDir = venv.sitePackages.toPath())
     }
-
-    fun install(requirements: File): ExecutionResult {
-        // TODO: throw away when descriptors will be ready
-        return project.executor.execute("${venv.absolutePath}/bin/pip", listOf("install", "-r", requirements.absolutePath), workDir, project.terminal)
-    }
 }

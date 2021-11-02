@@ -24,8 +24,8 @@ requirements:
       secondary: True # Thus, <ml> still would be the primary source. But without such flag, this repo would have precedence over <ml>
 
   libraries:
-    - name: ea-ml
-      version: 0.0.6
+    - name: redis
+      version: 3.5.3
 
 plugins:
   enabled:

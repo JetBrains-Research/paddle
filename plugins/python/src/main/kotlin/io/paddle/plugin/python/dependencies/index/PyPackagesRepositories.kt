@@ -4,6 +4,7 @@ import io.paddle.plugin.python.dependencies.PythonDependenciesConfig
 import io.paddle.plugin.python.dependencies.index.distributions.PyDistributionInfo
 import io.paddle.plugin.python.dependencies.index.utils.PyPackageName
 import io.paddle.plugin.python.dependencies.isValidUrl
+import io.paddle.plugin.python.extensions.Requirements
 import kotlinx.coroutines.*
 import java.util.*
 import kotlin.collections.HashMap
@@ -100,6 +101,22 @@ class PyPackagesRepositories(
         }
     }
 
+    suspend fun find(descriptor: Requirements.Descriptor): Pair<PyPackagesRepository, PyDistributionInfo>? {
+        val primaryDistribution = this.primarySource.search(descriptor)
+        return if (primaryDistribution != null) {
+            primarySource to primaryDistribution
+        } else {
+            for (repo in this.extraSources) {
+                val distribution = repo.search(descriptor) ?: continue
+                return repo to distribution
+            }
+            return null
+        }
+    }
+
     val all: Set<PyPackagesRepository>
         get() = repositories.toSet()
+
+    val extraSources: Set<PyPackagesRepository>
+        get() = repositories.filter { it != primarySource }.toSet()
 }

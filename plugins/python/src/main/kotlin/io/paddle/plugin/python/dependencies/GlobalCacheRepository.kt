@@ -5,6 +5,7 @@ import io.paddle.plugin.python.extensions.Requirements
 import java.nio.file.Files
 import java.nio.file.Path
 import java.util.*
+import java.util.concurrent.ConcurrentHashMap
 import kotlin.concurrent.schedule
 
 /**
@@ -14,7 +15,7 @@ import kotlin.concurrent.schedule
  */
 object GlobalCacheRepository {
     private const val CACHE_SYNC_PERIOD_MS: Long = 60000L
-    private val cachedPackages: MutableCollection<CachedPackage> = HashSet()
+    private val cachedPackages: MutableCollection<CachedPackage> = ConcurrentHashMap.newKeySet()
 
     init {
         Timer("CachedPackagesSynchronizer", true).schedule(delay = 0, period = CACHE_SYNC_PERIOD_MS) {
@@ -38,8 +39,8 @@ object GlobalCacheRepository {
         }
     }
 
-    fun hasCached(descriptor: Requirements.Descriptor) = synchronized(cachedPackages) {
-        cachedPackages.any { it.descriptor == descriptor && it.srcPath.exists() }
+    fun hasCached(descriptor: Requirements.Descriptor): Boolean {
+        return cachedPackages.any { it.descriptor == descriptor && it.srcPath.exists() }
     }
 
     fun getPathToPackage(dependencyDescriptor: Requirements.Descriptor): Path =
@@ -49,7 +50,7 @@ object GlobalCacheRepository {
         return if (!hasCached(dependencyDescriptor)) {
             installToCache(dependencyDescriptor, repositories)
         } else {
-            synchronized(cachedPackages) { cachedPackages.find { it.descriptor == dependencyDescriptor }!! }
+            cachedPackages.find { it.descriptor == dependencyDescriptor }!!
         }
     }
 
@@ -80,7 +81,7 @@ object GlobalCacheRepository {
             pkg.dependencies.register(dependentPkg)
         }
 
-        synchronized(cachedPackages) { cachedPackages.add(pkg) }
+        cachedPackages.add(pkg)
         return pkg
     }
 

@@ -5,6 +5,7 @@ import io.paddle.plugin.python.dependencies.index.distributions.PyDistributionIn
 import io.paddle.plugin.python.dependencies.index.utils.*
 import io.paddle.plugin.python.dependencies.index.wordlist.PackedWordList
 import io.paddle.plugin.python.dependencies.index.wordlist.PackedWordListSerializer
+import io.paddle.plugin.python.extensions.Requirements
 import io.paddle.utils.StringHashable
 import kotlinx.serialization.*
 import java.io.File
@@ -38,14 +39,34 @@ data class PyPackagesRepository(val url: PyPackagesRepositoryUrl, val name: Stri
 
     fun getPackagesNamesByPrefix(prefix: String): Sequence<PyPackageName> = packagesNamesCache.prefix(prefix)
 
-    suspend fun getDistributions(packageName: PyPackageName): List<PyDistributionInfo> {
-        return distributionsCache.getOrPut(packageName) {
-            PyPackagesRepositoryIndexer.downloadDistributionsList(packageName, this@PyPackagesRepository)
+    suspend fun getDistributions(packageName: PyPackageName, useCache: Boolean = true): List<PyDistributionInfo> {
+        val distributions = PyPackagesRepositoryIndexer.downloadDistributionsList(packageName, this@PyPackagesRepository)
+        return if (useCache) {
+            distributionsCache.getOrPut(packageName) { distributions }
+        } else {
+            distributions
         }
     }
 
     fun saveCache() {
         PythonDependenciesConfig.indexDir.resolve(this.cacheFileName).toFile()
             .writeText(jsonParser.encodeToString(this))
+    }
+
+    /**
+     * Searches for the particular package (name, version) in the current repository.
+     * If nothing have been found, returns null.
+     *
+     * TODO: take current platform and python-interpreter tags for consideration as well
+     *
+     * TODO: use this method to resolve packages during installation by Paddle, not by pip
+     */
+    suspend fun search(descriptor: Requirements.Descriptor): PyDistributionInfo? {
+        val distributions = getDistributions(descriptor.name)
+        return try {
+            distributions.find { it.version == descriptor.version }
+        } catch (exception: Throwable) {
+            null
+        }
     }
 }

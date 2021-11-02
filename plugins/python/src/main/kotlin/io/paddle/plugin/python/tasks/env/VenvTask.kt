@@ -1,5 +1,6 @@
 package io.paddle.plugin.python.tasks.env
 
+import io.paddle.plugin.python.dependencies.lock.PyPackagesLocker
 import io.paddle.plugin.python.extensions.*
 import io.paddle.plugin.standard.tasks.clean
 import io.paddle.project.Project
@@ -27,5 +28,7 @@ class VenvTask(project: Project) : IncrementalTask(project) {
         for (pkg in project.requirements.descriptors) {
             project.environment.install(pkg, project.requirements.repositories)
         }
+
+        PyPackagesLocker.lock(project)
     }
 }

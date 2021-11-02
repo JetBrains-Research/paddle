@@ -6,6 +6,7 @@ import kotlinx.serialization.Transient
 
 @Serializable
 data class WheelPyDistributionInfo(
+    override val name: String,
     override val version: String,
     override val buildTag: String? = null,
     val requiresPython: String? = null,
@@ -31,12 +32,13 @@ data class WheelPyDistributionInfo(
         fun fromString(filename: String): WheelPyDistributionInfo? {
             val matchResult = WHEEL_DISTRIBUTION_PATTERN.find(filename)
             if (matchResult != null) {
+                val name = matchResult.groups["name"]?.value!!
                 val version = matchResult.groups["version"]?.value!!
                 val buildTag = matchResult.groups["buildTag"]?.value?.drop(1)
                 val pyTag = matchResult.groups["pyTag"]?.value
                 val abiTag = matchResult.groups["abiTag"]?.value
                 val platformTag = matchResult.groups["platformTag"]?.value
-                return WheelPyDistributionInfo(version, buildTag, pyTag, abiTag, platformTag, filename)
+                return WheelPyDistributionInfo(name, version, buildTag, pyTag, abiTag, platformTag, filename)
             }
             return null
         }
