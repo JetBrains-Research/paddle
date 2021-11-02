@@ -26,15 +26,15 @@ object GlobalVenvManager {
     }
 
     fun smartInstall(dependency: Requirements.Descriptor, repositories: PyPackagesRepositories): ExecutionResult {
-        return createVenv(venvArgs = listOf("--clear")).then {
+        return createVenv(args = listOf("--clear")).then {
             install(dependency, repositories)
         }
     }
 
-    private fun createVenv(venvArgs: List<String> = emptyList()): ExecutionResult {
+    private fun createVenv(args: List<String> = emptyList()): ExecutionResult {
         return executor.execute(
             command = "python3",
-            args = listOf("-m", "venv") + venvArgs + PythonDependenciesConfig.venvDir.toAbsolutePath().toString(),
+            args = listOf("-m", "venv") + args + PythonDependenciesConfig.venvDir.toAbsolutePath().toString(),
             workingDir = PythonDependenciesConfig.paddleHome.toFile(),
             terminal = terminal
         )

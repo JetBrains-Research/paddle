@@ -24,10 +24,6 @@ data class PyPackagesRepository(val url: PyPackagesRepositoryUrl, val name: Stri
 
     companion object {
         val PYPI_REPOSITORY = PyPackagesRepository("https://pypi.org", "pypi")
-
-        fun loadFromFile(file: File): PyPackagesRepository {
-            return jsonParser.decodeFromString(file.readText())
-        }
     }
 
     suspend fun updateIndex() {
@@ -48,24 +44,8 @@ data class PyPackagesRepository(val url: PyPackagesRepositoryUrl, val name: Stri
         }
     }
 
-    fun save() {
+    fun saveCache() {
         PythonDependenciesConfig.indexDir.resolve(this.cacheFileName).toFile()
             .writeText(jsonParser.encodeToString(this))
-    }
-
-    override fun hashCode(): Int {
-        return url.hashCode() * 37 + name.hashCode()
-    }
-
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (javaClass != other?.javaClass) return false
-
-        other as PyPackagesRepository
-
-        if (url != other.url) return false
-        if (name != other.name) return false
-
-        return true
     }
 }

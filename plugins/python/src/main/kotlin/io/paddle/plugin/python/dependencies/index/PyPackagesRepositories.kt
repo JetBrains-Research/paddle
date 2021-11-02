@@ -49,7 +49,7 @@ class PyPackagesRepositories(
         private fun updateIndex(repositories: Set<PyPackagesRepository>) = runBlocking {
             val jobs = repositories.map { launch { it.updateIndex() } }
             jobs.joinAll()
-            repositories.forEach { it.save() }
+            repositories.forEach { it.saveCache() }
         }
     }
 
@@ -71,7 +71,7 @@ class PyPackagesRepositories(
 
         Timer("PyPackagesRepositoriesCacheSynchronizer", true)
             .schedule(CACHE_SYNC_PERIOD_MS, CACHE_SYNC_PERIOD_MS) {
-                repositories.forEach { it.save() }
+                repositories.forEach { it.saveCache() }
             }
     }
 
