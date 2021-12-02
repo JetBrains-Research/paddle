@@ -1,6 +1,7 @@
 package io.paddle.plugin.python.dependencies.index.utils
 
 typealias PyPackageName = String
+typealias PyPackageVersion = String
 
 internal fun Iterable<String>.letters(): Set<Char> = flatMap { it.toSet() }.toSet()
 

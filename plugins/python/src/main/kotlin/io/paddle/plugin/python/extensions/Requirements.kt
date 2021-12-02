@@ -1,8 +1,11 @@
 package io.paddle.plugin.python.extensions
 
+import io.paddle.plugin.python.dependencies.index.PyDistributionsResolver
 import io.paddle.plugin.python.dependencies.index.PyPackagesRepositories
 import io.paddle.plugin.python.dependencies.index.PyPackagesRepository
-import io.paddle.plugin.python.dependencies.isValidUrl
+import io.paddle.plugin.python.dependencies.index.utils.PyPackageName
+import io.paddle.plugin.python.dependencies.index.utils.PyPackageUrl
+import io.paddle.plugin.python.dependencies.index.utils.PyPackageVersion
 import io.paddle.project.Project
 import io.paddle.utils.Hashable
 import io.paddle.utils.config.ConfigurationView
@@ -22,18 +25,36 @@ class Requirements(val descriptors: MutableList<Descriptor>, val repositories: P
                 val repositories by list<Map<String, String>>("repositories", default = emptyList())
             }
 
-            val libraries = config.libraries.map { Descriptor(it["name"]!!, it["version"]!!) }.toMutableList()
             val repositories = PyPackagesRepositories.parse(config.repositories)
+            val descriptors = config.libraries.map { Descriptor.resolve(it["name"]!!, it["version"]!!, repositories) }.toMutableList()
 
-            return Requirements(libraries, repositories)
+            return Requirements(descriptors, repositories)
         }
     }
 
-    data class Descriptor(val name: String, val version: String) : Hashable {
+    data class Descriptor(
+        val name: PyPackageName,
+        val version: PyPackageVersion,
+        val url: PyPackageUrl,
+        val repo: PyPackagesRepository
+    ) : Hashable {
         val distInfoDirName = "${name}-${version}.dist-info"
 
+        companion object {
+            fun resolve(name: PyPackageName, version: PyPackageVersion, repositories: PyPackagesRepositories): Descriptor {
+                val url = PyDistributionsResolver.resolve(name, version, repositories) // TODO: implement resolver
+                val repo = repositories.getRepositoryByPyPackageUrl(url)
+                return Descriptor(name, version, url, repo)
+            }
+
+            fun resolve(name: PyPackageName, version: PyPackageVersion, repo: PyPackagesRepository): Descriptor {
+                val url = PyDistributionsResolver.resolve(name, version, repo) // TODO: implement resolver
+                return Descriptor(name, version, url, repo)
+            }
+        }
+
         override fun hash(): String {
-            return listOf(name.hashable(), version.hashable()).hashable().hash()
+            return listOf(name.hashable(), version.hashable(), url.hashable()).hashable().hash()
         }
     }
 

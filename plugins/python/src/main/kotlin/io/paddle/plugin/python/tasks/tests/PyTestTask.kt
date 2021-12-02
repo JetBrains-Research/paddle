@@ -25,7 +25,11 @@ class PyTestTask(project: Project) : IncrementalTask(project) {
 
     override fun initialize() {
         project.requirements.descriptors.add(
-            Requirements.Descriptor("pytest", project.config.get<String>("tasks.tests.pytest.version") ?: "6.2.4")
+            Requirements.Descriptor.resolve(
+                name = "pytest",
+                version = project.config.get<String>("tasks.tests.pytest.version") ?: "6.2.4",
+                repositories = project.requirements.repositories
+            )
         )
         project.tasks.clean.locations.add(File(project.workDir, ".pytest_cache"))
     }

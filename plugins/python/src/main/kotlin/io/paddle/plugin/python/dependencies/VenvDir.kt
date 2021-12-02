@@ -19,9 +19,9 @@ class VenvDir(private val directory: File) : File(directory.path) {
             return pythonDir.resolve("site-packages")
         }
 
-    fun hasInstalledPackage(dependency: Requirements.Descriptor): Boolean {
+    fun hasInstalledPackage(descriptor: Requirements.Descriptor): Boolean {
         return this.sitePackages.listFiles()
-            ?.any { it.isDirectory && it.name == dependency.distInfoDirName }
+            ?.any { it.isDirectory && it.name == descriptor.distInfoDirName }
             ?: false
     }
 }

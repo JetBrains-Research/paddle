@@ -18,7 +18,7 @@ class VenvTask(project: Project) : IncrementalTask(project) {
     override val outputs: List<Hashable> = listOf(project.environment.venv.hashable())
 
     override fun initialize() {
-        project.requirements.descriptors.add(Requirements.Descriptor("wheel", "0.36.2"))
+        project.requirements.descriptors.add(Requirements.Descriptor.resolve("wheel", "0.36.2", project.requirements.repositories))
         project.tasks.clean.locations.add(project.environment.venv)
     }
 

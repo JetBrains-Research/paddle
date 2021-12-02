@@ -18,17 +18,18 @@ object PythonDependenciesConfig {
      * ```
      *   $PADDLE_HOME/
      *       cache/
-     *           package_name/
-     *               version_1/
-     *                   package_name/
-     *                   package_name-version_1.dist-info/
+     *           repo_name_hash/
+     *               package_name/
+     *                   version_1/
+     *                       package_name/
+     *                       package_name-version_1.dist-info/
+     *                       ...
+     *                   version_2/
+     *                       package_name/
+     *                       package_name-version_2.dist-info/
+     *                       ...
+     *               another_package_name/
      *                   ...
-     *               version_2/
-     *                   package_name/
-     *                   package_name-version_2.dist-info/
-     *                   ...
-     *           another_package_name/
-     *               ...
      * ```
      */
     val cacheDir: Path = paddleHome.resolve("cache")

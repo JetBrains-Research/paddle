@@ -34,7 +34,7 @@ class PyPackageVersionCompletionProvider : CompletionProvider<CompletionParamete
 
         val prefix = parameters.position.text.trim().removeSuffix(CompletionUtilCore.DUMMY_IDENTIFIER_TRIMMED)
         val packageName = parameters.originalPosition?.parent?.parent?.prevSibling?.prevSibling?.prevSibling?.lastChild?.text ?: return
-        val variants = project.requirements.repositories.findAvailableDistributionsByPackage(packageName)
+        val variants = project.requirements.repositories.findAvailableDistributionsByPackageName(packageName)
 
         for ((distribution, repo) in variants) {
             if (!distribution.version.startsWith(prefix)) continue

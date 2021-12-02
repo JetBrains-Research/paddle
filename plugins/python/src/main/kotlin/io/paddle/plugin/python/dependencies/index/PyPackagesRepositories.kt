@@ -3,9 +3,11 @@ package io.paddle.plugin.python.dependencies.index
 import io.paddle.plugin.python.dependencies.PythonDependenciesConfig
 import io.paddle.plugin.python.dependencies.index.distributions.PyDistributionInfo
 import io.paddle.plugin.python.dependencies.index.utils.PyPackageName
+import io.paddle.plugin.python.dependencies.index.utils.PyPackageUrl
 import io.paddle.plugin.python.dependencies.isValidUrl
 import io.paddle.plugin.python.extensions.Requirements
 import kotlinx.coroutines.*
+import java.lang.IllegalStateException
 import java.util.*
 import kotlin.collections.HashMap
 import kotlin.concurrent.schedule
@@ -25,10 +27,10 @@ class PyPackagesRepositories(
 
             for (repoConfig in data) {
                 val url = repoConfig["url"]?.removeSuffix("/")?.removeSuffix("/simple")
-                    ?: error("For some repository URL is not specified: $repoConfig}")
+                    ?: error("URL is not specified: $repoConfig}")
                 require(url.isValidUrl()) { "The provided url is invalid: $url" }
                 val name = repoConfig["name"]
-                    ?: error("For some repository NAME is not specified: $repoConfig")
+                    ?: error("NAME is not specified: $repoConfig")
                 val default = repoConfig["default"]?.toBoolean() ?: false
                 val secondary = repoConfig["secondary"]?.toBoolean() ?: false
 
@@ -87,8 +89,8 @@ class PyPackagesRepositories(
             }
         }
 
-    fun findAvailableDistributionsByPackage(packageName: String): Map<PyDistributionInfo, PyPackagesRepository> = runBlocking {
-        val repoToDistributions = repositories.associateWith { async { it.getDistributions(packageName) } }
+    fun findAvailableDistributionsByPackageName(packageName: String): Map<PyDistributionInfo, PyPackagesRepository> = runBlocking {
+        val repoToDistributions = repositories.associateWith { async { it.findAvailableDistributionsByPackageName(packageName) } }
             .run { this.keys.zip(this.values.awaitAll()).toMap() }
         return@runBlocking HashMap<PyDistributionInfo, PyPackagesRepository>().apply {
             for ((repo, distributions) in repoToDistributions) {
@@ -101,17 +103,24 @@ class PyPackagesRepositories(
         }
     }
 
-    suspend fun find(descriptor: Requirements.Descriptor): Pair<PyPackagesRepository, PyDistributionInfo>? {
-        val primaryDistribution = this.primarySource.search(descriptor)
-        return if (primaryDistribution != null) {
-            primarySource to primaryDistribution
+    suspend fun resolveAvailableDistributions(descriptor: Requirements.Descriptor): Pair<PyPackagesRepository, List<PyDistributionInfo>>? {
+        val primaryDistributions = this.primarySource.findAvailableDistributions(descriptor)
+        return if (primaryDistributions.isNotEmpty()) {
+            primarySource to primaryDistributions
         } else {
             for (repo in this.extraSources) {
-                val distribution = repo.search(descriptor) ?: continue
-                return repo to distribution
+                val distributions = repo.findAvailableDistributions(descriptor)
+                if (distributions.isNotEmpty()) {
+                    return repo to distributions
+                }
             }
             return null
         }
+    }
+
+    fun getRepositoryByPyPackageUrl(url: PyPackageUrl): PyPackagesRepository {
+        return this.repositories.find { repo -> url.startsWith(repo.url) }
+            ?: throw IllegalStateException("The repository with specified URL was not found.")
     }
 
     val all: Set<PyPackagesRepository>

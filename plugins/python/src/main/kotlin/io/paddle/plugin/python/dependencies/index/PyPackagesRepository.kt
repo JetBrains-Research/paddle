@@ -2,12 +2,18 @@ package io.paddle.plugin.python.dependencies.index
 
 import io.paddle.plugin.python.dependencies.PythonDependenciesConfig
 import io.paddle.plugin.python.dependencies.index.distributions.PyDistributionInfo
-import io.paddle.plugin.python.dependencies.index.utils.*
+import io.paddle.plugin.python.dependencies.index.utils.PyPackageName
+import io.paddle.plugin.python.dependencies.index.utils.PyPackagesRepositoryUrl
+import io.paddle.plugin.python.dependencies.index.utils.join
+import io.paddle.plugin.python.dependencies.index.utils.jsonParser
 import io.paddle.plugin.python.dependencies.index.wordlist.PackedWordList
 import io.paddle.plugin.python.dependencies.index.wordlist.PackedWordListSerializer
 import io.paddle.plugin.python.extensions.Requirements
 import io.paddle.utils.StringHashable
-import kotlinx.serialization.*
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
+import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.encodeToString
 import java.io.File
 
 @Serializable
@@ -25,6 +31,11 @@ data class PyPackagesRepository(val url: PyPackagesRepositoryUrl, val name: Stri
 
     companion object {
         val PYPI_REPOSITORY = PyPackagesRepository("https://pypi.org", "pypi")
+
+        fun loadMetadata(file: File): PyPackagesRepository {
+            val (url, name) = file.readLines()
+            return PyPackagesRepository(url, name)
+        }
     }
 
     suspend fun updateIndex() {
@@ -39,8 +50,8 @@ data class PyPackagesRepository(val url: PyPackagesRepositoryUrl, val name: Stri
 
     fun getPackagesNamesByPrefix(prefix: String): Sequence<PyPackageName> = packagesNamesCache.prefix(prefix)
 
-    suspend fun getDistributions(packageName: PyPackageName, useCache: Boolean = true): List<PyDistributionInfo> {
-        val distributions = PyPackagesRepositoryIndexer.downloadDistributionsList(packageName, this@PyPackagesRepository)
+    suspend fun findAvailableDistributionsByPackageName(packageName: PyPackageName, useCache: Boolean = true): List<PyDistributionInfo> {
+        val distributions = PyPackagesRepositoryIndexer.downloadDistributionsList(packageName, this)
         return if (useCache) {
             distributionsCache.getOrPut(packageName) { distributions }
         } else {
@@ -48,25 +59,17 @@ data class PyPackagesRepository(val url: PyPackagesRepositoryUrl, val name: Stri
         }
     }
 
+    suspend fun findAvailableDistributions(descriptor: Requirements.Descriptor): List<PyDistributionInfo> {
+        return try {
+            val distributions = findAvailableDistributionsByPackageName(descriptor.name, useCache = false)
+            distributions.filter { it.version == descriptor.version }
+        } catch (exception: Throwable) {
+            emptyList()
+        }
+    }
+
     fun saveCache() {
         PythonDependenciesConfig.indexDir.resolve(this.cacheFileName).toFile()
             .writeText(jsonParser.encodeToString(this))
-    }
-
-    /**
-     * Searches for the particular package (name, version) in the current repository.
-     * If nothing have been found, returns null.
-     *
-     * TODO: take current platform and python-interpreter tags for consideration as well
-     *
-     * TODO: use this method to resolve packages during installation by Paddle, not by pip
-     */
-    suspend fun search(descriptor: Requirements.Descriptor): PyDistributionInfo? {
-        val distributions = getDistributions(descriptor.name)
-        return try {
-            distributions.find { it.version == descriptor.version }
-        } catch (exception: Throwable) {
-            null
-        }
     }
 }

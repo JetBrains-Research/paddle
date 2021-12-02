@@ -2,12 +2,16 @@ package io.paddle.plugin.python.dependencies.index
 
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
-import io.ktor.http.*
 import io.paddle.plugin.python.dependencies.index.distributions.PyDistributionInfo
 import io.paddle.plugin.python.dependencies.index.metadata.JsonPackageMetadataInfo
-import io.paddle.plugin.python.dependencies.index.utils.*
+import io.paddle.plugin.python.dependencies.index.utils.PyPackageName
+import io.paddle.plugin.python.dependencies.index.utils.httpClient
+import io.paddle.plugin.python.dependencies.index.utils.join
+import io.paddle.plugin.python.dependencies.index.utils.jsonParser
 import kotlinx.serialization.decodeFromString
 import org.jsoup.Jsoup
+import java.io.File
+import java.nio.file.Path
 
 
 object PyPackagesRepositoryIndexer {
@@ -24,7 +28,7 @@ object PyPackagesRepositoryIndexer {
 
     suspend fun downloadDistributionsList(
         packageName: String,
-        repository: PyPackagesRepository = PyPackagesRepository.PYPI_REPOSITORY
+        repository: PyPackagesRepository
     ): List<PyDistributionInfo> {
         return try {
             httpClient.request<HttpStatement>(repository.urlSimple.join(packageName)).execute { response ->
@@ -37,10 +41,18 @@ object PyPackagesRepositoryIndexer {
         }
     }
 
+    suspend fun downloadDistribution(
+        distributionInfo: PyDistributionInfo,
+        repository: PyPackagesRepository,
+        path: Path
+    ): File {
+        TODO()
+    }
+
     suspend fun downloadMetadata(packageName: String, repository: PyPackagesRepository): JsonPackageMetadataInfo {
         val response: HttpResponse = try {
             httpClient.use {
-                it.request("${repository.url}/pypi/$packageName/json")
+                it.request(repository.url.join("pypi", packageName, "json"))
             }
         } catch (exception: Throwable) {
             error("Failed to download metadata for package '$packageName' from ${repository.name}: ${repository.url}")
