@@ -1,15 +1,22 @@
 package io.paddle.plugin.python.dependencies.index
 
-import io.paddle.plugin.python.dependencies.index.PyPackagesRepositories
 import io.paddle.plugin.python.dependencies.index.utils.*
-import io.paddle.plugin.python.extensions.Requirements
 
 object PyDistributionsResolver {
     fun resolve(name: PyPackageName, version: PyPackageVersion, repositories: PyPackagesRepositories): PyPackageUrl {
-        TODO()
+        val primaryUrl = resolve(name, version, repositories.primarySource)
+        if (primaryUrl != null)
+            return primaryUrl
+        for (repo in repositories.extraSources) {
+            val extraUrl = resolve(name, version, repo)
+            if (extraUrl != null) {
+                return extraUrl
+            }
+        }
+        error("Could not resolve $name:$version within specified set of repositories.")
     }
 
-    fun resolve(name: PyPackageName, version: PyPackageVersion, repository: PyPackagesRepository): PyPackageUrl {
+    fun resolve(name: PyPackageName, version: PyPackageVersion, repository: PyPackagesRepository): PyPackageUrl? {
         TODO()
     }
 }

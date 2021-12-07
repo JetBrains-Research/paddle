@@ -1,11 +1,7 @@
 package io.paddle.plugin.python.extensions
 
-import io.paddle.plugin.python.dependencies.index.PyDistributionsResolver
-import io.paddle.plugin.python.dependencies.index.PyPackagesRepositories
-import io.paddle.plugin.python.dependencies.index.PyPackagesRepository
-import io.paddle.plugin.python.dependencies.index.utils.PyPackageName
-import io.paddle.plugin.python.dependencies.index.utils.PyPackageUrl
-import io.paddle.plugin.python.dependencies.index.utils.PyPackageVersion
+import io.paddle.plugin.python.dependencies.index.*
+import io.paddle.plugin.python.dependencies.index.utils.*
 import io.paddle.project.Project
 import io.paddle.utils.Hashable
 import io.paddle.utils.config.ConfigurationView
@@ -48,7 +44,8 @@ class Requirements(val descriptors: MutableList<Descriptor>, val repositories: P
             }
 
             fun resolve(name: PyPackageName, version: PyPackageVersion, repo: PyPackagesRepository): Descriptor {
-                val url = PyDistributionsResolver.resolve(name, version, repo) // TODO: implement resolver
+                val url = PyDistributionsResolver.resolve(name, version, repo)
+                    ?: error("Could not resolve $name:$version within specified set of repositories.") // TODO: implement resolver
                 return Descriptor(name, version, url, repo)
             }
         }

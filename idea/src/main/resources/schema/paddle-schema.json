@@ -131,7 +131,8 @@
       "properties": {
         "required": [
           "type",
-          "path"
+          "path",
+          "python"
         ],
         "type": {
           "description": "Type of the virtual environment (only `virtualenv` currently supported)",
@@ -143,6 +144,14 @@
         "path": {
           "description": "Path to virtual environment location",
           "type": "string"
+        },
+        "python": {
+          "description": "Type of the virtual environment (only `virtualenv` currently supported)",
+          "type": "string",
+          "enum": [
+            "py2",
+            "py3"
+          ]
         }
       }
     },
