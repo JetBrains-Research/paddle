@@ -1,9 +1,10 @@
 package io.paddle.plugin.python.dependencies
 
-import io.paddle.plugin.python.dependencies.index.PyDistributionsResolver
-import io.paddle.plugin.python.dependencies.index.PyPackagesRepositories
+import io.paddle.plugin.python.PaddlePyConfig
+import io.paddle.plugin.python.dependencies.index.PyPackage
 import io.paddle.plugin.python.dependencies.index.PyPackagesRepository
-import io.paddle.plugin.python.extensions.Requirements
+import io.paddle.plugin.python.utils.exists
+import io.paddle.project.Project
 import java.nio.file.Files
 import java.nio.file.Path
 import java.util.*
@@ -13,7 +14,7 @@ import kotlin.concurrent.schedule
 /**
  * A service class for managing Paddle's cache.
  *
- * @see PythonDependenciesConfig.cacheDir
+ * @see PaddlePyConfig.cacheDir
  */
 object GlobalCacheRepository {
     private const val CACHE_SYNC_PERIOD_MS: Long = 60000L
@@ -21,79 +22,77 @@ object GlobalCacheRepository {
 
     init {
         Timer("CachedPackagesSynchronizer", true).schedule(delay = 0, period = CACHE_SYNC_PERIOD_MS) {
-            synchronized(cachedPackages) {
-                cachedPackages.clear()
-                PythonDependenciesConfig.cacheDir.toFile().listFiles()?.forEach { repoDir ->
-                    val repo = PyPackagesRepository.loadMetadata(repoDir.resolve("metadata.txt"))
-                    repoDir.listFiles()?.filter { it.isDirectory }?.forEach { packageDir ->
-                        packageDir.listFiles()?.forEach { versionDir ->
-                            val descriptor = Requirements.Descriptor.resolve(packageDir.name, versionDir.name, repo)
-                            cachedPackages.add(CachedPackage(descriptor, versionDir.toPath()))
-                        }
+            cachedPackages.clear()
+            PaddlePyConfig.cacheDir.toFile().listFiles()?.forEach { repoDir ->
+                val repo = PyPackagesRepository.loadMetadata(repoDir.resolve("metadata.txt"))
+                repoDir.listFiles()?.filter { it.isDirectory }?.forEach { packageDir ->
+                    packageDir.listFiles()?.forEach { versionDir ->
+                        cachedPackages.add(CachedPackage(packageDir.name, versionDir.name, repo, versionDir.toPath()))
                     }
-                    for (pkg in cachedPackages) {
-                        for (dependencySpec in pkg.metadata.requiresDist) {
-                            val dependencyName = dependencySpec.nameReq().name().text
-                            // TODO: implement dependency resolution
-                            val dependency = cachedPackages.findLast { it.name == dependencyName } ?: continue
-                            pkg.dependencies.register(dependency)
-                        }
+                }
+                for (pkg in cachedPackages) {
+                    for (dependencySpec in pkg.metadata.requiresDist) {
+                        val dependencyName = dependencySpec.nameReq().name().text
+                        // TODO: implement dependency resolution
+                        val dependency = cachedPackages.findLast { it.name == dependencyName } ?: continue
+                        pkg.dependencies.register(dependency)
                     }
                 }
             }
         }
     }
 
-    private fun hasCached(descriptor: Requirements.Descriptor): Boolean {
-        return cachedPackages.any { it.descriptor == descriptor && it.srcPath.exists() }
+    private fun hasCached(pkg: PyPackage): Boolean {
+        return cachedPackages.any { it.descriptor == pkg.descriptor && it.srcPath.exists() }
     }
 
-    private fun getPathToPackage(descriptor: Requirements.Descriptor): Path =
-        PythonDependenciesConfig.cacheDir
-            .resolve(descriptor.repo.cacheFileName)
-            .resolve(descriptor.name)
-            .resolve(descriptor.version)
+    private fun getPathToPackage(pkg: PyPackage): Path =
+        PaddlePyConfig.cacheDir
+            .resolve(pkg.repo.cacheFileName)
+            .resolve(pkg.name)
+            .resolve(pkg.version)
 
-    fun findPackage(descriptor: Requirements.Descriptor, repositories: PyPackagesRepositories): CachedPackage {
-        return if (!hasCached(descriptor)) {
-            installToCache(descriptor, repositories)
+    fun findPackage(pkg: PyPackage, project: Project): CachedPackage {
+        return if (!hasCached(pkg)) {
+            installToCache(pkg, project)
         } else {
-            cachedPackages.find { it.descriptor == descriptor }!!
+            cachedPackages.find { it.descriptor == pkg.descriptor }!!
         }
     }
 
-    private fun installToCache(descriptor: Requirements.Descriptor, repositories: PyPackagesRepositories): CachedPackage {
-        return GlobalVenvManager.smartInstall(descriptor, repositories).expose(
-            onSuccess = { copyPackageRecursivelyFromGlobalVenv(descriptor, repositories) },
-            onFail = { error("Some conflict occurred during installation of ${descriptor.name}.") }
+    private fun installToCache(pkg: PyPackage, project: Project): CachedPackage {
+        return GlobalVenvManager.smartInstall(pkg, project).expose(
+            onSuccess = { copyPackageRecursivelyFromGlobalVenv(pkg, project) },
+            onFail = { error("Some conflict occurred during installation of ${pkg.name}.") }
         )
     }
 
-    private fun copyPackageRecursivelyFromGlobalVenv(descriptor: Requirements.Descriptor, repositories: PyPackagesRepositories): CachedPackage {
-        val packageSources = GlobalVenvManager.getPackageRelatedStuff(descriptor)
-        val targetPath = getPathToPackage(descriptor)
+    private fun copyPackageRecursivelyFromGlobalVenv(pkg: PyPackage, project: Project): CachedPackage {
+        val packageSources = GlobalVenvManager.getPackageRelatedStuff(pkg.descriptor)
+        val targetPath = getPathToPackage(pkg)
         packageSources.forEach { it.copyRecursively(target = targetPath.resolve(it.name).toFile(), overwrite = true) }
-        val pkg = CachedPackage(descriptor, srcPath = targetPath)
+        val cachedPkg = CachedPackage(pkg.name, pkg.version, pkg.repo, srcPath = targetPath)
 
-        for (dependencySpec in pkg.metadata.requiresDist) {
+        for (dependencySpec in cachedPkg.metadata.requiresDist) {
             val dependencyName = dependencySpec.nameReq().name().text
             if (!GlobalVenvManager.contains(dependencyName)) {
                 continue // assumption: PIP didn't install it => we don't need it
             }
             val dependencyVersion = GlobalVenvManager.getInstalledPackageVersionByName(dependencyName)
-                ?: error("Package $dependencyName (required by ${pkg.name}) is not installed.")
-            val dependencyUrl = PyDistributionsResolver.resolve(dependencyName, dependencyVersion, repositories)
-            val dependencyRepo = repositories.getRepositoryByPyPackageUrl(dependencyUrl)
-            val dependencyDescriptor = Requirements.Descriptor.resolve(dependencyName, dependencyVersion, dependencyRepo)
-            if (hasCached(dependencyDescriptor)) {
+                ?: error("Package $dependencyName (required by ${cachedPkg.name}) is not installed.")
+
+            // TODO: avoid distr-filename resolution
+            val dependencyPkg = PyPackage.resolve(dependencyName, dependencyVersion, project)
+
+            if (hasCached(dependencyPkg)) {
                 continue
             }
-            val dependentPkg = copyPackageRecursivelyFromGlobalVenv(dependencyDescriptor, repositories)
-            pkg.dependencies.register(dependentPkg)
+            val dependentPkg = copyPackageRecursivelyFromGlobalVenv(dependencyPkg, project)
+            cachedPkg.dependencies.register(dependentPkg)
         }
 
-        cachedPackages.add(pkg)
-        return pkg
+        cachedPackages.add(cachedPkg)
+        return cachedPkg
     }
 
     fun createSymlinkToPackageRecursively(pkg: CachedPackage, symlinkDir: Path) {

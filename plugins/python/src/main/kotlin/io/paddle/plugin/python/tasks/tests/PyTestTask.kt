@@ -21,14 +21,14 @@ class PyTestTask(project: Project) : IncrementalTask(project) {
             listOf(project.requirements, project.environment.venv.hashable())
 
     override val dependencies: List<Task>
-        get() = listOf(project.tasks.getOrFail("venv"))
+        get() = listOf(project.tasks.getOrFail("install"))
 
     override fun initialize() {
         project.requirements.descriptors.add(
-            Requirements.Descriptor.resolve(
+            Requirements.Descriptor(
                 name = "pytest",
                 version = project.config.get<String>("tasks.tests.pytest.version") ?: "6.2.4",
-                repositories = project.requirements.repositories
+                repo = Repositories.Descriptor.PYPI.name
             )
         )
         project.tasks.clean.locations.add(File(project.workDir, ".pytest_cache"))

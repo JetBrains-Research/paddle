@@ -1,4 +1,4 @@
-package io.paddle.plugin.python.dependencies.index.utils
+package io.paddle.plugin.python.utils
 
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.json.Json

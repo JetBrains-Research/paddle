@@ -41,6 +41,8 @@ class StringHashable(private val input: String) : Hashable {
 
 fun String.hashable() = StringHashable(this)
 
+fun Boolean.hashable() = StringHashable(this.toString())
+
 class FileHashable(private val file: File) : Hashable {
     override fun hash(): String {
         if (!file.exists()) return StringHashable("empty_file").hash()

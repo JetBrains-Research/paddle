@@ -1,11 +1,11 @@
 package io.paddle.plugin.python.dependencies.lock
 
+import io.paddle.plugin.python.dependencies.index.PyPackage
 import io.paddle.plugin.python.dependencies.index.metadata.JsonPackageMetadataInfo
-import io.paddle.plugin.python.dependencies.index.utils.PyPackagesRepositoryUrl
-import io.paddle.plugin.python.dependencies.index.utils.jsonParser
 import io.paddle.plugin.python.dependencies.lock.hash.HashUtils
 import io.paddle.plugin.python.dependencies.lock.hash.MessageDigestAlgorithm
-import io.paddle.plugin.python.extensions.Requirements
+import io.paddle.plugin.python.utils.PyPackagesRepositoryUrl
+import io.paddle.plugin.python.utils.jsonParser
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import java.nio.file.Path
@@ -34,13 +34,13 @@ class PyLockFile {
     private val lockedPyPackagesData = HashSet<LockedPyPackage>()
     private lateinit var contentHash: String
 
-    fun addLockedPackage(descriptor: Requirements.Descriptor, metadata: JsonPackageMetadataInfo) {
-        val distributions = metadata.releases[descriptor.version] ?: error("Distribution $descriptor was not found in metadata.")
+    fun addLockedPackage(pkg: PyPackage, metadata: JsonPackageMetadataInfo) {
+        val distributions = metadata.releases[pkg.version] ?: error("Distribution $pkg was not found in metadata.")
         lockedPyPackagesData.add(
             LockedPyPackage(
-                name = descriptor.name,
-                version = descriptor.version,
-                repositoryUrl = descriptor.repo.urlSimple,
+                name = pkg.name,
+                version = pkg.version,
+                repositoryUrl = pkg.repo.urlSimple,
                 distributions = distributions.map { LockedPyDistribution(it.filename, it.getPackageHash()) }
             )
         )

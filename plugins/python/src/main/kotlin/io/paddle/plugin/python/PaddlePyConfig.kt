@@ -1,10 +1,10 @@
-package io.paddle.plugin.python.dependencies
+package io.paddle.plugin.python
 
 import io.paddle.utils.exists
 import java.nio.file.Path
 import java.nio.file.Paths
 
-object PythonDependenciesConfig {
+object PaddlePyConfig {
     /**
      * A home directory for Paddle. Contains installed package caches and internal virtual environment. Planning to support caching wheels, etc.
      */
@@ -43,5 +43,8 @@ object PythonDependenciesConfig {
     val venvDir: Path = paddleHome.resolve(".venv")
 
     val indexDir: Path = paddleHome.resolve(".index")
+        get() = field.also { if (!field.exists()) field.toFile().mkdirs() }
+
+    val interpreters: Path = paddleHome.resolve("interpreters")
         get() = field.also { if (!field.exists()) field.toFile().mkdirs() }
 }

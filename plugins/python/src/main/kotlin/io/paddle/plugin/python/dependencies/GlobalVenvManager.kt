@@ -3,8 +3,12 @@ package io.paddle.plugin.python.dependencies
 import io.paddle.execution.CommandExecutor
 import io.paddle.execution.ExecutionResult
 import io.paddle.execution.local.LocalCommandExecutor
-import io.paddle.plugin.python.dependencies.index.PyPackagesRepositories
+import io.paddle.plugin.python.PaddlePyConfig
+import io.paddle.plugin.python.dependencies.index.PyPackage
 import io.paddle.plugin.python.extensions.Requirements
+import io.paddle.plugin.python.extensions.repositories
+import io.paddle.plugin.python.utils.RegexCache
+import io.paddle.project.Project
 import io.paddle.terminal.Terminal
 import io.paddle.terminal.TextOutput
 import java.io.File
@@ -22,42 +26,41 @@ object GlobalVenvManager {
 
     init {
         createVenv().orElse { error("Failed to create Paddle's internal virtualenv. Check your python installation.") }
-        globalVenv = VenvDir(PythonDependenciesConfig.venvDir.toFile())
+        globalVenv = VenvDir(PaddlePyConfig.venvDir.toFile())
     }
 
-    fun smartInstall(dependency: Requirements.Descriptor, repositories: PyPackagesRepositories): ExecutionResult {
-        return createVenv(args = listOf("--clear")).then {
-            install(dependency, repositories)
-        }
+    fun smartInstall(pkg: PyPackage, project: Project): ExecutionResult {
+        return createVenv(args = listOf("--clear")).then { install(pkg, project) }
     }
 
     private fun createVenv(args: List<String> = emptyList()): ExecutionResult {
         return executor.execute(
             command = "python3",
-            args = listOf("-m", "venv") + args + PythonDependenciesConfig.venvDir.toAbsolutePath().toString(),
-            workingDir = PythonDependenciesConfig.paddleHome.toFile(),
+            args = listOf("-m", "venv") + args + PaddlePyConfig.venvDir.toAbsolutePath().toString(),
+            workingDir = PaddlePyConfig.paddleHome.toFile(),
             terminal = terminal
         )
     }
 
-    private fun install(dependency: Requirements.Descriptor, repositories: PyPackagesRepositories): ExecutionResult {
+    private fun install(pkg: PyPackage, project: Project): ExecutionResult {
+        val repos = project.repositories.resolved
         val args = ArrayList<String>().apply {
             add("install")
             add("--index-url")
-            add(repositories.primarySource.urlSimple)
-            for (repo in repositories.all) {
-                if (repo != repositories.primarySource) {
+            add(repos.primarySource.urlSimple)
+            for (repo in repos.all) {
+                if (repo != repos.primarySource) {
                     add("--extra-index-url")
                     add(repo.urlSimple)
                 }
             }
-            add("${dependency.name}==${dependency.version}")
+            add("${pkg.name}==${pkg.version}")
         }
 
         return executor.execute(
-            command = "${PythonDependenciesConfig.venvDir}/bin/pip",
+            command = "${PaddlePyConfig.venvDir}/bin/pip",
             args = args,
-            workingDir = PythonDependenciesConfig.paddleHome.toFile(),
+            workingDir = PaddlePyConfig.paddleHome.toFile(),
             terminal = terminal
         )
     }

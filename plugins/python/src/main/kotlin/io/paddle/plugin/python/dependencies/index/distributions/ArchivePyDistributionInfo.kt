@@ -12,12 +12,14 @@ data class ArchivePyDistributionInfo(
 ) : PyDistributionInfo() {
 
     companion object {
-        private val ARCHIVE_DISTRIBUTION_PATTERN = Regex(
-            "^(?<name>.*?)-" +
-                "(?<version>.*?)" +
-                "(?<buildTag>(-[0-9].*)?)" +
-                "(?<archExt>\\.tar\\.gz|\\.zip?)"
-        )
+        private val ARCHIVE_DISTRIBUTION_PATTERN by lazy {
+            Regex(
+                "^(?<name>.*?)-" +
+                    "(?<version>.*?)" +
+                    "(?<buildTag>(-[0-9].*)?)" +
+                    "(?<archExt>\\.tar\\.gz|\\.zip?)"
+            )
+        }
 
         fun fromString(filename: String): ArchivePyDistributionInfo? {
             val matchResult = ARCHIVE_DISTRIBUTION_PATTERN.find(filename)

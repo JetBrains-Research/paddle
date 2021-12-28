@@ -1,6 +1,6 @@
 package io.paddle.plugin.python.dependencies.index.wordlist
 
-import io.paddle.plugin.python.dependencies.index.utils.*
+import io.paddle.plugin.python.utils.*
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.builtins.SetSerializer
 import kotlinx.serialization.builtins.serializer

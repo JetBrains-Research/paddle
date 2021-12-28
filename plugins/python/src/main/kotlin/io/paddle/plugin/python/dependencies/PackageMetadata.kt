@@ -2,6 +2,7 @@ package io.paddle.plugin.python.dependencies
 
 import io.paddle.plugin.python.dependencies.parser.antlr.DependencySpecificationLexer
 import io.paddle.plugin.python.dependencies.parser.antlr.DependencySpecificationParser
+import io.paddle.plugin.python.utils.RegexCache
 import org.antlr.v4.runtime.CharStreams
 import org.antlr.v4.runtime.CommonTokenStream
 import java.io.*

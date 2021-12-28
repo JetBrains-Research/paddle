@@ -1,17 +1,14 @@
 package io.paddle.plugin.python.dependencies.index
 
+import io.ktor.client.call.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.paddle.plugin.python.dependencies.index.distributions.PyDistributionInfo
 import io.paddle.plugin.python.dependencies.index.metadata.JsonPackageMetadataInfo
-import io.paddle.plugin.python.dependencies.index.utils.PyPackageName
-import io.paddle.plugin.python.dependencies.index.utils.httpClient
-import io.paddle.plugin.python.dependencies.index.utils.join
-import io.paddle.plugin.python.dependencies.index.utils.jsonParser
+import io.paddle.plugin.python.utils.*
 import kotlinx.serialization.decodeFromString
 import org.jsoup.Jsoup
 import java.io.File
-import java.nio.file.Path
 
 
 object PyPackagesRepositoryIndexer {
@@ -41,21 +38,35 @@ object PyPackagesRepositoryIndexer {
         }
     }
 
-    suspend fun downloadDistribution(
+    suspend fun getDistributionUrl(
         distributionInfo: PyDistributionInfo,
-        repository: PyPackagesRepository,
-        path: Path
-    ): File {
-        TODO()
-    }
-
-    suspend fun downloadMetadata(packageName: String, repository: PyPackagesRepository): JsonPackageMetadataInfo {
-        val response: HttpResponse = try {
-            httpClient.use {
-                it.request(repository.url.join("pypi", packageName, "json"))
+        repository: PyPackagesRepository
+    ): PyPackageUrl {
+        return try {
+            httpClient.request<HttpStatement>(repository.urlSimple.join(distributionInfo.name)).execute { response ->
+                val distributionsPage = Jsoup.parse(response.readText())
+                val element = distributionsPage.body().getElementsByTag("a")
+                    .find { it.text() == distributionInfo.distributionFilename }
+                return@execute element!!.attr("href")
             }
         } catch (exception: Throwable) {
-            error("Failed to download metadata for package '$packageName' from ${repository.name}: ${repository.url}")
+            error("Failed to resolve distribution ${distributionInfo.distributionFilename} in ${repository.url} due to network issues.")
+        }
+    }
+
+    suspend fun downloadDistribution(url: PyPackageUrl, destination: File) {
+        val httpResponse: HttpResponse = httpClient.get(url)
+        val responseBody: ByteArray = httpResponse.receive()
+        destination.writeBytes(responseBody)
+    }
+
+    suspend fun downloadMetadata(pkg: PyPackage): JsonPackageMetadataInfo {
+        val response: HttpResponse = try {
+            httpClient.use {
+                it.request(pkg.repo.url.join("pypi", pkg.name, pkg.version, "json"))
+            }
+        } catch (exception: Throwable) {
+            error("Failed to download metadata for package '${pkg.name}' from ${pkg.repo.name}: ${pkg.repo.url}")
         }
         return jsonParser.decodeFromString(response.readText())
     }

@@ -1,19 +1,12 @@
 package io.paddle.plugin.python.dependencies.index
 
-import io.paddle.plugin.python.dependencies.PythonDependenciesConfig
+import io.paddle.plugin.python.PaddlePyConfig
 import io.paddle.plugin.python.dependencies.index.distributions.PyDistributionInfo
-import io.paddle.plugin.python.dependencies.index.utils.PyPackageName
-import io.paddle.plugin.python.dependencies.index.utils.PyPackagesRepositoryUrl
-import io.paddle.plugin.python.dependencies.index.utils.join
-import io.paddle.plugin.python.dependencies.index.utils.jsonParser
 import io.paddle.plugin.python.dependencies.index.wordlist.PackedWordList
 import io.paddle.plugin.python.dependencies.index.wordlist.PackedWordListSerializer
-import io.paddle.plugin.python.extensions.Requirements
+import io.paddle.plugin.python.utils.*
 import io.paddle.utils.StringHashable
-import kotlinx.serialization.Serializable
-import kotlinx.serialization.Transient
-import kotlinx.serialization.decodeFromString
-import kotlinx.serialization.encodeToString
+import kotlinx.serialization.*
 import java.io.File
 
 @Serializable
@@ -59,17 +52,13 @@ data class PyPackagesRepository(val url: PyPackagesRepositoryUrl, val name: Stri
         }
     }
 
-    suspend fun findAvailableDistributions(descriptor: Requirements.Descriptor): List<PyDistributionInfo> {
-        return try {
-            val distributions = findAvailableDistributionsByPackageName(descriptor.name, useCache = false)
-            distributions.filter { it.version == descriptor.version }
-        } catch (exception: Throwable) {
-            emptyList()
-        }
+    fun saveCache() {
+        PaddlePyConfig.indexDir.resolve(this.cacheFileName).toFile()
+            .writeText(jsonParser.encodeToString(this))
     }
 
-    fun saveCache() {
-        PythonDependenciesConfig.indexDir.resolve(this.cacheFileName).toFile()
-            .writeText(jsonParser.encodeToString(this))
+    // TODO: be careful with cached index, check it
+    override fun hashCode(): Int {
+        return url.hashCode() * 37 + name.hashCode()
     }
 }

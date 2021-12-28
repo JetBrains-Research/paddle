@@ -1,57 +1,38 @@
 package io.paddle.plugin.python.extensions
 
-import io.paddle.plugin.python.dependencies.index.*
-import io.paddle.plugin.python.dependencies.index.utils.*
+import io.paddle.plugin.python.dependencies.index.PyPackage
+import io.paddle.plugin.python.utils.PyPackageName
+import io.paddle.plugin.python.utils.PyPackageVersion
 import io.paddle.project.Project
 import io.paddle.utils.Hashable
-import io.paddle.utils.config.ConfigurationView
 import io.paddle.utils.ext.Extendable
 import io.paddle.utils.hashable
+
 
 val Project.requirements: Requirements
     get() = extensions.get(Requirements.Extension.key)!!
 
-class Requirements(val descriptors: MutableList<Descriptor>, val repositories: PyPackagesRepositories) : Hashable {
+class Requirements(val project: Project, val descriptors: MutableList<Descriptor>) : Hashable {
+
+    val resolved by lazy { descriptors.map { PyPackage.resolve(it, project) } }
+
     object Extension : Project.Extension<Requirements> {
         override val key: Extendable.Key<Requirements> = Extendable.Key()
 
         override fun create(project: Project): Requirements {
-            val config = object : ConfigurationView("requirements", project.config) {
-                val libraries by list<Map<String, String>>("libraries", default = emptyList())
-                val repositories by list<Map<String, String>>("repositories", default = emptyList())
-            }
-
-            val repositories = PyPackagesRepositories.parse(config.repositories)
-            val descriptors = config.libraries.map { Descriptor.resolve(it["name"]!!, it["version"]!!, repositories) }.toMutableList()
-
-            return Requirements(descriptors, repositories)
+            val config = project.config.get<List<Map<String, String>>>("requirements") ?: emptyList()
+            val descriptors = config.map { Descriptor(it["name"]!!, it["version"]!!, it["repository"]) }.toMutableList()
+            return Requirements(project, descriptors)
         }
     }
 
-    data class Descriptor(
-        val name: PyPackageName,
-        val version: PyPackageVersion,
-        val url: PyPackageUrl,
-        val repo: PyPackagesRepository
-    ) : Hashable {
+    data class Descriptor(val name: PyPackageName, val version: PyPackageVersion, val repo: String?) : Hashable {
         val distInfoDirName = "${name}-${version}.dist-info"
 
-        companion object {
-            fun resolve(name: PyPackageName, version: PyPackageVersion, repositories: PyPackagesRepositories): Descriptor {
-                val url = PyDistributionsResolver.resolve(name, version, repositories) // TODO: implement resolver
-                val repo = repositories.getRepositoryByPyPackageUrl(url)
-                return Descriptor(name, version, url, repo)
-            }
-
-            fun resolve(name: PyPackageName, version: PyPackageVersion, repo: PyPackagesRepository): Descriptor {
-                val url = PyDistributionsResolver.resolve(name, version, repo)
-                    ?: error("Could not resolve $name:$version within specified set of repositories.") // TODO: implement resolver
-                return Descriptor(name, version, url, repo)
-            }
-        }
-
         override fun hash(): String {
-            return listOf(name.hashable(), version.hashable(), url.hashable()).hashable().hash()
+            val hashables = mutableListOf(name.hashable(), version.hashable())
+            repo?.let { hashables.add(repo.hashable()) }
+            return hashables.hashable().hash()
         }
     }
 

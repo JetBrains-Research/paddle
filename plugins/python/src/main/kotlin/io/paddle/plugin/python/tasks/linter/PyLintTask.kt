@@ -19,14 +19,14 @@ class PyLintTask(project: Project) : IncrementalTask(project) {
     override val inputs: List<Hashable> = project.roots.sources.map { it.hashable() }
 
     override val dependencies: List<Task>
-        get() = listOf(project.tasks.getOrFail("venv"))
+        get() = listOf(project.tasks.getOrFail("install"))
 
     override fun initialize() {
         project.requirements.descriptors.add(
-            Requirements.Descriptor.resolve(
+            Requirements.Descriptor(
                 name = "pylint",
                 version = project.config.get<String>("tasks.linter.pylint.version") ?: "2.8.3",
-                repositories = project.requirements.repositories
+                repo = Repositories.Descriptor.PYPI.name
             ),
         )
         project.tasks.clean.locations.add(File(project.workDir, ".pylint_cache"))

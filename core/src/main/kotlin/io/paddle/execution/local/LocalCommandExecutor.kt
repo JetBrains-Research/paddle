@@ -7,7 +7,7 @@ import io.paddle.terminal.TextOutput
 import org.codehaus.plexus.util.cli.*
 import java.io.File
 
-class LocalCommandExecutor(output: TextOutput): CommandExecutor(OutputConfiguration(output)) {
+class LocalCommandExecutor(output: TextOutput) : CommandExecutor(OutputConfiguration(output)) {
     override fun execute(command: String, args: Iterable<String>, workingDir: File, terminal: Terminal): ExecutionResult {
         return ExecutionResult(
             CommandLineUtils.executeCommandLine(

@@ -6,7 +6,7 @@ import com.intellij.patterns.PlatformPatterns
 import com.intellij.util.ProcessingContext
 import io.paddle.idea.utils.PaddleProject
 import io.paddle.idea.utils.findPaddleInDirectory
-import io.paddle.plugin.python.extensions.requirements
+import io.paddle.plugin.python.extensions.repositories
 import org.jetbrains.yaml.psi.YAMLDocument
 import java.io.File
 import java.nio.file.Path
@@ -34,7 +34,7 @@ class PyPackageVersionCompletionProvider : CompletionProvider<CompletionParamete
 
         val prefix = parameters.position.text.trim().removeSuffix(CompletionUtilCore.DUMMY_IDENTIFIER_TRIMMED)
         val packageName = parameters.originalPosition?.parent?.parent?.prevSibling?.prevSibling?.prevSibling?.lastChild?.text ?: return
-        val variants = project.requirements.repositories.findAvailableDistributionsByPackageName(packageName)
+        val variants = project.repositories.resolved.findAvailableDistributionsByPackageName(packageName)
 
         for ((distribution, repo) in variants) {
             if (!distribution.version.startsWith(prefix)) continue

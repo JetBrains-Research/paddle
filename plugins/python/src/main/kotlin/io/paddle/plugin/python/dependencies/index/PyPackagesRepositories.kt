@@ -1,15 +1,11 @@
 package io.paddle.plugin.python.dependencies.index
 
-import io.paddle.plugin.python.dependencies.PythonDependenciesConfig
+import io.paddle.plugin.python.PaddlePyConfig
 import io.paddle.plugin.python.dependencies.index.distributions.PyDistributionInfo
-import io.paddle.plugin.python.dependencies.index.utils.PyPackageName
-import io.paddle.plugin.python.dependencies.index.utils.PyPackageUrl
-import io.paddle.plugin.python.dependencies.isValidUrl
-import io.paddle.plugin.python.extensions.Requirements
+import io.paddle.plugin.python.extensions.Repositories
+import io.paddle.plugin.python.utils.*
 import kotlinx.coroutines.*
-import java.lang.IllegalStateException
 import java.util.*
-import kotlin.collections.HashMap
 import kotlin.concurrent.schedule
 
 class PyPackagesRepositories(
@@ -21,18 +17,16 @@ class PyPackagesRepositories(
     companion object {
         private const val CACHE_SYNC_PERIOD_MS = 60000L
 
-        fun parse(data: List<Map<String, String>>): PyPackagesRepositories {
+        fun resolve(data: List<Repositories.Descriptor>): PyPackagesRepositories {
             val repositories = hashSetOf(PyPackagesRepository.PYPI_REPOSITORY)
             var primarySource = PyPackagesRepository.PYPI_REPOSITORY
 
-            for (repoConfig in data) {
-                val url = repoConfig["url"]?.removeSuffix("/")?.removeSuffix("/simple")
-                    ?: error("URL is not specified: $repoConfig}")
+            for (descriptor in data) {
+                val url = descriptor.url.removeSuffix("/").removeSuffix("/simple")
                 require(url.isValidUrl()) { "The provided url is invalid: $url" }
-                val name = repoConfig["name"]
-                    ?: error("NAME is not specified: $repoConfig")
-                val default = repoConfig["default"]?.toBoolean() ?: false
-                val secondary = repoConfig["secondary"]?.toBoolean() ?: false
+                val name = descriptor.name
+                val default = descriptor.default ?: false
+                val secondary = descriptor.secondary ?: false
 
                 val repo = PyPackagesRepository(url, name)
                 if (!secondary) {
@@ -58,7 +52,7 @@ class PyPackagesRepositories(
 
     init {
         if (useCachedIndex) {
-            val cachedFiles = PythonDependenciesConfig.indexDir.toFile().listFiles() ?: emptyArray()
+            val cachedFiles = PaddlePyConfig.indexDir.toFile().listFiles() ?: emptyArray()
             val newRepositories = HashSet<PyPackagesRepository>()
             for (repo in repositories) {
                 cachedFiles.find { it.name == repo.cacheFileName }
@@ -100,21 +94,6 @@ class PyPackagesRepositories(
                     }
                 }
             }
-        }
-    }
-
-    suspend fun resolveAvailableDistributions(descriptor: Requirements.Descriptor): Pair<PyPackagesRepository, List<PyDistributionInfo>>? {
-        val primaryDistributions = this.primarySource.findAvailableDistributions(descriptor)
-        return if (primaryDistributions.isNotEmpty()) {
-            primarySource to primaryDistributions
-        } else {
-            for (repo in this.extraSources) {
-                val distributions = repo.findAvailableDistributions(descriptor)
-                if (distributions.isNotEmpty()) {
-                    return repo to distributions
-                }
-            }
-            return null
         }
     }
 

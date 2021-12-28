@@ -1,6 +1,7 @@
 package io.paddle.plugin.python.dependencies
 
 import io.paddle.plugin.python.extensions.Requirements
+import io.paddle.plugin.python.utils.RegexCache
 import java.io.File
 
 /**

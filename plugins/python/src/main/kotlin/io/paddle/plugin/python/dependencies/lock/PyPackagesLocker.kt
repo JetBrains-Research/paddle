@@ -9,9 +9,9 @@ object PyPackagesLocker {
 
     fun lock(project: Project) = runBlocking {
         val lockFile = PyLockFile()
-        for (descriptor in project.requirements.descriptors) {
-            val metadata = PyPackagesRepositoryIndexer.downloadMetadata(descriptor.name, descriptor.repo)
-            lockFile.addLockedPackage(descriptor, metadata)
+        for (pkg in project.requirements.resolved) {
+            val metadata = PyPackagesRepositoryIndexer.downloadMetadata(pkg)
+            lockFile.addLockedPackage(pkg, metadata)
         }
         lockFile.save(project.workDir.toPath())
     }
