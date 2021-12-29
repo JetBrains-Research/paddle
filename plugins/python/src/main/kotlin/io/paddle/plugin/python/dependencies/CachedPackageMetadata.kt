@@ -13,7 +13,7 @@ import javax.mail.internet.MimeMessage
 import kotlin.properties.ReadOnlyProperty
 
 @Suppress("UNCHECKED_CAST")
-class PackageMetadata private constructor(private val headers: Map<String, Any?>) {
+class CachedPackageMetadata private constructor(private val headers: Map<String, Any?>) {
     private fun <T, V> T.map(headers: Map<String, Any?>): ReadOnlyProperty<T, V> {
         return ReadOnlyProperty { _, property ->
             // transform given property name (e.g., "requiresDist") to the proper header key (e.g., "Requires-Dist")
@@ -34,7 +34,7 @@ class PackageMetadata private constructor(private val headers: Map<String, Any?>
     val providesExtra: List<String> by map(headers)
 
     companion object {
-        fun parse(file: File): PackageMetadata {
+        fun parse(file: File): CachedPackageMetadata {
             val stream: InputStream = ByteArrayInputStream(file.readBytes())
             val content = MimeMessage(Session.getInstance(Properties()), stream)
             val pkgName = content.getHeader("Name").first()
@@ -58,7 +58,7 @@ class PackageMetadata private constructor(private val headers: Map<String, Any?>
             }
             headers.computeIfPresent("Provides-Extra") { _, value -> if (value is String) listOf(value) else value }
             headers.putIfAbsent("Provides-Extra", emptyList<String>())
-            return PackageMetadata(headers)
+            return CachedPackageMetadata(headers)
         }
 
         private fun createDependencySpecificationParser(source: String): DependencySpecificationParser? {

@@ -18,8 +18,8 @@ data class CachedPackage(val name: PyPackageName, val version: PyPackageVersion,
         StringHashable("$name:$version").hash().hashCode()
     }
 
-    val metadata: PackageMetadata by lazy {
-        PackageMetadata.parse(distInfo.resolve("METADATA"))
+    val metadata: CachedPackageMetadata by lazy {
+        CachedPackageMetadata.parse(distInfo.resolve("METADATA"))
     }
 
     val topLevelName: String by lazy {
@@ -27,4 +27,16 @@ data class CachedPackage(val name: PyPackageName, val version: PyPackageVersion,
     }
 
     override fun hashCode(): Int = srcPath.hashCode()
+
+    class Dependencies {
+        private val dependencies: MutableList<CachedPackage> = ArrayList()
+
+        fun all(): Set<CachedPackage> {
+            return dependencies.toSet()
+        }
+
+        fun register(dependency: CachedPackage) {
+            dependencies.add(dependency)
+        }
+    }
 }
