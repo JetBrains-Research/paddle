@@ -6,7 +6,7 @@ import io.paddle.project.Project
 import kotlinx.coroutines.runBlocking
 
 /**
- * Resolved version of the Requirements.Descriptor (==package)
+ * Resolved version of `Requirements.Descriptor`
  */
 class PyPackage(
     val descriptor: Requirements.Descriptor,

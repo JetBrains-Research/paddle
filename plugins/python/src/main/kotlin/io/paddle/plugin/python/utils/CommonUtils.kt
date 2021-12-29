@@ -1,6 +1,7 @@
 package io.paddle.plugin.python.utils
 
 import kotlinx.coroutines.*
+import java.io.File
 import java.net.URL
 import java.nio.file.Files
 import java.nio.file.Path
@@ -45,4 +46,12 @@ internal fun emptyByteArray() = emptyByteArray
 
 fun <T, U> Collection<T>.product(other: Collection<U>): List<Pair<T, U>> {
     return this.flatMap { lhsElem -> other.map { rhsElem -> lhsElem to rhsElem } }
+}
+
+fun File.deepResolve(vararg relatives: String): File {
+    return relatives.fold(this) { current, relative -> current.resolve(relative) }
+}
+
+fun Path.deepResolve(vararg relatives: String): Path {
+    return relatives.fold(this) { current, relative -> current.resolve(relative) }
 }

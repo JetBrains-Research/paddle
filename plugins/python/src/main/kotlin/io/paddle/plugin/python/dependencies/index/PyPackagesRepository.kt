@@ -8,6 +8,8 @@ import io.paddle.plugin.python.utils.*
 import io.paddle.utils.StringHashable
 import kotlinx.serialization.*
 import java.io.File
+import java.nio.file.Path
+import kotlin.io.path.writeLines
 
 @Serializable
 data class PyPackagesRepository(val url: PyPackagesRepositoryUrl, val name: String) {
@@ -25,10 +27,14 @@ data class PyPackagesRepository(val url: PyPackagesRepositoryUrl, val name: Stri
     companion object {
         val PYPI_REPOSITORY = PyPackagesRepository("https://pypi.org", "pypi")
 
-        fun loadMetadata(file: File): PyPackagesRepository {
+        fun loadCachedMetadata(file: File): PyPackagesRepository {
             val (url, name) = file.readLines()
             return PyPackagesRepository(url, name)
         }
+    }
+
+    fun writeMetadataCache(path: Path) {
+        path.writeLines(listOf(url, name))
     }
 
     suspend fun updateIndex() {

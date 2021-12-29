@@ -3,8 +3,8 @@ package io.paddle.plugin.python.extensions
 import io.paddle.execution.ExecutionResult
 import io.paddle.plugin.python.dependencies.GlobalCacheRepository
 import io.paddle.plugin.python.dependencies.VenvDir
+import io.paddle.plugin.python.dependencies.index.PyInterpreter
 import io.paddle.plugin.python.dependencies.index.PyPackage
-import io.paddle.plugin.python.interpreter.PyInterpreter
 import io.paddle.project.Project
 import io.paddle.utils.Hashable
 import io.paddle.utils.config.ConfigurationView
@@ -19,14 +19,14 @@ val Project.environment: Environment
 
 class Environment(val project: Project, val pythonVersion: PyInterpreter.Version, val venv: VenvDir) : Hashable {
 
-    val interpreter by lazy { runBlocking { PyInterpreter.find(pythonVersion, project) } }
+    val interpreter by lazy { PyInterpreter.find(pythonVersion, project) }
 
     object Extension : Project.Extension<Environment> {
         override val key: Extendable.Key<Environment> = Extendable.Key()
 
         override fun create(project: Project): Environment = runBlocking {
             val config = object : ConfigurationView("environment", project.config) {
-                val pythonVersion by string("python", default = "3.8")
+                val pythonVersion by version("python", default = "3.8")
                 val venv by string("path", default = ".venv")
             }
 
@@ -79,6 +79,6 @@ class Environment(val project: Project, val pythonVersion: PyInterpreter.Version
     }
 
     override fun hash(): String {
-        return listOf(pythonVersion.text.hashable(), venv.hashable()).hashable().hash()
+        return listOf(pythonVersion.src.hashable(), venv.hashable()).hashable().hash()
     }
 }

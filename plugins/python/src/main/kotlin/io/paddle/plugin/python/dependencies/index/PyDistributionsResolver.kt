@@ -46,7 +46,8 @@ object PyDistributionsResolver {
 
         // Intersecting the sets of available platforms with current platform
         val platformTags = wheels.map { it.platformTag }.toSet()
-        platformTags.map { it.split(".") }.flatten() // splitting compressed tags
+        platformTags.asSequence()
+            .map { it.split(".") }.flatten() // splitting compressed tags
             .filter { osFamily in it }
             .filter { osArch in it || "universal" in it || "86" in osArch && "intel" in it }
             .toList() + "any"
