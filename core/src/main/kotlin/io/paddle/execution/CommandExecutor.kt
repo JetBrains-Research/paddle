@@ -7,7 +7,14 @@ import java.io.File
 abstract class CommandExecutor(val configuration: OutputConfiguration) {
     data class OutputConfiguration(val output: TextOutput, val printStdOut: Boolean = true, val printStdErr: Boolean = true)
 
-    abstract fun execute(command: String, args: Iterable<String>, workingDir: File, terminal: Terminal): ExecutionResult
+    abstract fun execute(
+        command: String,
+        args: Iterable<String>,
+        workingDir: File,
+        terminal: Terminal,
+        envVars: Map<String, String> = emptyMap(),
+        verbose: Boolean = true
+    ): ExecutionResult
 }
 
 class ExecutionResult(private val code: Int) {

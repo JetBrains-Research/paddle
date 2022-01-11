@@ -13,7 +13,7 @@ val Project.repositories: Repositories
 
 class Repositories(val descriptors: List<Descriptor>) : Hashable {
 
-    val resolved by lazy { PyPackagesRepositories.resolve(descriptors) }
+    val resolved: PyPackagesRepositories by lazy { PyPackagesRepositories.resolve(descriptors) }
 
     object Extension : Project.Extension<Repositories> {
         override val key: Extendable.Key<Repositories> = Extendable.Key()

@@ -9,6 +9,7 @@ import io.paddle.tasks.incremental.IncrementalTask
 import io.paddle.utils.Hashable
 import io.paddle.utils.hashable
 import io.paddle.utils.tasks.TaskDefaultGroups
+import kotlin.system.measureTimeMillis
 
 class LockTask(project: Project) : IncrementalTask(project) {
     override val id: String = "lock"
@@ -21,10 +22,9 @@ class LockTask(project: Project) : IncrementalTask(project) {
     override val dependencies: List<Task>
         get() = listOf(project.tasks.getOrFail("install"))
 
-    override fun initialize() {
-    }
-
     override fun act() {
-        PyPackagesLocker.lock(project)
+        project.terminal.info("Locking dependencies...")
+        val duration = measureTimeMillis { PyPackagesLocker.lock(project) }
+        project.terminal.info("Finished: ${duration}ms")
     }
 }

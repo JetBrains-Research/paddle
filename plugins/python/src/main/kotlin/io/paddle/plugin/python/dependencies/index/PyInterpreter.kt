@@ -23,7 +23,7 @@ class PyInterpreter(val path: Path, val version: Version) {
 
         fun find(version: Version, project: Project): PyInterpreter {
             val interpreterPath = PaddlePyConfig.interpreters.deepResolve(
-                version.src,
+                version.number,
                 version.fullName,
                 LOCAL_PYTHON_DIR_NAME,
                 "bin",
@@ -37,12 +37,62 @@ class PyInterpreter(val path: Path, val version: Version) {
 
         // TODO: implement layers caching
         private fun downloadAndInstall(version: Version, project: Project): Path {
-            val workDir = PaddlePyConfig.interpreters.resolve(version.src).toFile().also { it.mkdirs() }
+            project.terminal.info("Downloading interpreter ${version.fullName}...")
+            val workDir = PaddlePyConfig.interpreters.resolve(version.number).toFile().also { it.mkdirs() }
 
             val pythonDistName = "Python-${version}"
             val archiveDistName = "$pythonDistName.tgz"
-            val url = PYTHON_DISTRIBUTIONS_BASE_URL.join(version.src, archiveDistName).trimEnd('/')
+            val url = PYTHON_DISTRIBUTIONS_BASE_URL.join(version.number, archiveDistName).trimEnd('/')
             val file = workDir.resolve(archiveDistName)
+
+            if (file.exists()) {
+                project.terminal.info("Found downloaded distribution archive: ${file.path}")
+            } else {
+                downloadArchive(url, file, project)
+            }
+
+            val extractDir = workDir.resolve(pythonDistName).also {
+                if (it.exists()) {
+                    it.deleteRecursively()
+                }
+                it.mkdirs()
+            }
+            project.terminal.info("Unpacking archive: ${workDir.resolve(archiveDistName)}...")
+            unpackTarGZip(workDir.resolve(archiveDistName), extractDir)
+            project.terminal.info("Unpacking finished")
+
+            // TODO: support Win?
+            project.terminal.info("Installing interpreter...")
+            val localPythonDir = extractDir.resolve(LOCAL_PYTHON_DIR_NAME).also { it.mkdirs() }
+            val repoDir = extractDir.resolve(pythonDistName)
+            project.executor.run {
+                execute("./configure", listOf("--prefix=${localPythonDir.absolutePath}"), repoDir, project.terminal)
+                    .then {
+                        execute(
+                            "make",
+                            emptyList(),
+                            repoDir,
+                            project.terminal,
+                            mapOf("LDFLAGS" to "-L/usr/local/opt/zlib/lib", "CPPFLAGS" to "-I/usr/local/opt/zlib/include")
+                        )
+                    }.then {
+                        execute(
+                            "make",
+                            listOf("install"),
+                            repoDir,
+                            project.terminal,
+                            mapOf("LDFLAGS" to "-L/usr/local/opt/zlib/lib", "CPPFLAGS" to "-I/usr/local/opt/zlib/include")
+                        )
+                    }.orElseDo { code ->
+                        error("Failed to install interpreter $pythonDistName. Exit code is $code")
+                    }
+            }
+            project.terminal.info("Interpreter installed to ${localPythonDir.resolve("bin").path}")
+
+            return localPythonDir.deepResolve("bin", version.executableName).toPath()
+        }
+
+        private fun downloadArchive(url: String, file: File, project: Project) {
             runBlocking {
                 httpClient.get<HttpStatement>(url).execute { httpResponse ->
                     when {
@@ -56,32 +106,13 @@ class PyInterpreter(val path: Path, val version: Version) {
                             val bytes = packet.readBytes()
                             file.appendBytes(bytes)
                             if (file.length() % 1000 == 0L) {
-                                println("Received ${file.length()} bytes from ${httpResponse.contentLength()}")
+                                project.terminal.info("Received ${file.length()} bytes from ${httpResponse.contentLength()}")
                             }
                         }
                     }
-                    println("$archiveDistName saved to ${file.path}")
+                    project.terminal.info("Interpreter $url downloaded to ${file.path}")
                 }
             }
-
-            val extractDir = workDir.resolve(pythonDistName).also { it.mkdirs() }
-            unpackTarGZip(workDir.resolve(archiveDistName), extractDir)
-
-            // TODO: support Win
-            val localPythonDir = extractDir.resolve(LOCAL_PYTHON_DIR_NAME).also { it.mkdirs() }
-            val repoDir = extractDir.resolve(pythonDistName)
-            project.executor.run {
-                execute("./configure", listOf("--prefix=${localPythonDir.absolutePath}"), repoDir, project.terminal)
-                    .then {
-                        execute("make", emptyList(), repoDir, project.terminal)
-                    }.then {
-                        execute("make", listOf("install"), repoDir, project.terminal)
-                    }.orElseDo { code ->
-                        error("Failed to install $pythonDistName. Exit code is $code")
-                    }
-            }
-
-            return localPythonDir.deepResolve("bin", version.executableName).toPath()
         }
 
         private fun unpackTarGZip(sourceFile: File, destDirectory: File) {
@@ -95,16 +126,16 @@ class PyInterpreter(val path: Path, val version: Version) {
         }
     }
 
-    data class Version(val src: String) {
+    data class Version(val number: String) {
         init {
-            require(src.matches(RegexCache.PYTHON_VERSION_REGEX)) { "Invalid python version specified." }
+            require(number.matches(RegexCache.PYTHON_VERSION_REGEX)) { "Invalid python version specified." }
         }
 
         private val supportedImplementations = listOf("cp", "py")
 
         val pep425candidates: List<String>
             get() {
-                val currentVersion = src.replace(".", "").toInt()
+                val currentVersion = number.replace(".", "").toInt()
                 val candidateVersions =
                     if (currentVersion > 20) {
                         val base = currentVersion.div(10)
@@ -116,11 +147,11 @@ class PyInterpreter(val path: Path, val version: Version) {
             }
 
         val executableName: String
-            get() = "python${src.first()}"
+            get() = "python${number.first()}"
 
         val fullName: String
-            get() = "Python-$src"
+            get() = "Python-$number"
 
-        override fun toString() = src
+        override fun toString() = number
     }
 }

@@ -30,7 +30,8 @@ abstract class Task(val project: Project) {
     /**
      * Performs initial initialization during import of the whole Paddle project
      */
-    abstract fun initialize()
+    open fun initialize() {
+    }
 
     /**
      * Perform action which is the core essence of the task.

@@ -19,7 +19,7 @@ val Project.environment: Environment
 
 class Environment(val project: Project, val pythonVersion: PyInterpreter.Version, val venv: VenvDir) : Hashable {
 
-    val interpreter by lazy { PyInterpreter.find(pythonVersion, project) }
+    val interpreter: PyInterpreter by lazy { PyInterpreter.find(pythonVersion, project) }
 
     object Extension : Project.Extension<Environment> {
         override val key: Extendable.Key<Environment> = Extendable.Key()
@@ -79,6 +79,6 @@ class Environment(val project: Project, val pythonVersion: PyInterpreter.Version
     }
 
     override fun hash(): String {
-        return listOf(pythonVersion.src.hashable(), venv.hashable()).hashable().hash()
+        return listOf(pythonVersion.number.hashable(), venv.hashable()).hashable().hash()
     }
 }

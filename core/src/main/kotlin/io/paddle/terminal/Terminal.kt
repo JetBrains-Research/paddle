@@ -30,6 +30,22 @@ class Terminal(private val output: TextOutput) {
         WHITE("\u001B[37m")
     }
 
+    fun debug(message: String, newline: Boolean = true) {
+        stdout("${colored("[DEBUG]", Color.WHITE)} $message", newline)
+    }
+
+    fun info(message: String, newline: Boolean = true) {
+        stdout("${colored("[INFO]", Color.GREEN)} $message", newline)
+    }
+
+    fun warn(message: String, newline: Boolean = true) {
+        stdout("${colored("[WARNING]", Color.YELLOW)} $message", newline)
+    }
+
+    fun error(message: String, newline: Boolean = true) {
+        stderr("${colored("[ERROR]", Color.RED)} $message", newline)
+    }
+
     fun stdout(message: String, newline: Boolean = true) {
         output.stdout(message)
         if (newline) output.stdout("\n")

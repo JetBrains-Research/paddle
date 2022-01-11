@@ -14,7 +14,7 @@ val Project.requirements: Requirements
 
 class Requirements(val project: Project, val descriptors: MutableList<Descriptor>) : Hashable {
 
-    val resolved by lazy { descriptors.map { PyPackage.resolve(it, project) } }
+    val resolved: List<PyPackage> by lazy { descriptors.map { PyPackage.resolve(it, project) } }
 
     object Extension : Project.Extension<Requirements> {
         override val key: Extendable.Key<Requirements> = Extendable.Key()

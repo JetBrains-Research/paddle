@@ -8,6 +8,7 @@ roots:
   tests:
     - src/test
 
+# https://github.com/pyenv/pyenv/wiki#suggested-build-environment
 environment:
   path: .venv
   python: 3.9.0

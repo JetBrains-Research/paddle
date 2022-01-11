@@ -30,7 +30,14 @@ class DockerCommandExecutor(private val image: String, output: TextOutput) : Com
     private val http = ApacheDockerHttpClient.Builder().dockerHost(config.dockerHost).sslConfig(config.sslConfig).build()
     private val client = DockerClientImpl.getInstance(config, http)
 
-    override fun execute(command: String, args: Iterable<String>, workingDir: File, terminal: Terminal): ExecutionResult {
+    override fun execute(
+        command: String,
+        args: Iterable<String>,
+        workingDir: File,
+        terminal: Terminal,
+        envVars: Map<String, String>,
+        log: Boolean
+    ): ExecutionResult {
         val (name, tag) = image.split(":")
 
         if (client.listImagesCmd().exec().all { image !in it.repoTags }) {
@@ -41,7 +48,7 @@ class DockerCommandExecutor(private val image: String, output: TextOutput) : Com
         val oldPath = File(".").absolutePath.dropLast(2)
 
         //TODO-tanvd consider reworking this part and use standard File API instead of tricks like this one
-        val fixedCommand =  if (command.startsWith(oldPath)) "/project/${command.drop(oldPath.length + 1)}" else command
+        val fixedCommand = if (command.startsWith(oldPath)) "/project/${command.drop(oldPath.length + 1)}" else command
         val fixedArgs = args.map { if (it.startsWith(oldPath)) "/project/${it.drop(oldPath.length + 1)}" else it }
 
         val container = client.createContainerCmd(image)

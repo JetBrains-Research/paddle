@@ -4,38 +4,13 @@ import io.paddle.plugin.python.dependencies.index.distributions.*
 import io.paddle.plugin.python.extensions.*
 import io.paddle.plugin.python.utils.*
 import io.paddle.project.Project
-import org.codehaus.plexus.util.Os
 
 
 object PyDistributionsResolver {
-    val osFamily by lazy {
-        when {
-            Os.isFamily(Os.FAMILY_WINDOWS) -> "win"
-            Os.isFamily(Os.FAMILY_MAC) -> "mac"
-            Os.isFamily(Os.FAMILY_UNIX) -> "linux"
-            else -> error("Unknown OS family.")
-        }
-    }
-
-    // FIXME: os.arch is architecture of current JRE, not the platform itself?
-    //
-    val osArch by lazy {
-        val arch = Os.OS_ARCH
-        when {
-            "86" in arch && "64" in arch -> "x86_64"
-            "64" in arch && ("arm" in arch || "aarch" in arch) -> "arm64"
-            "64" in arch && "amd" in arch -> "amd64"
-            "32" in arch -> "32"
-            "86" in arch -> "86"
-            else -> error("Unknown OS architecture.")
-        }
-    }
-
     // See https://www.python.org/dev/peps/pep-0425/#id1
     // https://docs.python.org/3/distutils/apiref.html#distutils.util.get_platform
     suspend fun resolve(name: PyPackageName, version: PyPackageVersion, repository: PyPackagesRepository, project: Project): PyPackageUrl? {
-        val distributions = PyPackagesRepositoryIndexer.downloadDistributionsList(name, repository)
-            .filter { it.version == version }
+        val distributions = PyPackagesRepositoryIndexer.downloadDistributionsList(name, repository).filter { it.version == version }
         val wheels = distributions.filterIsInstance<WheelPyDistributionInfo>()
 
         // Building candidates for current Python interpreter
@@ -48,8 +23,8 @@ object PyDistributionsResolver {
         val platformTags = wheels.map { it.platformTag }.toSet()
         platformTags.asSequence()
             .map { it.split(".") }.flatten() // splitting compressed tags
-            .filter { osFamily in it }
-            .filter { osArch in it || "universal" in it || "86" in osArch && "intel" in it }
+            .filter { OsUtils.family in it }
+            .filter { OsUtils.arch in it || "universal" in it || "86" in OsUtils.arch && "intel" in it }
             .toList() + "any"
 
         data class Candidate(
@@ -58,6 +33,7 @@ object PyDistributionsResolver {
             val platformTagRank: Int = Int.MAX_VALUE,
             val wheel: PyDistributionInfo? = null
         )
+
         var bestCandidate = Candidate()
         for (wheel in wheels) {
             val pyTagRank = wheel.requiresPython.split(".").minOfOrNull { pyTags.indexOf(it) } ?: Int.MAX_VALUE
