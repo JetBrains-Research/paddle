@@ -3,6 +3,7 @@ package io.paddle.plugin.python.dependencies
 import io.paddle.execution.CommandExecutor
 import io.paddle.execution.ExecutionResult
 import io.paddle.execution.local.LocalCommandExecutor
+import io.paddle.plugin.python.dependencies.index.PyPackagesRepositories
 import io.paddle.plugin.python.extensions.Requirements
 import io.paddle.terminal.Terminal
 import io.paddle.terminal.TextOutput
@@ -24,23 +25,38 @@ object GlobalVenvManager {
         globalVenv = VenvDir(PythonDependenciesConfig.venvDir.toFile())
     }
 
-    fun smartInstall(dependency: Requirements.Descriptor): ExecutionResult {
-        return createVenv(venvArgs = listOf("--clear")).then { install(dependency) }
+    fun smartInstall(dependency: Requirements.Descriptor, repositories: PyPackagesRepositories): ExecutionResult {
+        return createVenv(args = listOf("--clear")).then {
+            install(dependency, repositories)
+        }
     }
 
-    private fun createVenv(venvArgs: List<String> = emptyList()): ExecutionResult {
+    private fun createVenv(args: List<String> = emptyList()): ExecutionResult {
         return executor.execute(
             command = "python3",
-            args = listOf("-m", "venv") + venvArgs + PythonDependenciesConfig.venvDir.toAbsolutePath().toString(),
+            args = listOf("-m", "venv") + args + PythonDependenciesConfig.venvDir.toAbsolutePath().toString(),
             workingDir = PythonDependenciesConfig.paddleHome.toFile(),
             terminal = terminal
         )
     }
 
-    private fun install(dependency: Requirements.Descriptor): ExecutionResult {
+    private fun install(dependency: Requirements.Descriptor, repositories: PyPackagesRepositories): ExecutionResult {
+        val args = ArrayList<String>().apply {
+            add("install")
+            add("--index-url")
+            add(repositories.primarySource.urlSimple)
+            for (repo in repositories.all) {
+                if (repo != repositories.primarySource) {
+                    add("--extra-index-url")
+                    add(repo.urlSimple)
+                }
+            }
+            add("${dependency.name}==${dependency.version}")
+        }
+
         return executor.execute(
             command = "${PythonDependenciesConfig.venvDir}/bin/pip",
-            args = listOf("install", "${dependency.name}==${dependency.version}"),
+            args = args,
             workingDir = PythonDependenciesConfig.paddleHome.toFile(),
             terminal = terminal
         )

@@ -25,7 +25,7 @@ class VenvTask(project: Project) : IncrementalTask(project) {
         project.environment.initialize().orElse { throw ActException("VirtualEnv creation has failed") }
 
         for (pkg in project.requirements.descriptors) {
-            project.environment.install(pkg)
+            project.environment.install(pkg, project.requirements.repositories)
         }
     }
 }

@@ -1,5 +1,8 @@
 package io.paddle.plugin.python.extensions
 
+import io.paddle.plugin.python.dependencies.index.PyPackagesRepositories
+import io.paddle.plugin.python.dependencies.index.PyPackagesRepository
+import io.paddle.plugin.python.dependencies.isValidUrl
 import io.paddle.project.Project
 import io.paddle.utils.Hashable
 import io.paddle.utils.config.ConfigurationView
@@ -9,17 +12,20 @@ import io.paddle.utils.hashable
 val Project.requirements: Requirements
     get() = extensions.get(Requirements.Extension.key)!!
 
-class Requirements(val descriptors: MutableList<Descriptor>) : Hashable {
+class Requirements(val descriptors: MutableList<Descriptor>, val repositories: PyPackagesRepositories) : Hashable {
     object Extension : Project.Extension<Requirements> {
         override val key: Extendable.Key<Requirements> = Extendable.Key()
 
         override fun create(project: Project): Requirements {
             val config = object : ConfigurationView("requirements", project.config) {
                 val libraries by list<Map<String, String>>("libraries", default = emptyList())
+                val repositories by list<Map<String, String>>("repositories", default = emptyList())
             }
-            val descriptors = config.libraries.map { Descriptor(it["name"]!!, it["version"]!!) }.toMutableList()
 
-            return Requirements(descriptors)
+            val libraries = config.libraries.map { Descriptor(it["name"]!!, it["version"]!!) }.toMutableList()
+            val repositories = PyPackagesRepositories.parse(config.repositories)
+
+            return Requirements(libraries, repositories)
         }
     }
 

@@ -13,11 +13,19 @@ environment:
   path: .venv
 
 requirements:
+  # By default, any custom repository will have precedence over PyPI
+  repositories:
+    - name: ml
+      url: https://repo.labs.intellij.net/artifactory/api/pypi/intellij-ml/simple/
+#      default: True # This will disable the global PyPI repo, and make <ml> the default fallback source
+
+    - name: paper-analyzer
+      url: https://repo.labs.intellij.net/artifactory/api/pypi/paper-analyzer/simple/
+      secondary: True # Thus, <ml> still would be the primary source. But without such flag, this repo would have precedence over <ml>
+
   libraries:
-    - name: redis
-      version: 3.5.3
-    - name: numpy
-      version: 1.21.2
+    - name: ea-ml
+      version: 0.0.6
 
 plugins:
   enabled:

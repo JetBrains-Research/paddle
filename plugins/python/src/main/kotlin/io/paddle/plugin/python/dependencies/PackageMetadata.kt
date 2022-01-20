@@ -17,7 +17,7 @@ class PackageMetadata private constructor(private val headers: Map<String, Any?>
         return ReadOnlyProperty { _, property ->
             // transform given property name (e.g., "requiresDist") to the proper header key (e.g., "Requires-Dist")
             val key = property.name.split(RegexCache.UPPER_CASE_SPLIT_REGEX).joinToString("-")
-            headers[key[0].toUpperCase() + key.drop(1)] as V
+            headers[key[0].uppercaseChar() + key.drop(1)] as V
         }
     }
 

@@ -40,4 +40,7 @@ object PythonDependenciesConfig {
      * do not support installation of the multiple versions for a single package to the same environment.
      */
     val venvDir: Path = paddleHome.resolve(".venv")
+
+    val indexDir: Path = paddleHome.resolve(".index")
+        get() = field.also { if (!field.exists()) field.toFile().mkdirs() }
 }

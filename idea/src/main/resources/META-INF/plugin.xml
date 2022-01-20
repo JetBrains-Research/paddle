@@ -39,6 +39,18 @@
         <configurationType implementation="io.paddle.idea.runner.PaddleTaskConfigurationType"/>
 
         <externalSystemOutputParserProvider implementation="io.paddle.idea.runner.parser.PaddleParserProvider"/>
+
+        <localInspection language="yaml"
+                         displayName="Wrong Paddle repositories configuration"
+                         groupName="YAML"
+                         enabledByDefault="true"
+                         implementationClass="io.paddle.idea.inspections.PyPackagesRepositoryYAMLInspection"/>
+
+        <completion.contributor language="yaml"
+                                implementationClass="io.paddle.idea.completion.PyPackageNameCompletionContributor"/>
+
+        <completion.contributor language="yaml"
+                                implementationClass="io.paddle.idea.completion.PyPackageVersionCompletionContributor"/>
     </extensions>
 
     <extensions defaultExtensionNs="JavaScript.JsonSchema">
