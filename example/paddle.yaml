@@ -13,7 +13,11 @@ environment:
   path: .venv
 
 requirements:
-  file: requirements.txt
+  libraries:
+    - name: redis
+      version: 3.5.3
+    - name: numpy
+      version: 1.21.2
 
 plugins:
   enabled:

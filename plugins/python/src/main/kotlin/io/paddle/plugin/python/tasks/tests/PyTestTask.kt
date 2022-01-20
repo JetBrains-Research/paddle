@@ -3,7 +3,7 @@ package io.paddle.plugin.python.tasks.tests
 import io.paddle.plugin.python.extensions.*
 import io.paddle.plugin.standard.extensions.roots
 import io.paddle.plugin.standard.tasks.clean
-import io.paddle.project.*
+import io.paddle.project.Project
 import io.paddle.tasks.Task
 import io.paddle.tasks.incremental.IncrementalTask
 import io.paddle.utils.Hashable
@@ -33,8 +33,7 @@ class PyTestTask(project: Project) : IncrementalTask(project) {
     override fun act() {
         var anyFailed = false
         for (file in project.roots.tests) {
-            val code = project.environment.runModule("pytest", listOf(file.absolutePath))
-            anyFailed = anyFailed || code != 0
+            project.environment.runModule("pytest", listOf(file.absolutePath)).orElseDo { anyFailed = true }
         }
         if (anyFailed) throw ActException("PyTest tests has failed")
     }

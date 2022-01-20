@@ -28,5 +28,7 @@ intellij {
 
     downloadSources.set(true)
 
-    updateSinceUntilBuild.set(false)
+    plugins.set(listOf("PythonCore:211.7628.24"))
+
+    // updateSinceUntilBuild.set(false)
 }
