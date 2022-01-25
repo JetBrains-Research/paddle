@@ -10,6 +10,8 @@ object DockerPlugin : Plugin {
     override fun configure(project: Project) {
         val executor = project.extensions.get(DockerCommandExecutor.Extension.key) ?: return
         project.executor = executor
+        // todo: here i should extend current MetaConfigTree with corresponding plugin's json-schema subtree
+        // MetaConfigTree is a tree by which json-schema will be generated, it's something like a Type of possible configuration's values
         project.terminal.stdout("> Executor :docker: ${Terminal.colored("ENABLED", Terminal.Color.CYAN)}")
     }
 
