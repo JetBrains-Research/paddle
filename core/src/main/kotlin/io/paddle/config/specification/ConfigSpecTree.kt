@@ -1,7 +1,7 @@
 package io.paddle.config.specification
 
 interface MutableConfigSpecTree {
-    fun insert(dist: List<String>, node: SpecTreeNode)
+    fun insert(destination: List<String>, node: SpecTreeNode)
 
     abstract class SpecTreeNode(val name: String, val description: String?) {
         abstract fun accept(visitor: SpecTreeVisitor): Any
