@@ -6,8 +6,9 @@ import io.paddle.plugin.python.dependencies.lock.hash.HashUtils
 import io.paddle.plugin.python.dependencies.lock.hash.MessageDigestAlgorithm
 import io.paddle.plugin.python.utils.PyPackagesRepositoryUrl
 import io.paddle.plugin.python.utils.jsonParser
-import kotlinx.serialization.Serializable
-import kotlinx.serialization.encodeToString
+import kotlinx.serialization.*
+import kotlinx.serialization.json.Json
+import java.io.File
 import java.nio.file.Path
 import java.security.MessageDigest
 
@@ -21,18 +22,26 @@ data class LockedPyDistribution(
 data class LockedPyPackage(
     val name: String,
     val version: String,
-    val repositoryUrl: PyPackagesRepositoryUrl,
+    val repoUrl: PyPackagesRepositoryUrl,
+    val repoName: String,
     val distributions: List<LockedPyDistribution>
 )
 
 @Serializable
 class PyLockFile {
     companion object {
-        const val FILENAME = "paddle.lock"
+        const val FILENAME = "paddle-lock.json"
+
+        fun fromFile(file: File): PyLockFile {
+            return jsonParser.decodeFromString(file.readText())
+        }
     }
 
     private val lockedPyPackagesData = HashSet<LockedPyPackage>()
     private lateinit var contentHash: String
+
+    val packages: Set<LockedPyPackage>
+        get() = lockedPyPackagesData.map { it.copy() }.toSet()
 
     fun addLockedPackage(pkg: PyPackage, metadata: JsonPackageMetadataInfo) {
         val distributions = metadata.releases[pkg.version] ?: error("Distribution $pkg was not found in metadata.")
@@ -40,8 +49,9 @@ class PyLockFile {
             LockedPyPackage(
                 name = pkg.name,
                 version = pkg.version,
-                repositoryUrl = pkg.repo.urlSimple,
-                distributions = distributions.map { LockedPyDistribution(it.filename, it.getPackageHash()) }
+                repoUrl = pkg.repo.url,
+                repoName = pkg.repo.name,
+                distributions = distributions.map { LockedPyDistribution(it.filename, it.packageHash) }
             )
         )
     }
@@ -51,6 +61,7 @@ class PyLockFile {
             digest = MessageDigest.getInstance(MessageDigestAlgorithm.SHA_256),
             src = lockedPyPackagesData.sortedBy { it.name }.toString()
         )
-        path.resolve(FILENAME).toFile().writeText(jsonParser.encodeToString(this))
+        val json = Json { prettyPrint = true }
+        path.resolve(FILENAME).toFile().writeText(json.encodeToString(this))
     }
 }

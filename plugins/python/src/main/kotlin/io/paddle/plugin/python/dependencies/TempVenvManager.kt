@@ -60,7 +60,7 @@ class TempVenvManager private constructor(val venv: VenvDir, val project: Projec
                     add(repo.urlSimple)
                 }
             }
-            add("${pkg.name}==${pkg.version}")
+            add(pkg.distributionUrl)
         }
 
         return project.executor.execute(

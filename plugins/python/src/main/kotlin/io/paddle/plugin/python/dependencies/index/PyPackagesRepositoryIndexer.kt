@@ -61,12 +61,11 @@ object PyPackagesRepositoryIndexer {
     }
 
     suspend fun downloadMetadata(pkg: PyPackage): JsonPackageMetadataInfo {
+        val metadataJsonUrl = pkg.repo.url.join("pypi", pkg.name, pkg.version, "json")
         val response: HttpResponse = try {
-            httpClient.use {
-                it.request(pkg.repo.url.join("pypi", pkg.name, pkg.version, "json"))
-            }
+            httpClient.request(metadataJsonUrl)
         } catch (exception: Throwable) {
-            error("Failed to download metadata for package '${pkg.name}' from ${pkg.repo.name}: ${pkg.repo.url}")
+            error("Failed to download metadata for package '${pkg.name}' from $metadataJsonUrl")
         }
         return jsonParser.decodeFromString(response.readText())
     }

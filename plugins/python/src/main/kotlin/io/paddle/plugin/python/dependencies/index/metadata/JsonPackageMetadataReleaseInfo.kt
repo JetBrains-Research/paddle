@@ -19,9 +19,8 @@ data class JsonPackageMetadataReleaseInfo(
     val yanked: Boolean = false,
     val yanked_reason: String? = null,
 ) {
-    fun getPackageHash(): String {
-        return digests["sha256"]?.let { "sha256:$it" }
+    val packageHash: String
+        get() = digests["sha256"]?.let { "sha256:$it" }
             ?: digests["md5"]?.let { "md5:$it" }
             ?: "md5:$md5_digest"
-    }
 }

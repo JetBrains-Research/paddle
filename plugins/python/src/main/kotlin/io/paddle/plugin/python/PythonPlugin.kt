@@ -23,11 +23,12 @@ object PythonPlugin : Plugin {
             ResolveInterpreterTask(project),
             ResolveRequirementsTask(project),
             ResolveRepositoriesTask(project),
-            LockTask(project)
+            LockTask(project),
+            CiTask(project),
         ) + listOf(
             MyPyTask(project),
             PyLintTask(project),
-            PyTestTask(project)
+            PyTestTask(project),
         ) + RunTask.from(project)
     }
 
