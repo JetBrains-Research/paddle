@@ -24,7 +24,7 @@ data class WheelPyDistributionInfo(
                 "^(?<name>.*?)-" +
                     "(?<version>.*?)" +
                     "(?<buildTag>(-[0-9].*)?)-" +
-                    "(?<pyTag>((py|cp|ip|pp|jy)([0-9]+))(\\.(py|cp|ip|pp|jy)([0-9]+)).?)-" +
+                    "(?<pyTag>((py|cp|ip|pp|jy)([0-9]+))(\\.(py|cp|ip|pp|jy)([0-9]+))*)-" +
                     "(?<abiTag>[^-]+?)-" +
                     "(?<platformTag>[^-]+?)" +
                     "\\.whl\$"

@@ -5,6 +5,7 @@ import io.paddle.execution.local.LocalCommandExecutor
 import io.paddle.plugin.Plugin
 import io.paddle.plugin.standard.extensions.Plugins
 import io.paddle.terminal.*
+import io.paddle.utils.StringHashable
 import io.paddle.utils.config.Configuration
 import io.paddle.utils.ext.Extendable
 import java.io.File
@@ -16,6 +17,7 @@ class Project(val config: Configuration, val workDir: File = File("."), val outp
         fun create(project: Project): V
     }
 
+    val id: String = StringHashable(workDir.absolutePath).hash()
     val tasks = Tasks()
     val extensions = Extendable()
     var executor: CommandExecutor = LocalCommandExecutor(output)

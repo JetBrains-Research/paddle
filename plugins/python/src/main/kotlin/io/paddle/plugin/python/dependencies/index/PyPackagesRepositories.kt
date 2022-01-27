@@ -44,8 +44,7 @@ class PyPackagesRepositories(
         }
 
         private fun updateIndex(repositories: Set<PyPackagesRepository>) = runBlocking {
-            val jobs = repositories.map { launch { it.updateIndex() } }
-            jobs.joinAll()
+            repositories.map { launch { it.updateIndex() } }.joinAll()
             repositories.forEach { it.saveCache() }
         }
     }

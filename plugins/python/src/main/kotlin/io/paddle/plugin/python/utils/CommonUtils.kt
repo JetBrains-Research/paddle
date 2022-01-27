@@ -49,9 +49,20 @@ fun <T, U> Collection<T>.product(other: Collection<U>): List<Pair<T, U>> {
 }
 
 fun File.deepResolve(vararg relatives: String): File {
-    return relatives.fold(this) { current, relative -> current.resolve(relative) }
+    return this.resolve(relatives.joinToString(File.separator))
 }
 
 fun Path.deepResolve(vararg relatives: String): Path {
-    return relatives.fold(this) { current, relative -> current.resolve(relative) }
+    return this.resolve(relatives.joinToString(File.separator))
+}
+
+fun File.resolveRelative(other: String): File {
+    val parts = other.split(File.separatorChar)
+    val up = parts.count { it == ".." }
+
+    var cur = this
+    repeat(up) { cur = cur.parentFile }
+
+    val suffix = parts.subList(up, parts.size).joinToString(File.separator)
+    return cur.resolve(suffix)
 }

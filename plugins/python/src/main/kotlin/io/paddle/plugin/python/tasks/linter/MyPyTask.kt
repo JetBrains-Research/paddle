@@ -25,7 +25,7 @@ class MyPyTask(project: Project) : IncrementalTask(project) {
         project.requirements.descriptors.add(
             Requirements.Descriptor(
                 name = "mypy",
-                version = project.config.get<String>("tasks.linter.mypy.version") ?: "0.902",
+                version = project.config.get<String>("tasks.linter.mypy.version") ?: "0.931",
                 repo = Repositories.Descriptor.PYPI.name
             )
         )

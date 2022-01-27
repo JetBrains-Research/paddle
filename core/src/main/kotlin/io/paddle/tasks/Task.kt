@@ -44,6 +44,7 @@ abstract class Task(val project: Project) {
      * Run task with respect to the caches and current state.
      */
     open fun run() {
+        // TODO: resolve DAG?
         for (dep in dependencies) {
             dep.run()
         }

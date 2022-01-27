@@ -26,8 +26,9 @@ class Requirements(val project: Project, val descriptors: MutableList<Descriptor
         }
     }
 
-    data class Descriptor(val name: PyPackageName, val version: PyPackageVersion, val repo: String?) : Hashable {
+    data class Descriptor(val name: PyPackageName, val version: PyPackageVersion, val repo: String? = null) : Hashable {
         val distInfoDirName = "${name}-${version}.dist-info"
+        val infoDirPrefix = "${name}-${version}"
 
         override fun hash(): String {
             val hashables = mutableListOf(name.hashable(), version.hashable())

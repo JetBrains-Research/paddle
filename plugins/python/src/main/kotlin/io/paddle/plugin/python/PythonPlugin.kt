@@ -1,7 +1,6 @@
 package io.paddle.plugin.python
 
 import io.paddle.plugin.Plugin
-import io.paddle.plugin.python.execution.PythonLocalCommandExecutor
 import io.paddle.plugin.python.extensions.*
 import io.paddle.plugin.python.tasks.env.*
 import io.paddle.plugin.python.tasks.exec.RunTask
@@ -14,8 +13,6 @@ import io.paddle.tasks.Task
 
 object PythonPlugin : Plugin {
     override fun configure(project: Project) {
-        val executor = PythonLocalCommandExecutor(project.output)
-        project.executor = executor
     }
 
     override fun tasks(project: Project): List<Task> {

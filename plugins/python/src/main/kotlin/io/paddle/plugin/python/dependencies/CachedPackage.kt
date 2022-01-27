@@ -4,27 +4,28 @@ import io.paddle.plugin.python.dependencies.index.PyPackagesRepository
 import io.paddle.plugin.python.extensions.Requirements
 import io.paddle.plugin.python.utils.PyPackageName
 import io.paddle.plugin.python.utils.PyPackageVersion
-import io.paddle.utils.StringHashable
 import java.io.File
 import java.nio.file.Path
 
+/**
+ * Cached version of package, stored in global cache folder.
+ *
+ * Common structure:
+ *  - BIN/...
+ *  - PYCACHE/...
+ *  - package-name/
+ *  - package-name-1.2.3.dist-info/
+ *  - ...
+ */
 data class CachedPackage(val name: PyPackageName, val version: PyPackageVersion, val repo: PyPackagesRepository, val srcPath: Path) {
     val descriptor = Requirements.Descriptor(name, version, repo.name)
-    val sources: List<File> = srcPath.toFile().listFiles()?.toList() ?: emptyList()
-    val distInfo: File = srcPath.toFile().resolve(descriptor.distInfoDirName)
     val dependencies = Dependencies()
 
-    private val hashCode by lazy {
-        StringHashable("$name:$version").hash().hashCode()
-    }
+    val sources: List<File>
+        get() = srcPath.toFile().listFiles()?.toList() ?: emptyList()
 
-    val metadata: CachedPackageMetadata by lazy {
-        CachedPackageMetadata.parse(distInfo.resolve("METADATA"))
-    }
-
-    val topLevelName: String by lazy {
-        distInfo.resolve("top_level.txt").let { if (it.exists()) it.readText().trim() else name }
-    }
+    val infoDirectory: InstalledPackageInfo
+        get() = InstalledPackageInfo.findByDescriptor(srcPath.toFile(), descriptor)
 
     override fun hashCode(): Int = srcPath.hashCode()
 

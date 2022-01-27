@@ -27,7 +27,7 @@ class PyTestTask(project: Project) : IncrementalTask(project) {
         project.requirements.descriptors.add(
             Requirements.Descriptor(
                 name = "pytest",
-                version = project.config.get<String>("tasks.tests.pytest.version") ?: "6.2.4",
+                version = project.config.get<String>("tasks.tests.pytest.version") ?: "6.2.5",
                 repo = Repositories.Descriptor.PYPI.name
             )
         )

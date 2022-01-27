@@ -35,7 +35,7 @@ class Terminal(private val output: TextOutput) {
     }
 
     fun info(message: String, newline: Boolean = true) {
-        stdout("${colored("[INFO]", Color.GREEN)} $message", newline)
+        stdout("${colored("[INFO]", Color.WHITE)} $message", newline)
     }
 
     fun warn(message: String, newline: Boolean = true) {

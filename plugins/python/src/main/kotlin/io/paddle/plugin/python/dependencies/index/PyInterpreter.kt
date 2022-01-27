@@ -12,6 +12,7 @@ import io.paddle.project.Project
 import kotlinx.coroutines.runBlocking
 import org.codehaus.plexus.archiver.tar.TarGZipUnArchiver
 import org.codehaus.plexus.logging.console.ConsoleLoggerManager
+import org.codehaus.plexus.util.Os
 import java.io.File
 import java.nio.file.Path
 
@@ -22,23 +23,28 @@ class PyInterpreter(val path: Path, val version: Version) {
         private const val LOCAL_PYTHON_DIR_NAME = ".localpython"
 
         fun find(version: Version, project: Project): PyInterpreter {
-            val interpreterPath = PaddlePyConfig.interpreters.deepResolve(
+            val loc = getLocation(version, project)
+            return PyInterpreter(
+                path = loc.takeIf { it.exists() } ?: downloadAndInstall(version, project),
+                version = version
+            )
+        }
+
+        fun getLocation(version: Version, project: Project): Path {
+            // todo: check local installations ...
+            return PaddlePyConfig.interpretersDir.deepResolve(
                 version.number,
                 version.fullName,
                 LOCAL_PYTHON_DIR_NAME,
                 "bin",
                 version.executableName
             )
-            return PyInterpreter(
-                path = interpreterPath.takeIf { it.exists() } ?: downloadAndInstall(version, project),
-                version = version
-            )
         }
 
         // TODO: implement layers caching
         private fun downloadAndInstall(version: Version, project: Project): Path {
             project.terminal.info("Downloading interpreter ${version.fullName}...")
-            val workDir = PaddlePyConfig.interpreters.resolve(version.number).toFile().also { it.mkdirs() }
+            val workDir = PaddlePyConfig.interpretersDir.resolve(version.number).toFile().also { it.mkdirs() }
 
             val pythonDistName = "Python-${version}"
             val archiveDistName = "$pythonDistName.tgz"
@@ -65,24 +71,47 @@ class PyInterpreter(val path: Path, val version: Version) {
             project.terminal.info("Installing interpreter...")
             val localPythonDir = extractDir.resolve(LOCAL_PYTHON_DIR_NAME).also { it.mkdirs() }
             val repoDir = extractDir.resolve(pythonDistName)
+
+            val configureArgs =
+                if (Os.isFamily(Os.FAMILY_MAC)) {
+                    listOf(
+                        "--prefix=${localPythonDir.absolutePath}",
+                        "--with-openssl=/usr/local/opt/openssl"
+                    )
+                } else if (Os.isFamily(Os.FAMILY_UNIX)) {
+                    listOf(
+                        "--prefix=${localPythonDir.absolutePath}",
+                        "--with-openssl=/usr/local/ssl"
+                    )
+                } else {
+                    throw NotImplementedError("Windows is not supported yet.")
+                }
+
+            val envVars = if (Os.isFamily(Os.FAMILY_MAC)) {
+                hashMapOf(
+                    "LDFLAGS" to listOf(
+                        "-L/usr/local/opt/sqlite/lib",
+                        "-L/usr/local/opt/zlib/lib",
+                        "-L/usr/local/opt/readline/lib",
+                        "-L/usr/local/opt/openssl@3/lib"
+                    ).joinToString(" "),
+                    "CPPFLAGS" to listOf(
+                        "-I/usr/local/opt/sqlite/include",
+                        "-I/usr/local/opt/zlib/include",
+                        "-I/usr/local/opt/readline/include",
+                        "-I/usr/local/opt/openssl@3/include"
+                    ).joinToString(" ")
+                )
+            } else {
+                emptyMap()
+            }
+
             project.executor.run {
-                execute("./configure", listOf("--prefix=${localPythonDir.absolutePath}"), repoDir, project.terminal)
+                execute("./configure", configureArgs, repoDir, envVars = envVars, terminal = project.terminal)
                     .then {
-                        execute(
-                            "make",
-                            emptyList(),
-                            repoDir,
-                            project.terminal,
-                            mapOf("LDFLAGS" to "-L/usr/local/opt/zlib/lib", "CPPFLAGS" to "-I/usr/local/opt/zlib/include")
-                        )
+                        execute("make", emptyList(), repoDir, envVars = envVars, terminal = project.terminal)
                     }.then {
-                        execute(
-                            "make",
-                            listOf("install"),
-                            repoDir,
-                            project.terminal,
-                            mapOf("LDFLAGS" to "-L/usr/local/opt/zlib/lib", "CPPFLAGS" to "-I/usr/local/opt/zlib/include")
-                        )
+                        execute("make", listOf("install"), repoDir, envVars = envVars, terminal = project.terminal)
                     }.orElseDo { code ->
                         error("Failed to install interpreter $pythonDistName. Exit code is $code")
                     }
@@ -92,26 +121,24 @@ class PyInterpreter(val path: Path, val version: Version) {
             return localPythonDir.deepResolve("bin", version.executableName).toPath()
         }
 
-        private fun downloadArchive(url: String, file: File, project: Project) {
-            runBlocking {
-                httpClient.get<HttpStatement>(url).execute { httpResponse ->
-                    when {
-                        httpResponse.status == HttpStatusCode.NotFound -> error("The specified interpreter was not found at $url: ${httpResponse.status}")
-                        httpResponse.status != HttpStatusCode.OK -> error("Problems with network access: $url, status: $httpResponse.status")
-                    }
-                    val channel: ByteReadChannel = httpResponse.receive()
-                    while (!channel.isClosedForRead) {
-                        val packet = channel.readRemaining(DEFAULT_BUFFER_SIZE.toLong())
-                        while (!packet.isEmpty) {
-                            val bytes = packet.readBytes()
-                            file.appendBytes(bytes)
-                            if (file.length() % 1000 == 0L) {
-                                project.terminal.info("Received ${file.length()} bytes from ${httpResponse.contentLength()}")
-                            }
+        private fun downloadArchive(url: String, target: File, project: Project) = runBlocking {
+            httpClient.get<HttpStatement>(url).execute { httpResponse ->
+                when {
+                    httpResponse.status == HttpStatusCode.NotFound -> error("The specified interpreter was not found at $url: ${httpResponse.status}")
+                    httpResponse.status != HttpStatusCode.OK -> error("Problems with network access: $url, status: $httpResponse.status")
+                }
+                val channel: ByteReadChannel = httpResponse.receive()
+                while (!channel.isClosedForRead) {
+                    val packet = channel.readRemaining(DEFAULT_BUFFER_SIZE.toLong())
+                    while (!packet.isEmpty) {
+                        val bytes = packet.readBytes()
+                        target.appendBytes(bytes)
+                        if (target.length() % 1000 == 0L) {
+                            project.terminal.info("Received ${target.length()} bytes from ${httpResponse.contentLength()}")
                         }
                     }
-                    project.terminal.info("Interpreter $url downloaded to ${file.path}")
                 }
+                project.terminal.info("Interpreter $url downloaded to ${target.path}")
             }
         }
 
@@ -135,15 +162,13 @@ class PyInterpreter(val path: Path, val version: Version) {
 
         val pep425candidates: List<String>
             get() {
-                val currentVersion = number.replace(".", "").toInt()
-                val candidateVersions =
-                    if (currentVersion > 20) {
-                        val base = currentVersion.div(10)
-                        (currentVersion downTo (base * 10)).toList() + base
-                    } else {
-                        listOf(currentVersion)
-                    }
-                return supportedImplementations.product(candidateVersions).map { "${it.first}${it.second}" }
+                val parts = number.split(".")
+                val major = parts[0].toInt()
+                val minor = parts.getOrNull(1)?.toInt() ?: return supportedImplementations.map { it + major }
+                return (minor downTo 0).toList()
+                    .product(supportedImplementations)
+                    .map { (minor, impl) -> "$impl$major$minor" } +
+                    supportedImplementations.map { it + major }
             }
 
         val executableName: String

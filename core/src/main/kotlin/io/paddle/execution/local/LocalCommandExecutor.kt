@@ -17,7 +17,7 @@ open class LocalCommandExecutor(output: TextOutput) : CommandExecutor(OutputConf
         verbose: Boolean
     ): ExecutionResult {
         if (verbose) {
-            terminal.info("Running command: $command ${args.joinToString(" ")} from ${workingDir.path}")
+            terminal.info("${workingDir.path}$ $command ${args.joinToString(" ")}")
         }
         return ExecutionResult(
             CommandLineUtils.executeCommandLine(
@@ -33,7 +33,7 @@ open class LocalCommandExecutor(output: TextOutput) : CommandExecutor(OutputConf
         )
     }
 
-    protected fun getConsumer(redirectOutput: Boolean, terminal: Terminal): StreamConsumer {
+    private fun getConsumer(redirectOutput: Boolean, terminal: Terminal): StreamConsumer {
         if (!redirectOutput) {
             return StreamConsumer { }
         }

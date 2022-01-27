@@ -25,7 +25,7 @@ class PyLintTask(project: Project) : IncrementalTask(project) {
         project.requirements.descriptors.add(
             Requirements.Descriptor(
                 name = "pylint",
-                version = project.config.get<String>("tasks.linter.pylint.version") ?: "2.8.3",
+                version = project.config.get<String>("tasks.linter.pylint.version") ?: "2.12.2",
                 repo = Repositories.Descriptor.PYPI.name
             ),
         )

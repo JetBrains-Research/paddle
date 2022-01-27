@@ -35,16 +35,16 @@ object PaddlePyConfig {
     val cacheDir: Path = paddleHome.resolve("cache")
 
     /**
-     * A path to the internal venv directory.
+     * A path to the internal venvs directory which contains virtual environment per project.
      *
-     * Such a virtual environment is used to install all new packages since python's venv
+     * Such an environment is used to install all new packages since python's venv
      * do not support installation of the multiple versions for a single package to the same environment.
      */
-    val venvDir: Path = paddleHome.resolve(".venv")
+    val venvsDir: Path = paddleHome.resolve("venvs")
 
-    val indexDir: Path = paddleHome.resolve(".index")
+    val indexDir: Path = paddleHome.resolve("index")
         get() = field.also { if (!field.exists()) field.toFile().mkdirs() }
 
-    val interpreters: Path = paddleHome.resolve("interpreters")
+    val interpretersDir: Path = paddleHome.resolve("interpreters")
         get() = field.also { if (!field.exists()) field.toFile().mkdirs() }
 }

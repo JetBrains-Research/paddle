@@ -5,6 +5,7 @@ import io.paddle.plugin.python.dependencies.GlobalCacheRepository
 import io.paddle.plugin.python.dependencies.VenvDir
 import io.paddle.plugin.python.dependencies.index.PyInterpreter
 import io.paddle.plugin.python.dependencies.index.PyPackage
+import io.paddle.plugin.python.utils.deepResolve
 import io.paddle.project.Project
 import io.paddle.utils.Hashable
 import io.paddle.utils.config.ConfigurationView
@@ -41,22 +42,15 @@ class Environment(val project: Project, val pythonVersion: PyInterpreter.Version
     fun initialize(): ExecutionResult {
         return project.executor.execute(
             interpreter.path.toString(),
-            listOf("-m", "pip", "install", "virtualenv"),
-            interpreter.path.parent.toFile(),
+            listOf("-m", "venv", venv.absolutePath),
+            project.workDir,
             project.terminal
-        ).then {
-            project.executor.execute(
-                interpreter.path.toString(),
-                listOf("-m", "virtualenv", venv.absolutePath),
-                project.workDir,
-                project.terminal
-            )
-        }
+        )
     }
 
     fun runModule(module: String, arguments: List<String> = emptyList()): ExecutionResult {
         return project.executor.execute(
-            "${venv.absolutePath}/bin/python",
+            venv.deepResolve("bin", project.environment.interpreter.version.executableName).absolutePath,
             listOf("-m", module, *arguments.toTypedArray()),
             project.workDir,
             project.terminal
@@ -65,7 +59,7 @@ class Environment(val project: Project, val pythonVersion: PyInterpreter.Version
 
     fun runScript(file: String, arguments: List<String> = emptyList()): ExecutionResult {
         return project.executor.execute(
-            "${venv.absolutePath}/bin/python",
+            venv.deepResolve("bin", project.environment.interpreter.version.executableName).absolutePath,
             listOf(file, *arguments.toTypedArray()),
             project.workDir,
             project.terminal
@@ -75,7 +69,7 @@ class Environment(val project: Project, val pythonVersion: PyInterpreter.Version
     fun install(pkg: PyPackage) {
         if (venv.hasInstalledPackage(pkg.descriptor)) return
         val cachedPkg = GlobalCacheRepository.findPackage(pkg, project)
-        GlobalCacheRepository.createSymlinkToPackageRecursively(cachedPkg, symlinkDir = venv.sitePackages.toPath())
+        GlobalCacheRepository.createSymlinkToPackageRecursively(cachedPkg, venv)
     }
 
     override fun hash(): String {

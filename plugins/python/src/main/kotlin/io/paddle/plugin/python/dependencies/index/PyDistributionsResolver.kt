@@ -36,9 +36,12 @@ object PyDistributionsResolver {
 
         var bestCandidate = Candidate()
         for (wheel in wheels) {
-            val pyTagRank = wheel.requiresPython.split(".").minOfOrNull { pyTags.indexOf(it) } ?: Int.MAX_VALUE
-            val abiTagRank = wheel.abiTag.split(".").minOfOrNull { abiTags.indexOf(it) } ?: Int.MAX_VALUE
-            val platformTagRank = wheel.platformTag.split(".").minOfOrNull { platformTags.indexOf(it) } ?: Int.MAX_VALUE
+            val pyTagRank = wheel.requiresPython.split(".")
+                .mapNotNull { pyTag -> pyTags.indexOf(pyTag).takeIf { it >= 0 } }.minOrNull() ?: Int.MAX_VALUE
+            val abiTagRank = wheel.abiTag.split(".")
+                .mapNotNull { abiTag -> abiTags.indexOf(abiTag).takeIf { it >= 0 } }.minOrNull() ?: Int.MAX_VALUE
+            val platformTagRank = wheel.platformTag.split(".")
+                .mapNotNull { platformTag -> platformTags.indexOf(platformTag).takeIf { it >= 0 } }.minOrNull() ?: Int.MAX_VALUE
             val currentCandidate = Candidate(pyTagRank, abiTagRank, platformTagRank, wheel)
 
             if (pyTagRank < bestCandidate.pyTagRank) {

@@ -20,9 +20,10 @@ class VenvDir(private val directory: File) : File(directory.path) {
             return pythonDir.resolve("site-packages")
         }
 
+    val pycache: File
+        get() = sitePackages.resolve("__pycache__")
+
     fun hasInstalledPackage(descriptor: Requirements.Descriptor): Boolean {
-        return this.sitePackages.listFiles()
-            ?.any { it.isDirectory && it.name == descriptor.distInfoDirName }
-            ?: false
+        return InstalledPackageInfo.findByDescriptorOrNull(sitePackages, descriptor)?.let { true } ?: false
     }
 }
