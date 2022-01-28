@@ -20,6 +20,7 @@ plugins:
     - python
     - docker
     - ssh
+    - simple-python-plugin
 #    - example-test
 #  jars:
 #    - ".../paddle/example/plugins/test-plugin-0.1.0.jar"

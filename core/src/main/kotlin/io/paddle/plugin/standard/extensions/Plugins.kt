@@ -1,8 +1,7 @@
 package io.paddle.plugin.standard.extensions
 
 import io.paddle.plugin.Plugin
-import io.paddle.plugin.repository.SingleJarPluginsRepository
-import io.paddle.plugin.repository.StandardPluginsRepository
+import io.paddle.plugin.repository.*
 import io.paddle.plugin.standard.StandardPlugin
 import io.paddle.project.Project
 import io.paddle.utils.config.ConfigurationView
@@ -24,9 +23,9 @@ class Plugins(val enabled: List<Plugin>, val namesOfAvailable: List<String>) {
             val jarsReps = pluginsConfig.jarNames.map { SingleJarPluginsRepository(File(it)) }
 
             val namesOfAvailablePlugins = jarsReps.flatMap { it.getAvailablePluginsIds() } +
-                StandardPluginsRepository.getAvailablePluginsIds()
+                StandardPluginsRepository.getAvailablePluginsIds() + RemotePluginsRepository.getAvailablePluginsIds()
 
-            val pluginsToEnable = (jarsReps + StandardPluginsRepository)
+            val pluginsToEnable = (jarsReps + StandardPluginsRepository + RemotePluginsRepository)
                 .flatMap { it.getPluginsBy(pluginsConfig.pluginsIds) }
 
             return Plugins(listOf(StandardPlugin) + pluginsToEnable, namesOfAvailablePlugins)

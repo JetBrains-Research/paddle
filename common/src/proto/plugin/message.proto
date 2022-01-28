@@ -1,0 +1,49 @@
+syntax = "proto3";
+option java_multiple_files = true;
+
+package io.paddle.plugin.remote;
+
+message BasePluginRepoRequest {
+  oneof request {
+    GetPluginIdsRequest pluginsRequest = 1;
+    GetTasksRequest tasksRequest = 2;
+    RunTaskRequest runTaskRequest = 3;
+  }
+}
+
+message GetPluginIdsRequest {
+
+}
+
+message GetTasksRequest {
+  string pluginId = 1;
+}
+
+message RunTaskRequest {
+  string taskId = 1;
+}
+
+message GetPluginIdsResponse {
+  repeated string pluginIds = 1;
+}
+
+message TaskInfo {
+  string id = 1;
+  string group = 2;
+}
+
+message GetTasksResponse {
+  repeated TaskInfo tasks = 1;
+}
+
+message RunTaskResponse {
+  string message = 1;
+}
+
+message BasePluginRepoResponse {
+  oneof response {
+    GetPluginIdsResponse pluginsResponse = 1;
+    GetTasksResponse tasksResponse = 2;
+    RunTaskResponse runTaskResponse = 3;
+  }
+}

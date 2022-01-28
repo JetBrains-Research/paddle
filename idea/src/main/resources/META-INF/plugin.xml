@@ -3,7 +3,7 @@
     <name>Paddle</name>
     <vendor email="vdtankov@gmail.com">Vladislav Tankov</vendor>
 
-    <idea-version since-build="211.*" until-build="213.*"/>
+<!--    <idea-version since-build="211.*" until-build="213.*"/>-->
 
     <description><![CDATA[
         <p>Integrates Paddle build system with IntelliJ-based IDEs</p>
