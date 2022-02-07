@@ -52,6 +52,7 @@
     },
     "executor": {
       "description": "Executor to be used by Paddle to execute build commands",
+      "type": "object",
       "properties": {
         "type": {
           "type": "string",
@@ -59,20 +60,7 @@
             "local"
           ]
         }
-      },
-      "allOf": [
-        {
-          "if": {
-            "properties": {
-              "type": {
-                "const": "local"
-              }
-            }
-          },
-          "then": {
-          }
-        }
-      ]
+      }
     },
     "plugins": {
       "type": "object",
@@ -147,6 +135,5 @@
         }
       }
     }
-  },
-  "allOf": []
+  }
 }

@@ -1,5 +1,6 @@
 package io.paddle.project
 
+import io.paddle.config.specification.ConfigurationSpecification
 import io.paddle.execution.CommandExecutor
 import io.paddle.execution.local.LocalCommandExecutor
 import io.paddle.plugin.Plugin
@@ -11,7 +12,7 @@ import io.paddle.utils.config.Configuration
 import io.paddle.utils.ext.Extendable
 import java.io.File
 
-class Project(val config: Configuration, val workDir: File = File("."), val output: TextOutput = TextOutput.Console) {
+class Project(val config: Configuration, val configSpec: ConfigurationSpecification, val workDir: File = File("."), val output: TextOutput = TextOutput.Console) {
     interface Extension<V: Any> {
         val key: Extendable.Key<V>
 
@@ -32,11 +33,12 @@ class Project(val config: Configuration, val workDir: File = File("."), val outp
         for (extension in plugin.extensions(this)) {
             val extensionToStorage = extension.create(this)
             // zhvkgj: implementation via marker annotation checks can be better than this one
-            if (extensionToStorage is BaseJsonSchemaExtension) {
-                extensions.get(JsonSchema.Extension.key)?.extensions?.add(extensionToStorage)
-            } else {
-                extensions.register(extension.key, extensionToStorage)
-            }
+//            if (extensionToStorage is BaseJsonSchemaExtension) {
+//                extensions.get(JsonSchema.Extension.key)?.extensions?.add(extensionToStorage)
+//            } else {
+//                extensions.register(extension.key, extensionToStorage)
+//            }
+            extensions.register(extension.key, extensionToStorage)
         }
 
         for (task in plugin.tasks(this)) {
@@ -59,8 +61,8 @@ class Project(val config: Configuration, val workDir: File = File("."), val outp
     }
 
     companion object {
-        fun load(file: File): Project {
-            return Project(config = Configuration.from(file))
+        fun load(configFile: File, configSpecResourceUrl: String): Project {
+            return Project(config = Configuration.from(configFile), configSpec = ConfigurationSpecification.fromResource(configSpecResourceUrl))
         }
     }
 }

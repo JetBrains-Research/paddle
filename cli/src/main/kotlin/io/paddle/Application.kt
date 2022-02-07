@@ -27,7 +27,7 @@ fun main(args: Array<String>) {
         Terminal(TextOutput.Console).stderr("Can't find paddle.yaml in root")
         return
     }
-    val project = Project.load(file).also {
+    val project = Project.load(file, "/schema/paddle-schema.json").also {
         it.register(it.plugins.enabled)
     }
 
