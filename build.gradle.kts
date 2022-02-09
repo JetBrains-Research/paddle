@@ -5,7 +5,7 @@ version = "0.1.0"
 
 plugins {
     id("tanvd.kosogor") version "1.0.12" apply true
-    kotlin("jvm") version "1.4.31" apply false
+    kotlin("jvm") version "1.5.10" apply false
 }
 
 subprojects {
