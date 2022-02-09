@@ -1,6 +1,6 @@
 package io.paddle.project
 
-import io.paddle.config.specification.ConfigurationSpecification
+import io.paddle.specification.ConfigurationSpecification
 import io.paddle.execution.CommandExecutor
 import io.paddle.execution.local.LocalCommandExecutor
 import io.paddle.plugin.Plugin

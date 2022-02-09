@@ -1,7 +1,7 @@
 package io.paddle.idea.schema
 
 import com.intellij.testFramework.LightVirtualFile
-import io.paddle.config.specification.JsonSchemaSpecification
+import io.paddle.specification.JsonSchemaSpecification
 import io.paddle.idea.utils.PaddleProject
 
 class ExtendedJsonSchemaProvider(resource: String, presentable: String, filesToApply: Set<String>) :

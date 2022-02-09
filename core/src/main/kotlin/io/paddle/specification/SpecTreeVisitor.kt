@@ -1,9 +1,8 @@
-package io.paddle.config.specification
+package io.paddle.specification
 
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
+import io.paddle.utils.json.schema.JSONSCHEMA
 
-interface SpecTreeVisitor {
+interface SpecTreeVisitor{
     fun visit(integerNode: IntegerSpecTreeNode): Any
     fun visit(booleanNode: BooleanSpecTreeNode): Any
     fun visit(stringNode: StringSpecTreeNode): Any
@@ -11,25 +10,25 @@ interface SpecTreeVisitor {
     fun visit(compositeNode: CompositeSpecTreeNode): Any
 }
 
-class JsonSchemaSpecVisitor(private val jsonSerializer: Json) : SpecTreeVisitor {
+class JsonSchemaSpecVisitor : SpecTreeVisitor {
 
     override fun visit(integerNode: IntegerSpecTreeNode): String {
-        return jsonSerializer.encodeToString(integerNode)
+        return JSONSCHEMA.string(integerNode)
     }
 
     override fun visit(booleanNode: BooleanSpecTreeNode): String {
-        return jsonSerializer.encodeToString(booleanNode)
+        return JSONSCHEMA.string(booleanNode)
     }
 
     override fun visit(stringNode: StringSpecTreeNode): String {
-        return jsonSerializer.encodeToString(stringNode)
+        return JSONSCHEMA.string(stringNode)
     }
 
     override fun visit(arrayNode: ArraySpecTreeNode): String {
-        return jsonSerializer.encodeToString(arrayNode)
+        return JSONSCHEMA.string(arrayNode)
     }
 
     override fun visit(compositeNode: CompositeSpecTreeNode): String {
-        return jsonSerializer.encodeToString(compositeNode)
+        return JSONSCHEMA.string(compositeNode)
     }
 }

@@ -1,9 +1,6 @@
-package io.paddle.config.specification
+package io.paddle.specification
 
-import kotlinx.serialization.Serializable
-import kotlinx.serialization.modules.SerializersModule
-import kotlinx.serialization.modules.polymorphic
-import kotlinx.serialization.serializer
+import kotlinx.serialization.*
 
 interface MutableConfigSpecTree {
     fun insert(name: String, node: SpecTreeNode, destination: List<String>)
@@ -18,12 +15,6 @@ interface MutableConfigSpecTree {
 }
 
 abstract class ConfigurationSpecification : MutableConfigSpecTree {
-    var module = SerializersModule {
-        polymorphic(MutableConfigSpecTree.SpecTreeNode::class) {
-            subclass(CompositeSpecTreeNode::class, serializer())
-        }
-    }
-
     abstract fun build(): Any
 
     companion object {

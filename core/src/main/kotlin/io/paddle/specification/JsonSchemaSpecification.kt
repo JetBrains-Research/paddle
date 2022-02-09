@@ -1,21 +1,19 @@
-package io.paddle.config.specification
+package io.paddle.specification
 
-import io.paddle.config.specification.MutableConfigSpecTree.*
-import kotlinx.serialization.decodeFromString
-import kotlinx.serialization.json.Json
+import io.paddle.specification.MutableConfigSpecTree.SpecTreeNode
+import io.paddle.utils.json.schema.JSONSCHEMA
 
 class JsonSchemaSpecification(baseSchemaResourceUrl: String) : ConfigurationSpecification() {
-    private val jsonSerializer = Json { serializersModule = module }
     private val root = readSchemaBy(baseSchemaResourceUrl)
 
-    private val visitor = JsonSchemaSpecVisitor(jsonSerializer)
+    private val visitor = JsonSchemaSpecVisitor()
 
     private fun readSchemaBy(url: String): CompositeSpecTreeNode {
         val inputStreamWithSchema = javaClass.classLoader.getResourceAsStream(url)
         val schema = inputStreamWithSchema?.bufferedReader()?.use {
             it.readText()
         }
-        return schema?.let { jsonSerializer.decodeFromString(it) } ?: CompositeSpecTreeNode()
+        return schema?.let { JSONSCHEMA.parse(it) } ?: CompositeSpecTreeNode()
     }
 
     override fun build(): String = visitor.visit(root)

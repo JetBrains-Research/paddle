@@ -1,6 +1,6 @@
-package io.paddle.config.specification
+package io.paddle.specification
 
-import io.paddle.config.specification.MutableConfigSpecTree.SpecTreeNode
+import io.paddle.specification.MutableConfigSpecTree.SpecTreeNode
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
@@ -11,11 +11,11 @@ open class CompositeSpecTreeNode(
     override val description: String? = null
 ) : SpecTreeNode() {
 
-    @SerialName("properties")
-    val children: MutableMap<String, SpecTreeNode> = hashMapOf()
-
     @SerialName("required")
     val namesOfRequired: MutableList<String>? = null
+
+    @SerialName("properties")
+    val children: MutableMap<String, SpecTreeNode> = hashMapOf()
 
     override fun accept(visitor: SpecTreeVisitor) = visitor.visit(this)
 }
@@ -37,6 +37,7 @@ abstract class SimpleSpecTreeNode : SpecTreeNode() {
 class StringSpecTreeNode(
     override val title: String? = null,
     override val description: String? = null,
+    @SerialName("enum")
     override val validValues: MutableList<String>? = null
 ) :
     SimpleSpecTreeNode() {
@@ -48,6 +49,7 @@ class StringSpecTreeNode(
 class BooleanSpecTreeNode(
     override val title: String? = null,
     override val description: String? = null,
+    @SerialName("enum")
     override val validValues: MutableList<Boolean>? = null
 ) :
     SimpleSpecTreeNode() {
@@ -59,6 +61,7 @@ class BooleanSpecTreeNode(
 class IntegerSpecTreeNode(
     override val title: String? = null,
     override val description: String? = null,
+    @SerialName("enum")
     override val validValues: MutableList<Int>? = null
 ) :
     SimpleSpecTreeNode() {
