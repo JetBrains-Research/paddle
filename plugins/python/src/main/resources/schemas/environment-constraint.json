@@ -1,0 +1,23 @@
+{
+  "if": {
+    "required": [
+      "environment"
+    ],
+    "properties": {
+      "environment": true
+    }
+  },
+  "then": {
+    "properties": {
+      "plugins": {
+        "properties": {
+          "enabled": {
+            "contains": {
+              "const": "python"
+            }
+          }
+        }
+      }
+    }
+  }
+}
