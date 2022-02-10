@@ -9,13 +9,13 @@ dependencies {
     implementation(project(":core")) {
         exclude("org.slf4j")
     }
-    implementation(project(":plugins:python")){
+    implementation(project(":plugins:python")) {
         exclude("org.slf4j")
     }
-    implementation(project(":plugins:docker")){
+    implementation(project(":plugins:docker")) {
         exclude("org.slf4j")
     }
-    implementation(project(":plugins:ssh")){
+    implementation(project(":plugins:ssh")) {
         exclude("org.slf4j")
     }
 }
@@ -28,5 +28,18 @@ intellij {
 
     downloadSources.set(true)
 
-    updateSinceUntilBuild.set(false)
+    plugins.set(
+        listOf(
+            "PythonCore:211.7628.24",
+            "org.jetbrains.plugins.yaml:211.7142.37"
+        )
+    )
+
+    // updateSinceUntilBuild.set(false)
+}
+
+tasks {
+    runIde {
+        jvmArgs = listOf("-Xmx1024m")
+    }
 }

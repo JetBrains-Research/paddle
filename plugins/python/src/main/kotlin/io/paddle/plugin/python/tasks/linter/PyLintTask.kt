@@ -3,7 +3,7 @@ package io.paddle.plugin.python.tasks.linter
 import io.paddle.plugin.python.extensions.*
 import io.paddle.plugin.standard.extensions.roots
 import io.paddle.plugin.standard.tasks.clean
-import io.paddle.project.*
+import io.paddle.project.Project
 import io.paddle.tasks.Task
 import io.paddle.tasks.incremental.IncrementalTask
 import io.paddle.utils.Hashable
@@ -32,8 +32,7 @@ class PyLintTask(project: Project) : IncrementalTask(project) {
         val files = project.roots.sources.flatMap { it.walkTopDown().asSequence().filter { file -> file.absolutePath.endsWith(".py") } }
         var anyFailed = false
         for (file in files) {
-            val code = project.environment.runModule("pylint", listOf(file.absolutePath))
-            anyFailed = anyFailed || code != 0
+            project.environment.runModule("pylint", listOf(file.absolutePath)).orElseDo { anyFailed = true }
         }
         if (anyFailed) throw ActException("PyLint linting has failed")
     }

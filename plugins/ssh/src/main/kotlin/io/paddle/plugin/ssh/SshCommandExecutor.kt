@@ -4,6 +4,7 @@ import com.github.fracpete.processoutput4j.output.StreamingProcessOutput
 import com.github.fracpete.rsync4j.RSync
 import com.github.fracpete.rsync4j.Ssh
 import io.paddle.execution.CommandExecutor
+import io.paddle.execution.ExecutionResult
 import io.paddle.plugin.ssh.output.RemoteOutputOwner
 import io.paddle.project.Project
 import io.paddle.terminal.Terminal
@@ -26,9 +27,14 @@ class SshCommandExecutor(private val host: String, private val user: String,
 
     private val remoteDir = if (remoteDir.endsWith("/")) remoteDir else "$remoteDir/"
 
-    override fun execute(command: String, args: Iterable<String>, working: File, terminal: Terminal): Int {
-        terminal.stdout("> Executor :remote-ssh: ${Terminal.colored(
-            "Transfer files via rsync from ${working.canonicalPath} to $remoteDir with host: $host and username: $user", Terminal.Color.CYAN)}")
+    override fun execute(command: String, args: Iterable<String>, workingDir: File, terminal: Terminal): ExecutionResult {
+        terminal.stdout(
+            "> Executor :remote-ssh: ${
+                Terminal.colored(
+                    "Transfer files via rsync from ${workingDir.canonicalPath} to $remoteDir with host: $host and username: $user", Terminal.Color.CYAN
+                )
+            }"
+        )
         val rsyncTo = RSync()
             .archive(true)
             .recursive(true)
@@ -36,7 +42,7 @@ class SshCommandExecutor(private val host: String, private val user: String,
             .verbose(true)
             .compress(true)
             .rsh("ssh")
-            .source("${working.canonicalPath}/")
+            .source("${workingDir.canonicalPath}/")
             .destination("${user}@${host}:$remoteDir")
 
         val processOutput = StreamingProcessOutput(RemoteOutputOwner(terminal))
@@ -46,11 +52,11 @@ class SshCommandExecutor(private val host: String, private val user: String,
         val commandPath = File(command)
         val remotePath = File(remoteDir)
         val fixedCommand =
-            if (commandPath.startsWith(working)) remotePath.resolve(commandPath.relativeTo(working)).canonicalPath
+            if (commandPath.startsWith(workingDir)) remotePath.resolve(commandPath.relativeTo(workingDir)).canonicalPath
             else commandPath
         val fixedArgs = args.map {
             val argPath = File(it)
-            if (argPath.startsWith(working)) remotePath.resolve(argPath.relativeTo(working)).canonicalPath
+            if (argPath.startsWith(workingDir)) remotePath.resolve(argPath.relativeTo(workingDir)).canonicalPath
                 else argPath
         }
 
@@ -75,9 +81,9 @@ class SshCommandExecutor(private val host: String, private val user: String,
             .compress(true)
             .rsh("ssh")
             .source("${user}@${host}:$remoteDir")
-            .destination("${working.canonicalPath}/")
+            .destination("${workingDir.canonicalPath}/")
 
         processOutput.monitor(rsyncFrom.builder())
-        return rsyncFrom.start().waitFor()
+        return ExecutionResult(rsyncFrom.start().waitFor())
     }
 }

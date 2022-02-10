@@ -17,6 +17,7 @@
     <depends>com.intellij.modules.platform</depends>
     <depends>com.intellij.modules.lang</depends>
     <depends>com.intellij.modules.json</depends>
+    <depends>com.intellij.modules.python</depends>
 
     <extensions defaultExtensionNs="com.intellij">
         <projectOpenProcessor implementation="io.paddle.idea.project.open.PaddleProjectOpenProcessor"/>
@@ -38,6 +39,18 @@
         <configurationType implementation="io.paddle.idea.runner.PaddleTaskConfigurationType"/>
 
         <externalSystemOutputParserProvider implementation="io.paddle.idea.runner.parser.PaddleParserProvider"/>
+
+        <localInspection language="yaml"
+                         displayName="Wrong Paddle repositories configuration"
+                         groupName="YAML"
+                         enabledByDefault="true"
+                         implementationClass="io.paddle.idea.inspections.PyPackagesRepositoryYAMLInspection"/>
+
+        <completion.contributor language="yaml"
+                                implementationClass="io.paddle.idea.completion.PyPackageNameCompletionContributor"/>
+
+        <completion.contributor language="yaml"
+                                implementationClass="io.paddle.idea.completion.PyPackageVersionCompletionContributor"/>
     </extensions>
 
     <extensions defaultExtensionNs="JavaScript.JsonSchema">
