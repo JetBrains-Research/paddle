@@ -1,6 +1,6 @@
 package io.paddle.idea.utils
 
-import io.paddle.specification.ConfigurationSpecification
+import io.paddle.specification.tree.ConfigurationSpecification
 import io.paddle.plugin.standard.extensions.plugins
 import io.paddle.project.Project
 import io.paddle.terminal.TextOutput

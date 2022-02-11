@@ -1,10 +1,10 @@
 package io.paddle.plugin
 
-import io.paddle.specification.MutableConfigSpecTree.SpecTreeNode
-import io.paddle.project.Project
+import io.paddle.specification.tree.MutableConfigSpecTree
+import io.paddle.specification.tree.MutableConfigSpecTree.SpecTreeNode
 
 object ProjectConfigSpecTreeMutator {
-    fun applySpecExtension(project: Project, extension: SpecTreeNode) {
-        TODO("implement")
+    fun applySpecExtension(configSpecTree: MutableConfigSpecTree, extension: SpecTreeNode, dest: List<String>, name: String) {
+        configSpecTree.insert(name, extension, dest)
     }
 }

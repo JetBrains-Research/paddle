@@ -1,6 +1,6 @@
 package io.paddle.utils.json.schema
 
-import io.paddle.specification.*
+import io.paddle.specification.tree.*
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json

@@ -2,7 +2,7 @@ package io.paddle.plugin.repository
 
 import io.paddle.plugin.Plugin
 import io.paddle.utils.config.Configuration
-import io.paddle.utils.jar.JarUtils
+import io.paddle.utils.resource.ResourceUtils
 
 abstract class AbstractPluginsRepository : PluginsRepository {
     protected open val configPath = "META-INF/plugins.yaml"
@@ -13,7 +13,7 @@ abstract class AbstractPluginsRepository : PluginsRepository {
     }
 
     private fun parseConfigFile(): Map<String, String> {
-        val pluginsConfig = Configuration.from(JarUtils.getResourceFileBy(classLoader, configPath)!!)
+        val pluginsConfig = Configuration.from(ResourceUtils.getResourceFileBy(classLoader, configPath)!!)
         val configView = object : Configuration() {
             val idsAndClasses by list<Map<String, String>>("plugins", emptyList())
 

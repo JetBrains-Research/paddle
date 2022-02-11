@@ -1,11 +1,10 @@
 package io.paddle.project
 
-import io.paddle.specification.ConfigurationSpecification
+import io.paddle.specification.tree.ConfigurationSpecification
 import io.paddle.execution.CommandExecutor
 import io.paddle.execution.local.LocalCommandExecutor
 import io.paddle.plugin.Plugin
 import io.paddle.plugin.standard.extensions.Plugins
-import io.paddle.schema.extensions.BaseJsonSchemaExtension
 import io.paddle.schema.extensions.JsonSchema
 import io.paddle.terminal.*
 import io.paddle.utils.config.Configuration

@@ -1,6 +1,8 @@
-package io.paddle.specification
+package io.paddle.specification.tree
 
-import io.paddle.specification.MutableConfigSpecTree.SpecTreeNode
+import io.paddle.specification.*
+import io.paddle.specification.tree.MutableConfigSpecTree.SpecTreeNode
+import io.paddle.specification.visitor.JsonSchemaSpecVisitor
 import io.paddle.utils.json.schema.JSONSCHEMA
 
 class JsonSchemaSpecification(baseSchemaResourceUrl: String) : ConfigurationSpecification() {
@@ -16,7 +18,7 @@ class JsonSchemaSpecification(baseSchemaResourceUrl: String) : ConfigurationSpec
         return schema?.let { JSONSCHEMA.parse(it) } ?: CompositeSpecTreeNode()
     }
 
-    override fun build(): String = visitor.visit(root)
+    override fun build(): String = visitor.visit(root, Unit)
 
     override fun toString() = build()
 

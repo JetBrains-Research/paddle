@@ -1,6 +1,7 @@
-package io.paddle.specification
+package io.paddle.specification.tree
 
-import io.paddle.specification.MutableConfigSpecTree.SpecTreeNode
+import io.paddle.specification.tree.MutableConfigSpecTree.SpecTreeNode
+import io.paddle.specification.visitor.SpecTreeVisitor
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
@@ -17,13 +18,13 @@ open class CompositeSpecTreeNode(
     @SerialName("properties")
     val children: MutableMap<String, SpecTreeNode> = hashMapOf()
 
-    override fun accept(visitor: SpecTreeVisitor) = visitor.visit(this)
+    override fun <R, D> accept(visitor: SpecTreeVisitor<R, D>, ctx: D) = visitor.visit(this, ctx)
 }
 
 @Serializable
 @SerialName("array")
 open class ArraySpecTreeNode(override val title: String? = null, override val description: String? = null, val items: SpecTreeNode) : SpecTreeNode() {
-    override fun accept(visitor: SpecTreeVisitor) = visitor.visit(this)
+    override fun <R, D> accept(visitor: SpecTreeVisitor<R, D>, ctx: D) = visitor.visit(this, ctx)
 }
 
 @Serializable
@@ -41,7 +42,7 @@ class StringSpecTreeNode(
     override val validValues: MutableList<String>? = null
 ) :
     SimpleSpecTreeNode() {
-    override fun accept(visitor: SpecTreeVisitor) = visitor.visit(this)
+    override fun <R, D> accept(visitor: SpecTreeVisitor<R, D>, ctx: D) = visitor.visit(this, ctx)
 }
 
 @Serializable
@@ -53,7 +54,7 @@ class BooleanSpecTreeNode(
     override val validValues: MutableList<Boolean>? = null
 ) :
     SimpleSpecTreeNode() {
-    override fun accept(visitor: SpecTreeVisitor) = visitor.visit(this)
+    override fun <R, D> accept(visitor: SpecTreeVisitor<R, D>, ctx: D) = visitor.visit(this, ctx)
 }
 
 @Serializable
@@ -65,5 +66,5 @@ class IntegerSpecTreeNode(
     override val validValues: MutableList<Int>? = null
 ) :
     SimpleSpecTreeNode() {
-    override fun accept(visitor: SpecTreeVisitor) = visitor.visit(this)
+    override fun <R, D> accept(visitor: SpecTreeVisitor<R, D>, ctx: D) = visitor.visit(this, ctx)
 }

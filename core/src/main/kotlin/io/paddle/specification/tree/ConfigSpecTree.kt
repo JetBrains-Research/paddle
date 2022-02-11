@@ -1,5 +1,6 @@
-package io.paddle.specification
+package io.paddle.specification.tree
 
+import io.paddle.specification.visitor.SpecTreeVisitor
 import kotlinx.serialization.*
 
 interface MutableConfigSpecTree {
@@ -10,7 +11,7 @@ interface MutableConfigSpecTree {
         abstract val title: String?
         abstract val description: String?
 
-        abstract fun accept(visitor: SpecTreeVisitor): Any
+        abstract fun <R, D> accept(visitor: SpecTreeVisitor<R, D>, ctx: D): R
     }
 }
 
