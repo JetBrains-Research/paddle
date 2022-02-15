@@ -1,4 +1,4 @@
-package io.paddle.plugin.python.dependencies.index
+package io.paddle.plugin.python.dependencies
 
 import io.ktor.client.call.*
 import io.ktor.client.request.*
@@ -16,7 +16,8 @@ import org.codehaus.plexus.util.Os
 import java.io.File
 import java.nio.file.Path
 
-
+// @path is a path to ./paddle/interpreters/... , not the local project/.venv/bin/python
+// (but the last one is a symlink for it)
 class PyInterpreter(val path: Path, val version: Version) {
     companion object {
         private const val PYTHON_DISTRIBUTIONS_BASE_URL = "http://www.python.org/ftp/python/"

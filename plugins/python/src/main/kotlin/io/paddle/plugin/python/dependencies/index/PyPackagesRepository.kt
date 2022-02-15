@@ -8,14 +8,25 @@ import io.paddle.plugin.python.utils.*
 import io.paddle.utils.StringHashable
 import kotlinx.serialization.*
 import java.io.File
-import java.nio.file.Path
-import kotlin.io.path.writeLines
 
 @Serializable
-data class PyPackagesRepository(val url: PyPackagesRepositoryUrl, val name: String) {
+class PyPackagesRepository(val url: PyPackagesRepositoryUrl, val name: String) {
+    constructor(metadata: Metadata) : this(metadata.url, metadata.name)
+
+    @Serializable
+    data class Metadata(val url: PyPackagesRepositoryUrl, val name: String)
+
+    val metadata = Metadata(url, name)
+
+    companion object {
+        val PYPI_REPOSITORY = PyPackagesRepository("https://pypi.org", "pypi")
+    }
+
+    // Index is loaded from cache
     @Serializable(with = PackedWordListSerializer::class)
     private var packagesNamesCache: PackedWordList = PackedWordList.empty
 
+    // Index is loaded from cache
     private val distributionsCache: MutableMap<PyPackageName, List<PyDistributionInfo>> = HashMap()
 
     @Transient
@@ -24,27 +35,14 @@ data class PyPackagesRepository(val url: PyPackagesRepositoryUrl, val name: Stri
     @Transient
     val cacheFileName: String = StringHashable(url).hash()
 
-    companion object {
-        val PYPI_REPOSITORY = PyPackagesRepository("https://pypi.org", "pypi")
-
-        fun loadCachedMetadata(file: File): PyPackagesRepository {
-            val (url, name) = file.readLines()
-            return PyPackagesRepository(url, name)
-        }
-    }
-
-    fun writeMetadataCache(path: Path) {
-        path.writeLines(listOf(url, name))
-    }
-
     suspend fun updateIndex() {
-        this.packagesNamesCache = PackedWordList(PyPackagesRepositoryIndexer.downloadPackagesNames(this).toSet())
+        packagesNamesCache = PackedWordList(PyPackagesRepositoryIndexer.downloadPackagesNames(this).toSet())
     }
 
     fun loadCache(file: File) {
         require(file.name == this.cacheFileName)
         val cachedCopy: PyPackagesRepository = jsonParser.decodeFromString(file.readText())
-        this.packagesNamesCache = cachedCopy.packagesNamesCache
+        packagesNamesCache = cachedCopy.packagesNamesCache
     }
 
     fun getPackagesNamesByPrefix(prefix: String): Sequence<PyPackageName> = packagesNamesCache.prefix(prefix)
@@ -63,8 +61,13 @@ data class PyPackagesRepository(val url: PyPackagesRepositoryUrl, val name: Stri
             .writeText(jsonParser.encodeToString(this))
     }
 
-    // TODO: be careful with cached index, check it
-    override fun hashCode(): Int {
-        return url.hashCode() * 37 + name.hashCode()
+    override fun hashCode() = metadata.hashCode()
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+        other as PyPackagesRepository
+
+        return metadata == other.metadata
     }
 }

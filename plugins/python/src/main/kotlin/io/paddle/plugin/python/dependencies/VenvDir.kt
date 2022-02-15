@@ -1,8 +1,11 @@
 package io.paddle.plugin.python.dependencies
 
-import io.paddle.plugin.python.extensions.Requirements
+import io.paddle.plugin.python.dependencies.packages.ResolvedPyPackage
+import io.paddle.plugin.python.extensions.environment
 import io.paddle.plugin.python.utils.RegexCache
+import io.paddle.project.Project
 import java.io.File
+import java.nio.file.Path
 
 /**
  * A decorator class that contains utilities for accessing python's venv subdirectories.
@@ -23,7 +26,14 @@ class VenvDir(private val directory: File) : File(directory.path) {
     val pycache: File
         get() = sitePackages.resolve("__pycache__")
 
-    fun hasInstalledPackage(descriptor: Requirements.Descriptor): Boolean {
-        return InstalledPackageInfo.findByDescriptorOrNull(sitePackages, descriptor)?.let { true } ?: false
+    fun getInterpreterPath(project: Project): Path {
+        return bin.resolve(project.environment.interpreter.version.executableName).toPath()
+    }
+
+
+    fun hasInstalledPackage(pkg: ResolvedPyPackage): Boolean {
+        // FIXME: PyPI repo is not considered here since there is no info about it in package's metadata on disk
+        // TODO: add file with repo metadata
+        return InstalledPackageInfo.findByNameAndVersionOrNull(sitePackages, pkg.name, pkg.version)?.let { true } ?: false
     }
 }

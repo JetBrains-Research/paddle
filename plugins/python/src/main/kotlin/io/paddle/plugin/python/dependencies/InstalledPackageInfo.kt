@@ -1,39 +1,30 @@
 package io.paddle.plugin.python.dependencies
 
-import io.paddle.plugin.python.extensions.Requirements
-import io.paddle.plugin.python.utils.PyPackageVersion
-import io.paddle.plugin.python.utils.resolveRelative
+import io.paddle.plugin.python.utils.*
 import java.io.File
 import java.util.function.Predicate
 
 /**
  * A wrapper class for either .dist-info (DIST) and .egg-info (LEGACY) distribution folders.
  */
-class InstalledPackageInfo(val parentDir: File, val type: Type, val descriptor: Requirements.Descriptor) {
+class InstalledPackageInfo(val parentDir: File, val type: Type, val name: PyPackageName, val version: PyPackageVersion) {
     companion object {
         enum class Type { DIST, LEGACY }
 
-        fun findByDescriptorOrNull(parentDir: File, descriptor: Requirements.Descriptor): InstalledPackageInfo? {
-            val infoDir = findInfoDirWithPredicateOrNull(parentDir) { it.isDirectory && it.name.startsWith(descriptor.infoDirPrefix) } ?: return null
+        fun findByNameAndVersionOrNull(parentDir: File, name: PyPackageName, version: PyPackageVersion): InstalledPackageInfo? {
+            val infoDir = findInfoDirWithPredicateOrNull(parentDir) {
+                it.isDirectory &&
+                    (it.name.startsWith("$name-$version") ||
+                        it.name.startsWith("${name.normalize()}-$version") ||
+                        it.name.startsWith("${name.denormalize()}-$version"))
+            } ?: return null
             val type = if (infoDir.name.endsWith(".dist-info")) Type.DIST else Type.LEGACY
-            return InstalledPackageInfo(infoDir, type, descriptor)
+            return InstalledPackageInfo(infoDir, type, name, version)
         }
 
-        fun findByDescriptor(parentDir: File, descriptor: Requirements.Descriptor): InstalledPackageInfo {
-            return findByDescriptorOrNull(parentDir, descriptor)
-                ?: error("Neither .dist-info nor .egg-info directory was found in $parentDir for package $descriptor")
-        }
-
-        fun findByPackageNameOrNull(parentDir: File, pkgName: String): InstalledPackageInfo? {
-            val infoDir = findInfoDirWithPredicateOrNull(parentDir) { it.isDirectory && it.name.startsWith("$pkgName-") } ?: return null
-            val type = if (infoDir.name.endsWith(".dist-info")) Type.DIST else Type.LEGACY
-            val pkgVersion = extractVersionFromPackageInfoDirname(infoDir)
-            return InstalledPackageInfo(infoDir, type, Requirements.Descriptor(pkgName, pkgVersion))
-        }
-
-        fun findByPackageName(parentDir: File, pkgName: String): InstalledPackageInfo {
-            return findByPackageNameOrNull(parentDir, pkgName)
-                ?: error("Neither .dist-info nor .egg-info directory was found in $parentDir for package $pkgName")
+        fun findByNameAndVersion(parentDir: File, name: PyPackageName, version: PyPackageVersion): InstalledPackageInfo {
+            return findByNameAndVersionOrNull(parentDir, name, version)
+                ?: error("Neither .dist-info nor .egg-info directory was found in $parentDir for package $name==$version")
         }
 
         fun extractVersionFromPackageInfoDirname(infoDir: File): PyPackageVersion {
@@ -52,8 +43,6 @@ class InstalledPackageInfo(val parentDir: File, val type: Type, val descriptor: 
         }
     }
 
-    val pkgVersion: PyPackageVersion = extractVersionFromPackageInfoDirname(parentDir)
-
     val metadata: PackageMetadata by lazy {
         val metadataFilename = if (type == Type.DIST) "METADATA" else "PKG-INFO"
         PackageMetadata.parse(parentDir.resolve(metadataFilename))
@@ -61,7 +50,7 @@ class InstalledPackageInfo(val parentDir: File, val type: Type, val descriptor: 
 
     val topLevelNames: List<String> by lazy {
         parentDir.resolve("top_level.txt").let {
-            if (it.exists()) it.readLines().map { s -> s.trim() } else listOf(descriptor.name)
+            if (it.exists()) it.readLines().map { s -> s.trim() } else listOf(name)
         }
     }
 

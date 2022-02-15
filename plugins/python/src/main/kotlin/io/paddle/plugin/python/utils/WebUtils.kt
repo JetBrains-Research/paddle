@@ -38,4 +38,8 @@ fun PyUrl.join(vararg urlParts: String): String {
     return result
 }
 
+fun PyUrl.trimmedEquals(other: PyUrl): Boolean {
+    return this.trimEnd('/') == other.trimEnd('/')
+}
+
 

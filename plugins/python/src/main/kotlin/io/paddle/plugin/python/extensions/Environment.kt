@@ -1,18 +1,19 @@
 package io.paddle.plugin.python.extensions
 
 import io.paddle.execution.ExecutionResult
-import io.paddle.plugin.python.dependencies.GlobalCacheRepository
-import io.paddle.plugin.python.dependencies.VenvDir
-import io.paddle.plugin.python.dependencies.index.PyInterpreter
-import io.paddle.plugin.python.dependencies.index.PyPackage
-import io.paddle.plugin.python.utils.deepResolve
+import io.paddle.plugin.python.dependencies.*
+import io.paddle.plugin.python.dependencies.packages.PyPackage
+import io.paddle.plugin.python.dependencies.resolvers.PipResolver
 import io.paddle.project.Project
+import io.paddle.terminal.Terminal
 import io.paddle.utils.Hashable
 import io.paddle.utils.config.ConfigurationView
 import io.paddle.utils.ext.Extendable
 import io.paddle.utils.hashable
 import kotlinx.coroutines.runBlocking
 import java.io.File
+import java.nio.file.Path
+import kotlin.io.path.absolutePathString
 
 
 val Project.environment: Environment
@@ -21,6 +22,9 @@ val Project.environment: Environment
 class Environment(val project: Project, val pythonVersion: PyInterpreter.Version, val venv: VenvDir) : Hashable {
 
     val interpreter: PyInterpreter by lazy { PyInterpreter.find(pythonVersion, project) }
+
+    val localInterpreterPath: Path
+        get() = venv.getInterpreterPath(project)
 
     object Extension : Project.Extension<Environment> {
         override val key: Extendable.Key<Environment> = Extendable.Key()
@@ -45,12 +49,19 @@ class Environment(val project: Project, val pythonVersion: PyInterpreter.Version
             listOf("-m", "venv", venv.absolutePath),
             project.workDir,
             project.terminal
-        )
+        ).then {
+            project.executor.execute(
+                localInterpreterPath.absolutePathString(),
+                listOf("-m", "pip", "install", PipResolver.PIP_RESOLVER_URL),
+                project.workDir,
+                Terminal.MOCK
+            )
+        }
     }
 
     fun runModule(module: String, arguments: List<String> = emptyList()): ExecutionResult {
         return project.executor.execute(
-            venv.deepResolve("bin", project.environment.interpreter.version.executableName).absolutePath,
+            localInterpreterPath.absolutePathString(),
             listOf("-m", module, *arguments.toTypedArray()),
             project.workDir,
             project.terminal
@@ -59,7 +70,7 @@ class Environment(val project: Project, val pythonVersion: PyInterpreter.Version
 
     fun runScript(file: String, arguments: List<String> = emptyList()): ExecutionResult {
         return project.executor.execute(
-            venv.deepResolve("bin", project.environment.interpreter.version.executableName).absolutePath,
+            localInterpreterPath.absolutePathString(),
             listOf(file, *arguments.toTypedArray()),
             project.workDir,
             project.terminal
@@ -67,9 +78,9 @@ class Environment(val project: Project, val pythonVersion: PyInterpreter.Version
     }
 
     fun install(pkg: PyPackage) {
-        if (venv.hasInstalledPackage(pkg.descriptor)) return
+        if (venv.hasInstalledPackage(pkg)) return
         val cachedPkg = GlobalCacheRepository.findPackage(pkg, project)
-        GlobalCacheRepository.createSymlinkToPackageRecursively(cachedPkg, venv)
+        GlobalCacheRepository.createSymlinkToPackage(cachedPkg, venv)
     }
 
     override fun hash(): String {

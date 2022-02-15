@@ -1,6 +1,6 @@
 package io.paddle.plugin.python.tasks.env
 
-import io.paddle.plugin.python.dependencies.index.PyInterpreter
+import io.paddle.plugin.python.dependencies.PyInterpreter
 import io.paddle.plugin.python.extensions.environment
 import io.paddle.project.Project
 import io.paddle.tasks.incremental.IncrementalTask

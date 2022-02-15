@@ -106,4 +106,16 @@ class PyPackagesRepositories(
 
     val extraSources: Set<PyPackagesRepository>
         get() = repositories.filter { it != primarySource }.toSet()
+
+    val asPipArgs: List<String>
+        get() = ArrayList<String>().apply {
+            add("--index-url")
+            add(this@PyPackagesRepositories.primarySource.urlSimple)
+            for (repo in this@PyPackagesRepositories.repositories) {
+                if (repo != this@PyPackagesRepositories.primarySource) {
+                    add("--extra-index-url")
+                    add(repo.urlSimple)
+                }
+            }
+        }
 }

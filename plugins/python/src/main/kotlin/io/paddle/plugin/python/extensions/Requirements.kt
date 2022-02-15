@@ -1,6 +1,7 @@
 package io.paddle.plugin.python.extensions
 
-import io.paddle.plugin.python.dependencies.index.PyPackage
+import io.paddle.plugin.python.dependencies.packages.PyPackage
+import io.paddle.plugin.python.dependencies.resolvers.PipResolver
 import io.paddle.plugin.python.utils.PyPackageName
 import io.paddle.plugin.python.utils.PyPackageVersion
 import io.paddle.project.Project
@@ -14,7 +15,7 @@ val Project.requirements: Requirements
 
 class Requirements(val project: Project, val descriptors: MutableList<Descriptor>) : Hashable {
 
-    val resolved: List<PyPackage> by lazy { descriptors.map { PyPackage.resolve(it, project) } }
+    val resolved: Collection<PyPackage> by lazy { PipResolver.resolve(project) }
 
     object Extension : Project.Extension<Requirements> {
         override val key: Extendable.Key<Requirements> = Extendable.Key()
@@ -26,12 +27,12 @@ class Requirements(val project: Project, val descriptors: MutableList<Descriptor
         }
     }
 
-    data class Descriptor(val name: PyPackageName, val version: PyPackageVersion, val repo: String? = null) : Hashable {
-        val distInfoDirName = "${name}-${version}.dist-info"
+    data class Descriptor(val name: PyPackageName, val version: PyPackageVersion? = null, val repo: String? = null) : Hashable {
         val infoDirPrefix = "${name}-${version}"
 
         override fun hash(): String {
-            val hashables = mutableListOf(name.hashable(), version.hashable())
+            val hashables = mutableListOf(name.hashable())
+            version?.let { hashables.add(version.hashable()) }
             repo?.let { hashables.add(repo.hashable()) }
             return hashables.hashable().hash()
         }

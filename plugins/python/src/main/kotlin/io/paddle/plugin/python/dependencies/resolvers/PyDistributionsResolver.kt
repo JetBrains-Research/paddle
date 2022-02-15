@@ -1,7 +1,10 @@
-package io.paddle.plugin.python.dependencies.index
+package io.paddle.plugin.python.dependencies.resolvers
 
+import io.paddle.plugin.python.dependencies.index.PyPackagesRepository
+import io.paddle.plugin.python.dependencies.index.PyPackagesRepositoryIndexer
 import io.paddle.plugin.python.dependencies.index.distributions.*
-import io.paddle.plugin.python.extensions.*
+import io.paddle.plugin.python.extensions.environment
+import io.paddle.plugin.python.extensions.repositories
 import io.paddle.plugin.python.utils.*
 import io.paddle.project.Project
 
@@ -9,6 +12,7 @@ import io.paddle.project.Project
 object PyDistributionsResolver {
     // See https://www.python.org/dev/peps/pep-0425/#id1
     // https://docs.python.org/3/distutils/apiref.html#distutils.util.get_platform
+    // TODO: caching
     suspend fun resolve(name: PyPackageName, version: PyPackageVersion, repository: PyPackagesRepository, project: Project): PyPackageUrl? {
         val distributions = PyPackagesRepositoryIndexer.downloadDistributionsList(name, repository).filter { it.version == version }
         val wheels = distributions.filterIsInstance<WheelPyDistributionInfo>()
@@ -19,7 +23,7 @@ object PyDistributionsResolver {
         // Building candidates for ABI tag: add "d", "m", or "u" suffix (flag) to each interpreter
         val abiTags = pyTags.map { listOf(it, it + "m", it + "d", it + "u") }.flatten() + listOf("none", "abi3")
 
-        // Intersecting the sets of available platforms with current platform
+        // Intersecting sets of available platforms with current platform
         val platformTags = wheels.map { it.platformTag }.toSet()
         platformTags.asSequence()
             .map { it.split(".") }.flatten() // splitting compressed tags
@@ -60,8 +64,7 @@ object PyDistributionsResolver {
         return PyPackagesRepositoryIndexer.getDistributionUrl(matchedDistributionInfo, repository)
     }
 
-    suspend fun resolve(descriptor: Requirements.Descriptor, project: Project): Pair<PyPackageUrl, PyPackagesRepository> {
-        val (name, version, _) = descriptor
+    suspend fun resolve(name: PyPackageName, version: PyPackageVersion, project: Project): Pair<PyPackageUrl, PyPackagesRepository> {
         val repos = project.repositories.resolved
         val primaryUrl = resolve(name, version, repos.primarySource, project)
         if (primaryUrl != null)

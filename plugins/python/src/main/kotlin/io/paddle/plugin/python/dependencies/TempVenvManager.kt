@@ -2,10 +2,11 @@ package io.paddle.plugin.python.dependencies
 
 import io.paddle.execution.ExecutionResult
 import io.paddle.plugin.python.PaddlePyConfig
-import io.paddle.plugin.python.dependencies.index.PyPackage
-import io.paddle.plugin.python.extensions.*
-import io.paddle.plugin.python.utils.deepResolve
+import io.paddle.plugin.python.dependencies.packages.ResolvedPyPackage
+import io.paddle.plugin.python.dependencies.resolvers.PipResolver
+import io.paddle.plugin.python.extensions.environment
 import io.paddle.project.Project
+import io.paddle.terminal.Terminal
 import java.io.File
 import java.nio.file.Path
 import kotlin.io.path.absolutePathString
@@ -25,61 +26,51 @@ class TempVenvManager private constructor(val venv: VenvDir, val project: Projec
             }
 
         private fun getGlobalVenvManager(project: Project): TempVenvManager {
-            val venvPath = PaddlePyConfig.venvsDir.resolve(project.id)
-            createVenv(project).orElse { error("Failed to create Paddle's internal virtualenv. Check your python installation.") }
-            return TempVenvManager(VenvDir(venvPath.toFile()), project)
+            val venv = VenvDir(PaddlePyConfig.venvsDir.resolve(project.id).toFile())
+            createTempVenv(project, venv).orElse { error("Failed to create Paddle's internal virtualenv. Check your python installation.") }
+            return TempVenvManager(venv, project)
         }
 
-        private fun createVenv(project: Project, options: List<String> = emptyList(), verbose: Boolean = true): ExecutionResult {
+        private fun createTempVenv(project: Project, venv: VenvDir, options: List<String> = emptyList(), verbose: Boolean = true): ExecutionResult {
             return project.executor.execute(
-                command = project.environment.interpreter.path.toString(),
+                command = project.environment.localInterpreterPath.absolutePathString(),
                 args = listOf("-m", "venv") + options + PaddlePyConfig.venvsDir.resolve(project.id).toString(),
                 workingDir = PaddlePyConfig.paddleHome.toFile(),
-                terminal = project.terminal,
+                terminal = Terminal.MOCK,
                 verbose = verbose
-            )
+            ).then {
+                project.executor.execute(
+                    command = venv.getInterpreterPath(project).absolutePathString(),
+                    args = listOf("-m", "pip", "install", PipResolver.PIP_RESOLVER_URL),
+                    workingDir = project.workDir,
+                    terminal = Terminal.MOCK
+                )
+            }
         }
     }
 
     val interpreterPath: Path
-        get() = venv.deepResolve("bin", "python").toPath()
+        get() = venv.getInterpreterPath(project)
 
-    fun clearInstall(pkg: PyPackage): ExecutionResult {
-        return createVenv(project, options = listOf("--clear"), verbose = false).then { install(pkg) }
-    }
-
-    private fun install(pkg: PyPackage): ExecutionResult {
-        val repos = project.repositories.resolved
-        val args = ArrayList<String>().apply {
-            add("install")
-            add("--index-url")
-            add(repos.primarySource.urlSimple)
-            for (repo in repos.all) {
-                if (repo != repos.primarySource) {
-                    add("--extra-index-url")
-                    add(repo.urlSimple)
-                }
-            }
-            add(pkg.distributionUrl)
-        }
-
+    fun install(pkg: ResolvedPyPackage): ExecutionResult {
         return project.executor.execute(
             command = interpreterPath.absolutePathString(),
-            args = listOf("-m", "pip") + args,
+            args = listOf("-m", "pip", "install", "--no-deps", pkg.distributionUrl),
             workingDir = PaddlePyConfig.paddleHome.toFile(),
             terminal = project.terminal
         )
     }
 
-    fun contains(pkgName: String): Boolean {
-        return venv.sitePackages.listFiles()?.any { it.name.startsWith("$pkgName-") } ?: false
+    fun uninstall(pkg: ResolvedPyPackage): ExecutionResult {
+        return project.executor.execute(
+            command = interpreterPath.absolutePathString(),
+            args = listOf("-m", "pip", "uninstall", "-y", pkg.name),
+            workingDir = PaddlePyConfig.paddleHome.toFile(),
+            terminal = Terminal.MOCK
+        )
     }
 
-    fun getInstalledPackageVersionByName(pkgName: String): String {
-        return InstalledPackageInfo.findByPackageName(venv.sitePackages, pkgName).pkgVersion
-    }
-
-    fun getFilesRelatedToPackage(descriptor: Requirements.Descriptor): List<File> {
-        return InstalledPackageInfo.findByDescriptor(venv.sitePackages, descriptor).files
+    fun getFilesRelatedToPackage(pkg: ResolvedPyPackage): List<File> {
+        return InstalledPackageInfo.findByNameAndVersion(venv.sitePackages, pkg.name, pkg.version).files
     }
 }

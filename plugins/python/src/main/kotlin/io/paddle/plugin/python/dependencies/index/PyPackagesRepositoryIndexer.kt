@@ -5,6 +5,7 @@ import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.paddle.plugin.python.dependencies.index.distributions.PyDistributionInfo
 import io.paddle.plugin.python.dependencies.index.metadata.JsonPackageMetadataInfo
+import io.paddle.plugin.python.dependencies.packages.PyPackage
 import io.paddle.plugin.python.utils.*
 import kotlinx.serialization.decodeFromString
 import org.jsoup.Jsoup

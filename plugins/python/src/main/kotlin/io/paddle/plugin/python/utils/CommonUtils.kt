@@ -10,6 +10,14 @@ import java.nio.file.Path
 typealias PyPackageName = String
 typealias PyPackageVersion = String
 
+fun PyPackageName.normalize(): PyPackageName {
+    return this.lowercase().replace('-', '_').replace('.', '_')
+}
+
+fun PyPackageName.denormalize(): PyPackageName {
+    return this.replace('_', '-').replace('_', '.')
+}
+
 fun Path.exists(): Boolean = Files.exists(this)
 
 fun String.isValidUrl(): Boolean = try {
