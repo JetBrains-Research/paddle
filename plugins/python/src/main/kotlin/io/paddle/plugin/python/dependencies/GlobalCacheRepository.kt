@@ -77,7 +77,7 @@ object GlobalCacheRepository {
         return cachedPkg
     }
 
-    private fun copyPackageSourcesFromTempVenv(venvManager: TempVenvManager, pkg: ResolvedPyPackage, targetPathToCache: Path) {
+    private fun copyPackageSourcesFromTempVenv(venvManager: TempVenvManager, pkg: IResolvedPyPackage, targetPathToCache: Path) {
         val packageSources = venvManager.getFilesRelatedToPackage(pkg)
         val sep = File.separatorChar
         packageSources.forEach {

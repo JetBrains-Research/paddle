@@ -1,6 +1,6 @@
 package io.paddle.plugin.python.extensions
 
-import io.paddle.plugin.python.dependencies.index.PyPackagesRepositories
+import io.paddle.plugin.python.dependencies.repositories.PyPackageRepositories
 import io.paddle.plugin.python.utils.PyPackagesRepositoryUrl
 import io.paddle.project.Project
 import io.paddle.utils.Hashable
@@ -13,7 +13,7 @@ val Project.repositories: Repositories
 
 class Repositories(val descriptors: List<Descriptor>) : Hashable {
 
-    val resolved: PyPackagesRepositories by lazy { PyPackagesRepositories.resolve(descriptors) }
+    val resolved: PyPackageRepositories by lazy { PyPackageRepositories.resolve(descriptors) }
 
     object Extension : Project.Extension<Repositories> {
         override val key: Extendable.Key<Repositories> = Extendable.Key()

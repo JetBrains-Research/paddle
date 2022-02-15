@@ -1,4 +1,4 @@
-package io.paddle.plugin.python.dependencies.lock
+package io.paddle.plugin.python.dependencies.lock.models
 
 import kotlinx.serialization.Serializable
 

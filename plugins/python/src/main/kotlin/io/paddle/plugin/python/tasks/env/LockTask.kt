@@ -1,7 +1,7 @@
 package io.paddle.plugin.python.tasks.env
 
 import io.paddle.plugin.python.dependencies.lock.PyLockFile
-import io.paddle.plugin.python.dependencies.lock.PyPackagesLocker
+import io.paddle.plugin.python.dependencies.lock.PyPackageLocker
 import io.paddle.plugin.python.extensions.*
 import io.paddle.project.Project
 import io.paddle.tasks.Task
@@ -25,7 +25,7 @@ class LockTask(project: Project) : IncrementalTask(project) {
 
     override fun act() = runBlocking {
         project.terminal.info("Locking dependencies...")
-        val duration = measureTimeMillis { PyPackagesLocker.lock(project) }
+        val duration = measureTimeMillis { PyPackageLocker.lock(project) }
         project.terminal.info("Finished: ${duration}ms")
     }
 }

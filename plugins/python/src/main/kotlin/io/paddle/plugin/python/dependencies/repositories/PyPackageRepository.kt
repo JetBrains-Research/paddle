@@ -1,6 +1,7 @@
-package io.paddle.plugin.python.dependencies.index
+package io.paddle.plugin.python.dependencies.repositories
 
 import io.paddle.plugin.python.PaddlePyConfig
+import io.paddle.plugin.python.dependencies.index.PyPackageRepositoryIndexer
 import io.paddle.plugin.python.dependencies.index.distributions.PyDistributionInfo
 import io.paddle.plugin.python.dependencies.index.wordlist.PackedWordList
 import io.paddle.plugin.python.dependencies.index.wordlist.PackedWordListSerializer
@@ -10,7 +11,7 @@ import kotlinx.serialization.*
 import java.io.File
 
 @Serializable
-class PyPackagesRepository(val url: PyPackagesRepositoryUrl, val name: String) {
+class PyPackageRepository(val url: PyPackagesRepositoryUrl, val name: String) {
     constructor(metadata: Metadata) : this(metadata.url, metadata.name)
 
     @Serializable
@@ -19,7 +20,7 @@ class PyPackagesRepository(val url: PyPackagesRepositoryUrl, val name: String) {
     val metadata = Metadata(url, name)
 
     companion object {
-        val PYPI_REPOSITORY = PyPackagesRepository("https://pypi.org", "pypi")
+        val PYPI_REPOSITORY = PyPackageRepository("https://pypi.org", "pypi")
     }
 
     // Index is loaded from cache
@@ -36,19 +37,19 @@ class PyPackagesRepository(val url: PyPackagesRepositoryUrl, val name: String) {
     val cacheFileName: String = StringHashable(url).hash()
 
     suspend fun updateIndex() {
-        packagesNamesCache = PackedWordList(PyPackagesRepositoryIndexer.downloadPackagesNames(this).toSet())
+        packagesNamesCache = PackedWordList(PyPackageRepositoryIndexer.downloadPackagesNames(this).toSet())
     }
 
     fun loadCache(file: File) {
         require(file.name == this.cacheFileName)
-        val cachedCopy: PyPackagesRepository = jsonParser.decodeFromString(file.readText())
+        val cachedCopy: PyPackageRepository = jsonParser.decodeFromString(file.readText())
         packagesNamesCache = cachedCopy.packagesNamesCache
     }
 
     fun getPackagesNamesByPrefix(prefix: String): Sequence<PyPackageName> = packagesNamesCache.prefix(prefix)
 
     suspend fun findAvailableDistributionsByPackageName(packageName: PyPackageName, useCache: Boolean = true): List<PyDistributionInfo> {
-        val distributions = PyPackagesRepositoryIndexer.downloadDistributionsList(packageName, this)
+        val distributions = PyPackageRepositoryIndexer.downloadDistributionsList(packageName, this)
         return if (useCache) {
             distributionsCache.getOrPut(packageName) { distributions }
         } else {
@@ -66,7 +67,7 @@ class PyPackagesRepository(val url: PyPackagesRepositoryUrl, val name: String) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (javaClass != other?.javaClass) return false
-        other as PyPackagesRepository
+        other as PyPackageRepository
 
         return metadata == other.metadata
     }

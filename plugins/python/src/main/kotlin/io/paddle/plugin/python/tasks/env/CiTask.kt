@@ -1,7 +1,7 @@
 package io.paddle.plugin.python.tasks.env
 
 import io.paddle.plugin.python.dependencies.lock.PyLockFile
-import io.paddle.plugin.python.dependencies.lock.PyPackagesLocker
+import io.paddle.plugin.python.dependencies.lock.PyPackageLocker
 import io.paddle.plugin.python.extensions.environment
 import io.paddle.project.Project
 import io.paddle.tasks.Task
@@ -33,7 +33,7 @@ class CiTask(project: Project) : IncrementalTask(project) {
 
     override fun act() = runBlocking {
         project.terminal.info("Installing dependencies from ${PyLockFile.FILENAME}...")
-        val duration = measureTimeMillis { PyPackagesLocker.installFromLock(project) }
+        val duration = measureTimeMillis { PyPackageLocker.installFromLock(project) }
         project.terminal.info("Finished: ${duration}ms")
     }
 }

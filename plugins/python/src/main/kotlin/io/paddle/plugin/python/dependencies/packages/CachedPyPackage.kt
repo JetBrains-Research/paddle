@@ -1,6 +1,6 @@
 package io.paddle.plugin.python.dependencies.packages
 
-import io.paddle.plugin.python.dependencies.InstalledPackageInfo
+import io.paddle.plugin.python.dependencies.InstalledPackageInfoDir
 import io.paddle.plugin.python.utils.jsonParser
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
@@ -18,7 +18,7 @@ import kotlin.io.path.readText
  *  - package-name-1.2.3.dist-info/
  *  - ...
  */
-data class CachedPyPackage(val pkg: PyPackage, val srcPath: Path) : ResolvedPyPackage {
+data class CachedPyPackage(val pkg: PyPackage, val srcPath: Path) : IResolvedPyPackage {
     override val name = pkg.name
     override val version = pkg.version
     override val repo = pkg.repo // FIXME: different repos in single project???
@@ -40,6 +40,6 @@ data class CachedPyPackage(val pkg: PyPackage, val srcPath: Path) : ResolvedPyPa
     val sources: List<File>
         get() = srcPath.toFile().listFiles()?.toList() ?: emptyList()
 
-    val infoDirectory: InstalledPackageInfo
-        get() = InstalledPackageInfo.findByNameAndVersion(srcPath.toFile(), pkg.name, pkg.version)
+    val infoDirectory: InstalledPackageInfoDir
+        get() = InstalledPackageInfoDir.findByNameAndVersion(srcPath.toFile(), pkg.name, pkg.version)
 }

@@ -1,6 +1,6 @@
 package io.paddle.plugin.python.dependencies
 
-import io.paddle.plugin.python.dependencies.packages.ResolvedPyPackage
+import io.paddle.plugin.python.dependencies.packages.IResolvedPyPackage
 import io.paddle.plugin.python.extensions.environment
 import io.paddle.plugin.python.utils.RegexCache
 import io.paddle.project.Project
@@ -31,9 +31,9 @@ class VenvDir(private val directory: File) : File(directory.path) {
     }
 
 
-    fun hasInstalledPackage(pkg: ResolvedPyPackage): Boolean {
+    fun hasInstalledPackage(pkg: IResolvedPyPackage): Boolean {
         // FIXME: PyPI repo is not considered here since there is no info about it in package's metadata on disk
         // TODO: add file with repo metadata
-        return InstalledPackageInfo.findByNameAndVersionOrNull(sitePackages, pkg.name, pkg.version)?.let { true } ?: false
+        return InstalledPackageInfoDir.findByNameAndVersionOrNull(sitePackages, pkg.name, pkg.version)?.let { true } ?: false
     }
 }

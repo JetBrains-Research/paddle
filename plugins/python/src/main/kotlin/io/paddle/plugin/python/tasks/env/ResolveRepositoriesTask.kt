@@ -1,7 +1,7 @@
 package io.paddle.plugin.python.tasks.env
 
 import io.paddle.plugin.python.PaddlePyConfig
-import io.paddle.plugin.python.dependencies.index.PyPackagesRepository
+import io.paddle.plugin.python.dependencies.repositories.PyPackageRepository
 import io.paddle.plugin.python.extensions.repositories
 import io.paddle.project.Project
 import io.paddle.tasks.incremental.IncrementalTask
@@ -23,7 +23,7 @@ class ResolveRepositoriesTask(project: Project) : IncrementalTask(project) {
     // Outputs: checksums for file indexes of the repositories which are specified in the current project
     override val outputs: List<Hashable>
         get() {
-            val descriptors = project.repositories.descriptors.map { PyPackagesRepository(it.url, it.name) }
+            val descriptors = project.repositories.descriptors.map { PyPackageRepository(it.url, it.name) }
             return PaddlePyConfig.indexDir.listDirectoryEntries()
                 .filter { descriptors.any { desc -> desc.cacheFileName == it.name } }
                 .map { it.toFile().hashable() }

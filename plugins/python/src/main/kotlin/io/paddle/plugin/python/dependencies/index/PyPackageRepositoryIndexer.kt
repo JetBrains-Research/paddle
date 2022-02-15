@@ -6,14 +6,15 @@ import io.ktor.client.statement.*
 import io.paddle.plugin.python.dependencies.index.distributions.PyDistributionInfo
 import io.paddle.plugin.python.dependencies.index.metadata.JsonPackageMetadataInfo
 import io.paddle.plugin.python.dependencies.packages.PyPackage
+import io.paddle.plugin.python.dependencies.repositories.PyPackageRepository
 import io.paddle.plugin.python.utils.*
 import kotlinx.serialization.decodeFromString
 import org.jsoup.Jsoup
 import java.io.File
 
 
-object PyPackagesRepositoryIndexer {
-    suspend fun downloadPackagesNames(repository: PyPackagesRepository): Collection<PyPackageName> {
+object PyPackageRepositoryIndexer {
+    suspend fun downloadPackagesNames(repository: PyPackageRepository): Collection<PyPackageName> {
         return try {
             httpClient.request<HttpStatement>(repository.urlSimple).execute { response ->
                 val allNamesDocument = Jsoup.parse(response.readText())
@@ -26,7 +27,7 @@ object PyPackagesRepositoryIndexer {
 
     suspend fun downloadDistributionsList(
         packageName: String,
-        repository: PyPackagesRepository
+        repository: PyPackageRepository
     ): List<PyDistributionInfo> {
         return try {
             httpClient.request<HttpStatement>(repository.urlSimple.join(packageName)).execute { response ->
@@ -41,7 +42,7 @@ object PyPackagesRepositoryIndexer {
 
     suspend fun getDistributionUrl(
         distributionInfo: PyDistributionInfo,
-        repository: PyPackagesRepository
+        repository: PyPackageRepository
     ): PyPackageUrl {
         return try {
             httpClient.request<HttpStatement>(repository.urlSimple.join(distributionInfo.name)).execute { response ->

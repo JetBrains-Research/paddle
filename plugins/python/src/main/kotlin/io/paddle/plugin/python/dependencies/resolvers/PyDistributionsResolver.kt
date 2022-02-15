@@ -1,8 +1,8 @@
 package io.paddle.plugin.python.dependencies.resolvers
 
-import io.paddle.plugin.python.dependencies.index.PyPackagesRepository
-import io.paddle.plugin.python.dependencies.index.PyPackagesRepositoryIndexer
+import io.paddle.plugin.python.dependencies.index.PyPackageRepositoryIndexer
 import io.paddle.plugin.python.dependencies.index.distributions.*
+import io.paddle.plugin.python.dependencies.repositories.PyPackageRepository
 import io.paddle.plugin.python.extensions.environment
 import io.paddle.plugin.python.extensions.repositories
 import io.paddle.plugin.python.utils.*
@@ -13,8 +13,8 @@ object PyDistributionsResolver {
     // See https://www.python.org/dev/peps/pep-0425/#id1
     // https://docs.python.org/3/distutils/apiref.html#distutils.util.get_platform
     // TODO: caching
-    suspend fun resolve(name: PyPackageName, version: PyPackageVersion, repository: PyPackagesRepository, project: Project): PyPackageUrl? {
-        val distributions = PyPackagesRepositoryIndexer.downloadDistributionsList(name, repository).filter { it.version == version }
+    suspend fun resolve(name: PyPackageName, version: PyPackageVersion, repository: PyPackageRepository, project: Project): PyPackageUrl? {
+        val distributions = PyPackageRepositoryIndexer.downloadDistributionsList(name, repository).filter { it.version == version }
         val wheels = distributions.filterIsInstance<WheelPyDistributionInfo>()
 
         // Building candidates for current Python interpreter
@@ -61,10 +61,10 @@ object PyDistributionsResolver {
             ?: distributions.filterIsInstance<ArchivePyDistributionInfo>().firstOrNull()
             ?: return null
 
-        return PyPackagesRepositoryIndexer.getDistributionUrl(matchedDistributionInfo, repository)
+        return PyPackageRepositoryIndexer.getDistributionUrl(matchedDistributionInfo, repository)
     }
 
-    suspend fun resolve(name: PyPackageName, version: PyPackageVersion, project: Project): Pair<PyPackageUrl, PyPackagesRepository> {
+    suspend fun resolve(name: PyPackageName, version: PyPackageVersion, project: Project): Pair<PyPackageUrl, PyPackageRepository> {
         val repos = project.repositories.resolved
         val primaryUrl = resolve(name, version, repos.primarySource, project)
         if (primaryUrl != null)

@@ -1,6 +1,7 @@
 package io.paddle.plugin.python.dependencies.lock
 
-import io.paddle.plugin.python.dependencies.index.PyPackagesRepositoryIndexer
+import io.paddle.plugin.python.dependencies.index.PyPackageRepositoryIndexer
+import io.paddle.plugin.python.dependencies.lock.models.*
 import io.paddle.plugin.python.dependencies.packages.PyPackage
 import io.paddle.plugin.python.utils.jsonParser
 import kotlinx.serialization.*
@@ -24,7 +25,7 @@ class PyLockFile {
         get() = _lockedPackages.map { it.copy() }.toSet()
 
     suspend fun addLockedPackage(pkg: PyPackage) {
-        val metadata = PyPackagesRepositoryIndexer.downloadMetadata(pkg)
+        val metadata = PyPackageRepositoryIndexer.downloadMetadata(pkg)
         val distributions = metadata.releases[pkg.version] ?: error("Distribution $pkg was not found in metadata.")
         _lockedPackages.add(
             LockedPyPackage(

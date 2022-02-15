@@ -1,10 +1,10 @@
 package io.paddle.plugin.python.dependencies.resolvers
 
 import io.paddle.execution.ExecutionResult
-import io.paddle.plugin.python.dependencies.index.PyPackagesRepository
 import io.paddle.plugin.python.dependencies.index.distributions.ArchivePyDistributionInfo
 import io.paddle.plugin.python.dependencies.index.distributions.WheelPyDistributionInfo
 import io.paddle.plugin.python.dependencies.packages.PyPackage
+import io.paddle.plugin.python.dependencies.repositories.PyPackageRepository
 import io.paddle.plugin.python.extensions.*
 import io.paddle.plugin.python.utils.PyPackageUrl
 import io.paddle.plugin.python.utils.trimmedEquals
@@ -22,7 +22,7 @@ object PipResolver {
 
         // Collect requirements which repo is not specified directly (or specified as PyPi)
         val generalRequirements = project.requirements.descriptors
-            .filter { it.repo == null || it.repo == PyPackagesRepository.PYPI_REPOSITORY.name }
+            .filter { it.repo == null || it.repo == PyPackageRepository.PYPI_REPOSITORY.name }
             .map { it.name + (it.version?.let { v -> "==$v" }) }
         val pipResolveArgs = listOf("-m", "pip", "resolve") + generalRequirements + project.repositories.resolved.asPipArgs
 

@@ -1,7 +1,7 @@
 package io.paddle.plugin.python.dependencies.packages
 
-import io.paddle.plugin.python.dependencies.index.PyPackageRepoMetadataSerializer
-import io.paddle.plugin.python.dependencies.index.PyPackagesRepository
+import io.paddle.plugin.python.dependencies.repositories.PyPackageRepoMetadataSerializer
+import io.paddle.plugin.python.dependencies.repositories.PyPackageRepository
 import io.paddle.plugin.python.utils.*
 import kotlinx.serialization.Serializable
 
@@ -12,10 +12,10 @@ import kotlinx.serialization.Serializable
 class PyPackage(
     override val name: PyPackageName,
     override val version: PyPackageVersion,
-    @Serializable(with = PyPackageRepoMetadataSerializer::class) override val repo: PyPackagesRepository,
+    @Serializable(with = PyPackageRepoMetadataSerializer::class) override val repo: PyPackageRepository,
     override val distributionUrl: PyPackageUrl,
     var comesFrom: PyPackage? = null
-) : ResolvedPyPackage {
+) : IResolvedPyPackage {
     override fun hashCode(): Int {
         if (distributionUrl.contains('#')) {
             // to avoid hashes at the end, like ...#sha256=...

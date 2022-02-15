@@ -1,6 +1,6 @@
-package io.paddle.plugin.python.dependencies.lock
+package io.paddle.plugin.python.dependencies.lock.models
 
-import io.paddle.plugin.python.dependencies.index.PyPackagesRepository
+import io.paddle.plugin.python.dependencies.repositories.PyPackageRepository
 import io.paddle.plugin.python.utils.PyPackageUrl
 import io.paddle.project.Project
 import kotlinx.serialization.Serializable
@@ -15,7 +15,7 @@ data class LockedPyPackage(
     val version = identifier.version
     val repoMetadata = identifier.repoMetadata
 
-    suspend fun resolveConcreteDistribution(repo: PyPackagesRepository, project: Project): PyPackageUrl {
+    suspend fun resolveConcreteDistribution(repo: PyPackageRepository, project: Project): PyPackageUrl {
         return identifier.resolveConcreteDistribution(repo, project)
     }
 }

@@ -2,7 +2,7 @@ package io.paddle.plugin.python.dependencies
 
 import io.paddle.execution.ExecutionResult
 import io.paddle.plugin.python.PaddlePyConfig
-import io.paddle.plugin.python.dependencies.packages.ResolvedPyPackage
+import io.paddle.plugin.python.dependencies.packages.IResolvedPyPackage
 import io.paddle.plugin.python.dependencies.resolvers.PipResolver
 import io.paddle.plugin.python.extensions.environment
 import io.paddle.project.Project
@@ -52,7 +52,7 @@ class TempVenvManager private constructor(val venv: VenvDir, val project: Projec
     val interpreterPath: Path
         get() = venv.getInterpreterPath(project)
 
-    fun install(pkg: ResolvedPyPackage): ExecutionResult {
+    fun install(pkg: IResolvedPyPackage): ExecutionResult {
         return project.executor.execute(
             command = interpreterPath.absolutePathString(),
             args = listOf("-m", "pip", "install", "--no-deps", pkg.distributionUrl),
@@ -61,7 +61,7 @@ class TempVenvManager private constructor(val venv: VenvDir, val project: Projec
         )
     }
 
-    fun uninstall(pkg: ResolvedPyPackage): ExecutionResult {
+    fun uninstall(pkg: IResolvedPyPackage): ExecutionResult {
         return project.executor.execute(
             command = interpreterPath.absolutePathString(),
             args = listOf("-m", "pip", "uninstall", "-y", pkg.name),
@@ -70,7 +70,7 @@ class TempVenvManager private constructor(val venv: VenvDir, val project: Projec
         )
     }
 
-    fun getFilesRelatedToPackage(pkg: ResolvedPyPackage): List<File> {
-        return InstalledPackageInfo.findByNameAndVersion(venv.sitePackages, pkg.name, pkg.version).files
+    fun getFilesRelatedToPackage(pkg: IResolvedPyPackage): List<File> {
+        return InstalledPackageInfoDir.findByNameAndVersion(venv.sitePackages, pkg.name, pkg.version).files
     }
 }

@@ -1,13 +1,15 @@
 package io.paddle.plugin.python.dependencies.lock
 
-import io.paddle.plugin.python.dependencies.index.PyPackagesRepository
-import io.paddle.plugin.python.dependencies.index.PyPackagesRepositoryIndexer
+import io.paddle.plugin.python.dependencies.index.PyPackageRepositoryIndexer
+import io.paddle.plugin.python.dependencies.lock.models.LockedPyPackage
+import io.paddle.plugin.python.dependencies.lock.models.LockedPyPackageIdentifier
 import io.paddle.plugin.python.dependencies.packages.PyPackage
+import io.paddle.plugin.python.dependencies.repositories.PyPackageRepository
 import io.paddle.plugin.python.extensions.environment
 import io.paddle.plugin.python.extensions.requirements
 import io.paddle.project.Project
 
-object PyPackagesLocker {
+object PyPackageLocker {
     suspend fun lock(project: Project) {
         val lockFile = PyLockFile()
         for (pkg in project.requirements.resolved) {
@@ -26,7 +28,7 @@ object PyPackagesLocker {
         val packageByIdentifier = HashMap<LockedPyPackageIdentifier, PyPackage>()
 
         for (lockedPkg in lockedPackages) {
-            val repo = PyPackagesRepository(lockedPkg.repoMetadata)
+            val repo = PyPackageRepository(lockedPkg.repoMetadata)
             val distUrl = lockedPkg.resolveConcreteDistribution(repo, project)
             val pkg = PyPackage(lockedPkg.name, lockedPkg.version, repo, distUrl)
             checkHashes(pkg, lockedPkg)
@@ -45,7 +47,7 @@ object PyPackagesLocker {
     }
 
     private suspend fun checkHashes(pkg: PyPackage, lockedPkg: LockedPyPackage) {
-        val metadata = PyPackagesRepositoryIndexer.downloadMetadata(pkg)
+        val metadata = PyPackageRepositoryIndexer.downloadMetadata(pkg)
         val availableDistributions = metadata.releases[pkg.version]
             ?: error("Locked distribution $pkg was not found in current package metadata. Consider upgrading your lockfile.")
         val currentHash = availableDistributions.find { it.url == pkg.distributionUrl }?.packageHash
