@@ -1,30 +1,46 @@
 package io.paddle.plugin.python.dependencies.lock
 
+import io.paddle.plugin.python.dependencies.PyInterpreter
 import io.paddle.plugin.python.dependencies.index.PyPackageRepositoryIndexer
-import io.paddle.plugin.python.dependencies.lock.models.LockedPyPackage
-import io.paddle.plugin.python.dependencies.lock.models.LockedPyPackageIdentifier
+import io.paddle.plugin.python.dependencies.lock.models.*
 import io.paddle.plugin.python.dependencies.packages.PyPackage
 import io.paddle.plugin.python.dependencies.repositories.PyPackageRepository
-import io.paddle.plugin.python.extensions.environment
-import io.paddle.plugin.python.extensions.requirements
+import io.paddle.plugin.python.extensions.*
+import io.paddle.plugin.python.utils.parallelMap
 import io.paddle.project.Project
 
 object PyPackageLocker {
+
     suspend fun lock(project: Project) {
-        val lockFile = PyLockFile()
-        for (pkg in project.requirements.resolved) {
-            lockFile.addLockedPackage(pkg)
+        val lockedPackages = project.requirements.resolved.parallelMap { pkg ->
+            val metadata = PyPackageRepositoryIndexer.downloadMetadata(pkg)
+            val distributions = metadata.releases[pkg.version]
+                ?: error("Distribution $pkg was not found in metadata.")
+            LockedPyPackage(
+                LockedPyPackageIdentifier(pkg),
+                comesFrom = pkg.comesFrom?.let { LockedPyPackageIdentifier(it) },
+                distributions = distributions.map { LockedPyDistribution(it.filename, it.packageHash) }
+            )
         }
+        val lockFile = PyLockFile(
+            interpreterVersion = project.interpreter.resolved.version.number,
+            lockedPackages = lockedPackages.toSet()
+        )
         lockFile.save(project.workDir.toPath())
     }
 
     suspend fun installFromLock(project: Project) {
-        val lockFile = project.workDir.resolve(PyLockFile.FILENAME)
-        if (!lockFile.exists()) {
-            error("${PyLockFile.FILENAME} was not found in the project.")
+        val pyLockFile = PyLockFile.fromFile(project.workDir.resolve(PyLockFile.FILENAME))
+
+        val lockedInterpreter = PyInterpreter.find(PyInterpreter.Version(pyLockFile.interpreterVersion), project)
+        if (lockedInterpreter.version != project.interpreter.resolved.version) {
+            error(
+                "Locked interpreter version (${lockedInterpreter.version.number}) is not consistent with " +
+                    "current interpreter version ${project.interpreter.resolved.version}."
+            )
         }
 
-        val lockedPackages = PyLockFile.fromFile(lockFile).lockedPackages
+        val lockedPackages = pyLockFile.lockedPackages
         val packageByIdentifier = HashMap<LockedPyPackageIdentifier, PyPackage>()
 
         for (lockedPkg in lockedPackages) {

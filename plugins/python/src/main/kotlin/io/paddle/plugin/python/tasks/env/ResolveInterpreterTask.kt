@@ -2,6 +2,7 @@ package io.paddle.plugin.python.tasks.env
 
 import io.paddle.plugin.python.dependencies.PyInterpreter
 import io.paddle.plugin.python.extensions.environment
+import io.paddle.plugin.python.extensions.interpreter
 import io.paddle.project.Project
 import io.paddle.tasks.incremental.IncrementalTask
 import io.paddle.utils.Hashable
@@ -18,11 +19,11 @@ class ResolveInterpreterTask(project: Project) : IncrementalTask(project) {
     override val inputs: List<Hashable> = listOf(project.environment)
 
     // Outputs: checksum for the directory with the chosen interpreter
-    override val outputs: List<Hashable> = listOf(PyInterpreter.getLocation(project.environment.pythonVersion, project).toFile().hashable())
+    override val outputs: List<Hashable> = listOf(PyInterpreter.getLocation(project.interpreter.pythonVersion, project).toFile().hashable())
 
     override fun act() {
         project.terminal.info("Resolving interpreter...")
-        val duration = measureTimeMillis { project.environment.interpreter }
+        val duration = measureTimeMillis { project.interpreter.resolved }
         project.terminal.info("Finished: ${duration}ms")
     }
 }

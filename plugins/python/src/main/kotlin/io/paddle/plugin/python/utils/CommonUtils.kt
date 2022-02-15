@@ -31,6 +31,10 @@ suspend fun <A> Iterable<A>.parallelForEach(action: suspend (A) -> Unit): Unit =
     map { launch { action(it) } }.joinAll()
 }
 
+suspend fun <A, R> Iterable<A>.parallelMap(transform: suspend (A) -> R): Iterable<R> = coroutineScope {
+    map { async { transform(it) } }.awaitAll()
+}
+
 internal fun Iterable<String>.letters(): Set<Char> = flatMap { it.toSet() }.toSet()
 
 internal fun <T> Iterable<T>.withIndexAt(start: Int) = withIndex().map { IndexedValue(it.index + start, it.value) }

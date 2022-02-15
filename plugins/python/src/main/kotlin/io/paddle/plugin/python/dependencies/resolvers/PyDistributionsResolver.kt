@@ -3,7 +3,7 @@ package io.paddle.plugin.python.dependencies.resolvers
 import io.paddle.plugin.python.dependencies.index.PyPackageRepositoryIndexer
 import io.paddle.plugin.python.dependencies.index.distributions.*
 import io.paddle.plugin.python.dependencies.repositories.PyPackageRepository
-import io.paddle.plugin.python.extensions.environment
+import io.paddle.plugin.python.extensions.interpreter
 import io.paddle.plugin.python.extensions.repositories
 import io.paddle.plugin.python.utils.*
 import io.paddle.project.Project
@@ -18,7 +18,7 @@ object PyDistributionsResolver {
         val wheels = distributions.filterIsInstance<WheelPyDistributionInfo>()
 
         // Building candidates for current Python interpreter
-        val pyTags = project.environment.interpreter.version.pep425candidates
+        val pyTags = project.interpreter.resolved.version.pep425candidates
 
         // Building candidates for ABI tag: add "d", "m", or "u" suffix (flag) to each interpreter
         val abiTags = pyTags.map { listOf(it, it + "m", it + "d", it + "u") }.flatten() + listOf("none", "abi3")

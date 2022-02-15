@@ -1,7 +1,7 @@
 package io.paddle.plugin.python.dependencies
 
 import io.paddle.plugin.python.dependencies.packages.IResolvedPyPackage
-import io.paddle.plugin.python.extensions.environment
+import io.paddle.plugin.python.extensions.interpreter
 import io.paddle.plugin.python.utils.RegexCache
 import io.paddle.project.Project
 import java.io.File
@@ -27,7 +27,7 @@ class VenvDir(private val directory: File) : File(directory.path) {
         get() = sitePackages.resolve("__pycache__")
 
     fun getInterpreterPath(project: Project): Path {
-        return bin.resolve(project.environment.interpreter.version.executableName).toPath()
+        return bin.resolve(project.interpreter.resolved.version.executableName).toPath()
     }
 
 

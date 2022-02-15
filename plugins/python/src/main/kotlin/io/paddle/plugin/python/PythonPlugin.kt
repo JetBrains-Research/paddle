@@ -38,6 +38,7 @@ object PythonPlugin : Plugin {
             Requirements.Extension,
             Repositories.Extension,
             Environment.Extension,
+            Interpreter.Extension,
         ) as List<Project.Extension<Any>>
     }
 }
