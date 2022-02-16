@@ -3,7 +3,6 @@ package io.paddle.tasks.incremental
 import io.paddle.project.Project
 import io.paddle.tasks.Task
 import io.paddle.terminal.CommandOutput
-import io.paddle.terminal.Terminal
 import io.paddle.utils.Hashable
 import io.paddle.utils.hashable
 
@@ -24,12 +23,14 @@ abstract class IncrementalTask(project: Project) : Task(project) {
     }
 
     override fun run() {
+        runDependent()
+
         if (isUpToDate()) {
             project.terminal.commands.stdout(CommandOutput.Command.Task(id, CommandOutput.Command.Task.Status.UP_TO_DATE))
             return
         }
 
-        super.run()
+        execute()
 
         IncrementalCache(project).update(id, inputs.hashable(), outputs.hashable())
     }

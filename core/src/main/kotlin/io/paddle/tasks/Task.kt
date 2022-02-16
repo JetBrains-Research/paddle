@@ -44,11 +44,11 @@ abstract class Task(val project: Project) {
      * Run task with respect to the caches and current state.
      */
     open fun run() {
-        // TODO: resolve DAG?
-        for (dep in dependencies) {
-            dep.run()
-        }
+        runDependent()
+        execute()
+    }
 
+    protected fun execute() {
         project.terminal.commands.stdout(CommandOutput.Command.Task(id, CommandOutput.Command.Task.Status.EXECUTE))
 
         try {
@@ -59,6 +59,13 @@ abstract class Task(val project: Project) {
         }
 
         project.terminal.commands.stdout(CommandOutput.Command.Task(id, CommandOutput.Command.Task.Status.DONE))
+    }
+
+    protected fun runDependent() {
+        // TODO: resolve DAG?
+        for (dep in dependencies) {
+            dep.run()
+        }
     }
 
     class ActException(reason: String) : Exception(reason)
