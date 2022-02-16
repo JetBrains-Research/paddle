@@ -2,11 +2,15 @@ package io.paddle.plugin.python.dependencies
 
 import io.paddle.execution.ExecutionResult
 import io.paddle.plugin.python.PaddlePyConfig
+import io.paddle.plugin.python.dependencies.packages.CachedPyPackage.Companion.PYPACKAGE_CACHE_FILENAME
 import io.paddle.plugin.python.dependencies.packages.IResolvedPyPackage
+import io.paddle.plugin.python.dependencies.packages.PyPackage
 import io.paddle.plugin.python.dependencies.resolvers.PipResolver
 import io.paddle.plugin.python.extensions.environment
+import io.paddle.plugin.python.utils.jsonParser
 import io.paddle.project.Project
 import io.paddle.terminal.Terminal
+import kotlinx.serialization.encodeToString
 import java.io.File
 import java.nio.file.Path
 import kotlin.io.path.absolutePathString
@@ -49,16 +53,19 @@ class TempVenvManager private constructor(val venv: VenvDir, val project: Projec
         }
     }
 
-    val interpreterPath: Path
+    private val interpreterPath: Path
         get() = venv.getInterpreterPath(project)
 
-    fun install(pkg: IResolvedPyPackage): ExecutionResult {
+    fun install(pkg: PyPackage): ExecutionResult {
         return project.executor.execute(
             command = interpreterPath.absolutePathString(),
             args = listOf("-m", "pip", "install", "--no-deps", pkg.distributionUrl),
             workingDir = PaddlePyConfig.paddleHome.toFile(),
             terminal = project.terminal
-        )
+        ).also {
+            val infoDir = InstalledPackageInfoDir.findByNameAndVersion(venv.sitePackages, pkg.name, pkg.version)
+            infoDir.addFile(PYPACKAGE_CACHE_FILENAME, jsonParser.encodeToString(pkg))
+        }
     }
 
     fun uninstall(pkg: IResolvedPyPackage): ExecutionResult {

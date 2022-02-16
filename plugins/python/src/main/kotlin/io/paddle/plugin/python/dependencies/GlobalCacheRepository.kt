@@ -2,7 +2,6 @@ package io.paddle.plugin.python.dependencies
 
 import io.paddle.plugin.python.PaddlePyConfig
 import io.paddle.plugin.python.dependencies.packages.*
-import io.paddle.plugin.python.dependencies.packages.CachedPyPackage.Companion.PYPACKAGE_CACHE_FILENAME
 import io.paddle.plugin.python.utils.deepResolve
 import io.paddle.plugin.python.utils.exists
 import io.paddle.project.Project
@@ -126,7 +125,6 @@ object GlobalCacheRepository {
                         Files.createSymbolicLink(link, pyc.toPath())
                     }
                 }
-                PYPACKAGE_CACHE_FILENAME -> return@forEach
                 else -> {
                     val link = venv.sitePackages.resolve(it.name).toPath()
                     if (link.exists()) {

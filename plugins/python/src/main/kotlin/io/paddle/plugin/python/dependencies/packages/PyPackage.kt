@@ -6,7 +6,7 @@ import io.paddle.plugin.python.utils.*
 import kotlinx.serialization.Serializable
 
 /**
- * Resolved version of `Requirements.Descriptor`
+ * Implementation of the resolved version of `Requirements.Descriptor`
  */
 @Serializable
 class PyPackage(

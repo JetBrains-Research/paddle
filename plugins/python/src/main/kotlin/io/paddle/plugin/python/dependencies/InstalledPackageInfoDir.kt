@@ -1,14 +1,18 @@
 package io.paddle.plugin.python.dependencies
 
+import io.paddle.plugin.python.dependencies.packages.CachedPyPackage.Companion.PYPACKAGE_CACHE_FILENAME
+import io.paddle.plugin.python.dependencies.packages.PyPackage
 import io.paddle.plugin.python.dependencies.packages.PyPackageMetadata
 import io.paddle.plugin.python.utils.*
+import kotlinx.serialization.decodeFromString
 import java.io.File
+import java.io.FileOutputStream
 import java.util.function.Predicate
 
 /**
  * A wrapper class for either .dist-info (DIST) and .egg-info (LEGACY) distribution folders.
  */
-class InstalledPackageInfoDir(val parentDir: File, val type: Type, val name: PyPackageName, val version: PyPackageVersion) {
+class InstalledPackageInfoDir(val dir: File, val type: Type, val name: PyPackageName, val version: PyPackageVersion) {
     companion object {
         enum class Type { DIST, LEGACY }
 
@@ -25,16 +29,18 @@ class InstalledPackageInfoDir(val parentDir: File, val type: Type, val name: PyP
 
         fun findByNameAndVersion(parentDir: File, name: PyPackageName, version: PyPackageVersion): InstalledPackageInfoDir {
             return findByNameAndVersionOrNull(parentDir, name, version)
-                ?: error("Neither .dist-info nor .egg-info directory was found in $parentDir for package $name==$version")
+                ?: error("Neither .dist-info nor .egg-info directory was found in $parentDir for package $name==$version.")
         }
 
-        fun extractVersionFromPackageInfoDirname(infoDir: File): PyPackageVersion {
-            val prefix = if (infoDir.name.endsWith(".egg-info")) {
-                infoDir.name.substringBefore(".egg-info")
-            } else {
-                infoDir.name.substringBefore(".dist-info")
-            }
-            return prefix.split("-").getOrNull(1) ?: error("Invalid dirname: ${infoDir.name}")
+        fun findIfSingle(parentDir: File): InstalledPackageInfoDir {
+            val infoDir = findInfoDirWithPredicateOrNull(parentDir) { true }
+                ?: error("Neither .dist-info nor .egg-info directory was found in $parentDir for package.")
+            return InstalledPackageInfoDir(
+                infoDir,
+                type = if (infoDir.name.endsWith(".dist-info")) Type.DIST else Type.LEGACY,
+                name = infoDir.nameWithoutExtension.substringBeforeLast('-'),
+                version = infoDir.nameWithoutExtension.substringAfterLast('-')
+            )
         }
 
         private fun findInfoDirWithPredicateOrNull(parentDir: File, predicate: Predicate<File>): File? {
@@ -46,11 +52,11 @@ class InstalledPackageInfoDir(val parentDir: File, val type: Type, val name: PyP
 
     val metadata: PyPackageMetadata by lazy {
         val metadataFilename = if (type == Type.DIST) "METADATA" else "PKG-INFO"
-        PyPackageMetadata.parse(parentDir.resolve(metadataFilename))
+        PyPackageMetadata.parse(dir.resolve(metadataFilename))
     }
 
     val topLevelNames: List<String> by lazy {
-        parentDir.resolve("top_level.txt").let {
+        dir.resolve("top_level.txt").let {
             if (it.exists()) it.readLines().map { s -> s.trim() } else listOf(name)
         }
     }
@@ -58,13 +64,36 @@ class InstalledPackageInfoDir(val parentDir: File, val type: Type, val name: PyP
     val files: List<File>
         get() = when (type) {
             Type.DIST -> {
-                parentDir.resolve("RECORD").readLines()
+                dir.resolve("RECORD").readLines()
                     .map { it.split(",")[0] }
-                    .map { parentDir.parentFile.resolveRelative(it) }
+                    .map { dir.parentFile.resolveRelative(it) }
             }
             Type.LEGACY -> {
-                parentDir.resolve("installed-files.txt").readLines()
-                    .map { parentDir.resolveRelative(it) }
+                dir.resolve("installed-files.txt").readLines()
+                    .map { dir.resolveRelative(it) }
             }
+        }
+
+    fun addFile(name: String, content: String) {
+        val targetFile = dir.resolve(name)
+        targetFile.writeText(content)
+        when (type) {
+            Type.DIST -> {
+                FileOutputStream(dir.resolve("RECORD"), true).bufferedWriter().use {
+                    it.write(dir.name + File.separatorChar + name)
+                }
+            }
+            Type.LEGACY -> {
+                FileOutputStream(dir.resolve("installed-files.txt"), true).bufferedWriter().use {
+                    it.write(name)
+                }
+            }
+        }
+    }
+
+    val pkg: PyPackage?
+        get() {
+            val file = dir.resolve(PYPACKAGE_CACHE_FILENAME)
+            return if (file.exists()) jsonParser.decodeFromString(file.readText()) else null
         }
 }

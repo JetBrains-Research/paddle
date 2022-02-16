@@ -30,10 +30,8 @@ class VenvDir(private val directory: File) : File(directory.path) {
         return bin.resolve(project.interpreter.resolved.version.executableName).toPath()
     }
 
-
     fun hasInstalledPackage(pkg: IResolvedPyPackage): Boolean {
-        // FIXME: PyPI repo is not considered here since there is no info about it in package's metadata on disk
-        // TODO: add file with repo metadata
-        return InstalledPackageInfoDir.findByNameAndVersionOrNull(sitePackages, pkg.name, pkg.version)?.let { true } ?: false
+        val infoDir = InstalledPackageInfoDir.findByNameAndVersionOrNull(sitePackages, pkg.name, pkg.version)
+        return infoDir?.pkg?.repo == pkg.repo // name and version already matched
     }
 }

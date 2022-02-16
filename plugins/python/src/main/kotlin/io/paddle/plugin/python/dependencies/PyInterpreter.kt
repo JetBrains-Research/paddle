@@ -32,7 +32,7 @@ class PyInterpreter(val path: Path, val version: Version) {
         }
 
         fun getLocation(version: Version, project: Project): Path {
-            // todo: check local installations ...
+            // TODO: check local installations
             return PaddlePyConfig.interpretersDir.deepResolve(
                 version.number,
                 version.fullName,
