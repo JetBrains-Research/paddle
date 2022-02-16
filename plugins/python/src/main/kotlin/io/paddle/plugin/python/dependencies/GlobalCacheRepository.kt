@@ -24,20 +24,18 @@ object GlobalCacheRepository {
 
     init {
         Timer("CachedPackagesSynchronizer", true)
-            .schedule(delay = 0, period = CACHE_SYNC_PERIOD_MS) {
-                cachedPackages.clear()
-                PaddlePyConfig.cacheDir.toFile().listFiles()?.forEach { repoDir ->
-                    repoDir.listFiles()?.forEach { packageDir ->
-                        packageDir.listFiles()?.forEach { srcPath ->
-                            cachedPackages.add(CachedPyPackage.load(srcPath.toPath()))
-                        }
-                    }
-                }
-            }
+            .schedule(delay = 0, period = CACHE_SYNC_PERIOD_MS) { updateCache() }
     }
 
-    private fun hasCached(pkg: PyPackage): Boolean {
-        return cachedPackages.any { it.pkg == pkg && it.srcPath.exists() }
+    fun updateCache() {
+        cachedPackages.clear()
+        PaddlePyConfig.cacheDir.toFile().listFiles()?.forEach { repoDir ->
+            repoDir.listFiles()?.forEach { packageDir ->
+                packageDir.listFiles()?.forEach { srcPath ->
+                    cachedPackages.add(CachedPyPackage.load(srcPath.toPath()))
+                }
+            }
+        }
     }
 
     private fun getPathToCachedPackage(pkg: PyPackage): Path =

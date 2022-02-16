@@ -47,4 +47,6 @@ object PaddlePyConfig {
 
     val interpretersDir: Path = paddleHome.resolve("interpreters")
         get() = field.also { if (!field.exists()) field.toFile().mkdirs() }
+
+    val resolverCachePath: Path = paddleHome.resolve("resolverCache.json")
 }

@@ -62,7 +62,6 @@ abstract class Task(val project: Project) {
     }
 
     protected fun runDependent() {
-        // TODO: resolve DAG?
         for (dep in dependencies) {
             dep.run()
         }

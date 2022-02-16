@@ -6,8 +6,10 @@ import io.paddle.plugin.python.dependencies.lock.models.*
 import io.paddle.plugin.python.dependencies.packages.PyPackage
 import io.paddle.plugin.python.dependencies.repositories.PyPackageRepository
 import io.paddle.plugin.python.extensions.*
+import io.paddle.plugin.python.utils.parallelForEach
 import io.paddle.plugin.python.utils.parallelMap
 import io.paddle.project.Project
+import java.util.concurrent.ConcurrentHashMap
 
 object PyPackageLocker {
 
@@ -41,9 +43,9 @@ object PyPackageLocker {
         }
 
         val lockedPackages = pyLockFile.lockedPackages
-        val packageByIdentifier = HashMap<LockedPyPackageIdentifier, PyPackage>()
+        val packageByIdentifier = ConcurrentHashMap<LockedPyPackageIdentifier, PyPackage>()
 
-        for (lockedPkg in lockedPackages) {
+        lockedPackages.parallelForEach { lockedPkg ->
             val repo = PyPackageRepository(lockedPkg.repoMetadata)
             val distUrl = lockedPkg.resolveConcreteDistribution(repo, project)
             val pkg = PyPackage(lockedPkg.name, lockedPkg.version, repo, distUrl)

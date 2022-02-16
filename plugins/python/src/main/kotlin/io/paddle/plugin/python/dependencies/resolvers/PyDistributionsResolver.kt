@@ -1,5 +1,6 @@
 package io.paddle.plugin.python.dependencies.resolvers
 
+import io.paddle.plugin.python.PaddlePyConfig
 import io.paddle.plugin.python.dependencies.index.PyPackageRepositoryIndexer
 import io.paddle.plugin.python.dependencies.index.distributions.*
 import io.paddle.plugin.python.dependencies.repositories.PyPackageRepository
@@ -7,6 +8,9 @@ import io.paddle.plugin.python.extensions.interpreter
 import io.paddle.plugin.python.extensions.repositories
 import io.paddle.plugin.python.utils.*
 import io.paddle.project.Project
+import io.paddle.utils.hashable
+import kotlinx.serialization.builtins.MapSerializer
+import kotlinx.serialization.builtins.serializer
 
 
 object PyDistributionsResolver {
@@ -14,6 +18,8 @@ object PyDistributionsResolver {
     // https://docs.python.org/3/distutils/apiref.html#distutils.util.get_platform
     // TODO: caching
     suspend fun resolve(name: PyPackageName, version: PyPackageVersion, repository: PyPackageRepository, project: Project): PyPackageUrl? {
+        Cache.find(name, version, repository)?.let { return it }
+
         val distributions = PyPackageRepositoryIndexer.downloadDistributionsList(name, repository).filter { it.version == version }
         val wheels = distributions.filterIsInstance<WheelPyDistributionInfo>()
 
@@ -61,7 +67,10 @@ object PyDistributionsResolver {
             ?: distributions.filterIsInstance<ArchivePyDistributionInfo>().firstOrNull()
             ?: return null
 
-        return PyPackageRepositoryIndexer.getDistributionUrl(matchedDistributionInfo, repository)
+        val distributionUrl = PyPackageRepositoryIndexer.getDistributionUrl(matchedDistributionInfo, repository)
+        Cache.update(name, version, repository, distributionUrl)
+
+        return distributionUrl
     }
 
     suspend fun resolve(name: PyPackageName, version: PyPackageVersion, project: Project): Pair<PyPackageUrl, PyPackageRepository> {
@@ -76,5 +85,32 @@ object PyDistributionsResolver {
             }
         }
         error("Could not resolve $name:$version within specified set of repositories.")
+    }
+
+    object Cache {
+        private val storage = PaddlePyConfig.resolverCachePath.toFile()
+
+        private var cache: Map<String, PyPackageUrl>
+            get() {
+                storage.parentFile.mkdirs()
+                return storage.takeIf { it.exists() }
+                    ?.let { jsonParser.decodeFromString(MapSerializer(String.serializer(), String.serializer()), it.readText()) }
+                    ?: emptyMap()
+            }
+            set(value) {
+                storage.parentFile.mkdirs()
+                storage.writeText(jsonParser.encodeToString(MapSerializer(String.serializer(), String.serializer()), value))
+            }
+
+        fun find(name: PyPackageName, version: PyPackageVersion, repository: PyPackageRepository): PyPackageUrl? {
+            val input = listOf(name.hashable(), version.hashable(), repository.url.hashable()).hashable().hash()
+            return cache[input]
+        }
+
+        @Synchronized
+        fun update(name: PyPackageName, version: PyPackageVersion, repository: PyPackageRepository, distributionUrl: PyPackageUrl) {
+            val input = listOf(name.hashable(), version.hashable(), repository.url.hashable()).hashable().hash()
+            cache = cache.toMutableMap().also { it[input] = distributionUrl }
+        }
     }
 }
