@@ -1,12 +1,9 @@
 package io.paddle.plugin.python.tasks.env
 
-import io.paddle.plugin.python.dependencies.PyInterpreter
-import io.paddle.plugin.python.extensions.environment
 import io.paddle.plugin.python.extensions.interpreter
 import io.paddle.project.Project
 import io.paddle.tasks.incremental.IncrementalTask
 import io.paddle.utils.Hashable
-import io.paddle.utils.hashable
 import io.paddle.utils.tasks.TaskDefaultGroups
 import kotlin.system.measureTimeMillis
 
@@ -15,11 +12,8 @@ class ResolveInterpreterTask(project: Project) : IncrementalTask(project) {
 
     override val group: String = TaskDefaultGroups.BUILD
 
-    // Inputs: current configuration in the paddle.yaml file for venv
-    override val inputs: List<Hashable> = listOf(project.environment)
-
-    // Outputs: checksum for the directory with the chosen interpreter
-    override val outputs: List<Hashable> = listOf(PyInterpreter.getLocation(project.interpreter.pythonVersion, project).toFile().hashable())
+    // Inputs: current configuration in the paddle.yaml file for interpreter
+    override val inputs: List<Hashable> = listOf(project.interpreter)
 
     override fun act() {
         project.terminal.info("Resolving interpreter...")

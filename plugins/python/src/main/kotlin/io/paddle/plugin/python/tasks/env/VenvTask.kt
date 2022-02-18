@@ -14,8 +14,7 @@ class VenvTask(project: Project) : IncrementalTask(project) {
 
     override val group: String = TaskDefaultGroups.BUILD
 
-    override val inputs: List<Hashable> = listOf(project.environment)
-    override val outputs: List<Hashable> = listOf(project.environment)
+    override val inputs: List<Hashable> = listOf(project.environment, project.interpreter)
 
     override val dependencies: List<Task>
         get() = listOf(project.tasks.getOrFail("resolveInterpreter"))

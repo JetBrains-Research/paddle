@@ -39,7 +39,7 @@ class Environment(val project: Project, val venv: VenvDir) : Hashable {
     fun initialize(): ExecutionResult {
         return project.executor.execute(
             project.interpreter.resolved.path.toString(),
-            listOf("-m", "venv", venv.absolutePath),
+            listOf("-m", "venv", "--clear", venv.absolutePath),
             project.workDir,
             project.terminal
         ).then {
