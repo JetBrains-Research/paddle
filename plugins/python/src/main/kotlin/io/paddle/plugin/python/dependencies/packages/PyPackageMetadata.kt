@@ -61,7 +61,7 @@ class PyPackageMetadata private constructor(private val headers: Map<String, Any
             return PyPackageMetadata(headers)
         }
 
-        private fun createDependencySpecificationParser(source: String): DependencySpecificationParser? {
+        fun createDependencySpecificationParser(source: String): DependencySpecificationParser? {
             val stream = CharStreams.fromString(source.trim())
             val lexer = DependencySpecificationLexer(stream)
             val commonTokenStream = CommonTokenStream(lexer)

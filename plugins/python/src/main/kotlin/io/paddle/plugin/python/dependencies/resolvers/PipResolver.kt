@@ -41,7 +41,7 @@ object PipResolver {
                     executable = project.environment.localInterpreterPath.absolutePathString()
                     addArguments(pipResolveArgs.toTypedArray())
                 },
-                { output.add(it) },
+                { output.add(it); project.terminal.stdout(it) },
                 { project.terminal.stderr(it) }
             )
         )
