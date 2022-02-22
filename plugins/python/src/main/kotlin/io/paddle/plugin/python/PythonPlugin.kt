@@ -26,11 +26,9 @@ object PythonPlugin : Plugin {
             ResolveRepositoriesTask(project),
             LockTask(project),
             CiTask(project),
-        ) + listOf(
             MyPyTask(project),
             PyLintTask(project),
             PyTestTask(project),
-        ) + listOf(
             ParseRequirementsTxtTask(project)
         ) + RunTask.from(project)
     }

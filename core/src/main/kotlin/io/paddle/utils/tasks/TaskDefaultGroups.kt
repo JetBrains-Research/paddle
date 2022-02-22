@@ -4,5 +4,5 @@ object TaskDefaultGroups {
     const val LINT = "lint"
     const val TEST = "test"
     const val BUILD = "build"
-    const val APP = "application"
+    const val RUN = "run"
 }

@@ -10,7 +10,7 @@ import kotlin.system.measureTimeMillis
 class ParseRequirementsTxtTask(project: Project) : IncrementalTask(project) {
     override val id: String = "parseRequirementsTxt"
 
-    override val group: String = PythonPluginTaskGroups.MIGRATION
+    override val group: String = PythonPluginTaskGroups.MIGRATE
 
     override val inputs: List<Hashable> = listOf(RequirementsTxt(project).file?.hashable() ?: EmptyHashable())
     override val outputs: List<Hashable> = listOf(project.buildFile.hashable())
