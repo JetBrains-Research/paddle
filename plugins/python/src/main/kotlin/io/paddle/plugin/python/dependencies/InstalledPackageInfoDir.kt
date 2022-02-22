@@ -20,8 +20,7 @@ class InstalledPackageInfoDir(val dir: File, val type: Type, val name: PyPackage
             val infoDir = findInfoDirWithPredicateOrNull(parentDir) {
                 it.isDirectory &&
                     (it.name.startsWith("$name-$version") ||
-                        it.name.startsWith("${name.normalize()}-$version") ||
-                        it.name.startsWith("${name.denormalize()}-$version"))
+                        it.name.lowercase().startsWith("${name.normalize()}-$version"))
             } ?: return null
             val type = if (infoDir.name.endsWith(".dist-info")) Type.DIST else Type.LEGACY
             return InstalledPackageInfoDir(infoDir, type, name, version)

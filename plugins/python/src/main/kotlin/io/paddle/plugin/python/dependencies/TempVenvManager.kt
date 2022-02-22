@@ -26,10 +26,10 @@ class TempVenvManager private constructor(val venv: VenvDir, val project: Projec
 
         fun getInstance(project: Project): TempVenvManager =
             instance ?: synchronized(this) {
-                instance ?: getGlobalVenvManager(project).also { instance = it }
+                instance ?: getTempVenvManager(project).also { instance = it }
             }
 
-        private fun getGlobalVenvManager(project: Project): TempVenvManager {
+        private fun getTempVenvManager(project: Project): TempVenvManager {
             val venv = VenvDir(PaddlePyConfig.venvsDir.resolve(project.id).toFile())
             createTempVenv(project, venv).orElse { error("Failed to create Paddle's internal virtualenv. Check your python installation.") }
             return TempVenvManager(venv, project)
@@ -46,6 +46,13 @@ class TempVenvManager private constructor(val venv: VenvDir, val project: Projec
                 project.executor.execute(
                     command = venv.getInterpreterPath(project).absolutePathString(),
                     args = listOf("-m", "pip", "install", PipResolver.PIP_RESOLVER_URL),
+                    workingDir = project.workDir,
+                    terminal = Terminal.MOCK
+                )
+            }.then {
+                project.executor.execute(
+                    command = venv.getInterpreterPath(project).absolutePathString(),
+                    args = listOf("-m", "pip", "install", "--upgrade", "pip"),
                     workingDir = project.workDir,
                     terminal = Terminal.MOCK
                 )
