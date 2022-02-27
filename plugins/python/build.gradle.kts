@@ -18,6 +18,7 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.3.0")
 
     implementation("org.yaml:snakeyaml:1.30")
+    implementation("org.ini4j:ini4j:0.5.4")
 
     implementation("org.codehaus.plexus:plexus-archiver:2.2")
     implementation("org.codehaus.plexus:plexus-utils:3.4.1")

@@ -1,6 +1,7 @@
 package io.paddle.plugin.python.dependencies.repositories
 
-import io.paddle.plugin.python.PaddlePyConfig
+import io.paddle.plugin.python.PyLocations
+import io.paddle.plugin.python.config.PyGlobalConfig
 import io.paddle.plugin.python.dependencies.index.distributions.PyDistributionInfo
 import io.paddle.plugin.python.extensions.Repositories
 import io.paddle.plugin.python.utils.*
@@ -17,12 +18,13 @@ class PyPackageRepositories(
     companion object {
         private const val CACHE_SYNC_PERIOD_MS = 60000L
 
-        fun resolve(data: List<Repositories.Descriptor>): PyPackageRepositories {
+        fun resolve(repoDescriptors: List<Repositories.Descriptor>): PyPackageRepositories {
             val repositories = hashSetOf(PyPackageRepository.PYPI_REPOSITORY)
             var primarySource = PyPackageRepository.PYPI_REPOSITORY
 
-            for (descriptor in data) {
-                val url = descriptor.url.removeSuffix("/").removeSuffix("/simple")
+            // Process local configuration
+            for (descriptor in repoDescriptors) {
+                val url = descriptor.url.removeSimple()
                 require(url.isValidUrl()) { "The provided url is invalid: $url" }
                 val name = descriptor.name
                 val default = descriptor.default ?: false
@@ -40,18 +42,39 @@ class PyPackageRepositories(
                 repositories.add(repo)
             }
 
+            // Process global configuration
+            val globalConfig = PyGlobalConfig(PyLocations.globalConfig)
+            for (descriptor in globalConfig.repoDescriptors) {
+                if ((descriptor.default == true || descriptor.secondary == false) && primarySource != PyPackageRepository.PYPI_REPOSITORY) {
+                    error(
+                        "Found at least 2 repositories which are specified as primary source indexes: " +
+                            "${primarySource.name} from paddle.yaml and ${descriptor.name} from ${PyLocations.globalConfig.path}.\n" +
+                            "Please, resolve this conflict manually by editing configuration files and re-run the task."
+                    )
+                }
+                val repo = PyPackageRepository(descriptor.url.removeSimple(), descriptor.name)
+                if (descriptor.secondary == false) {
+                    primarySource = repo
+                }
+                if (descriptor.default == true) {
+                    repositories.remove(PyPackageRepository.PYPI_REPOSITORY)
+                    primarySource = repo
+                }
+                repositories.add(repo)
+            }
+
             return PyPackageRepositories(repositories, primarySource)
         }
 
         private fun updateIndex(repositories: Set<PyPackageRepository>) = runBlocking {
-            repositories.map { launch { it.updateIndex() } }.joinAll()
+            repositories.parallelForEach { it.updateIndex() }
             repositories.forEach { it.saveCache() }
         }
     }
 
     init {
         if (useCachedIndex) {
-            val cachedFiles = PaddlePyConfig.indexDir.toFile().listFiles() ?: emptyArray()
+            val cachedFiles = PyLocations.indexDir.toFile().listFiles() ?: emptyArray()
             val newRepositories = HashSet<PyPackageRepository>()
             for (repo in repositories) {
                 cachedFiles.find { it.name == repo.cacheFileName }

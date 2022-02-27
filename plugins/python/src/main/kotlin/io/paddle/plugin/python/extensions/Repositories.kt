@@ -11,7 +11,7 @@ import io.paddle.utils.hash.hashable
 val Project.repositories: Repositories
     get() = extensions.get(Repositories.Extension.key)!!
 
-class Repositories(val descriptors: List<Descriptor>) : Hashable {
+class Repositories(val project: Project, val descriptors: List<Descriptor>) : Hashable {
 
     val resolved: PyPackageRepositories by lazy { PyPackageRepositories.resolve(descriptors) }
 
@@ -30,7 +30,7 @@ class Repositories(val descriptors: List<Descriptor>) : Hashable {
                 )
             }
 
-            return Repositories(descriptors)
+            return Repositories(project, descriptors)
         }
     }
 

@@ -1,7 +1,7 @@
 package io.paddle.plugin.python.dependencies.resolvers
 
 import io.paddle.execution.ExecutionResult
-import io.paddle.plugin.python.PaddlePyConfig
+import io.paddle.plugin.python.PyLocations
 import io.paddle.plugin.python.dependencies.index.PyPackageRepositoryIndexer
 import io.paddle.plugin.python.dependencies.index.distributions.ArchivePyDistributionInfo
 import io.paddle.plugin.python.dependencies.index.distributions.WheelPyDistributionInfo
@@ -84,7 +84,7 @@ object PipResolver {
                     PyPackageRepository.PYPI_REPOSITORY.also {
                         distributionUrl = PyPackageRepositoryIndexer.getDistributionUrl(pyDistributionInfo, it)
                             ?: error(
-                                "Distribution $filename was not found in the repository ${it.url}.\n" +
+                                "Distribution $filename was not found in the repository ${it.url.getSecure()}.\n" +
                                     "It is possible that it was resolved from your local cache, " +
                                     "which is deprecated since it is not available online anymore.\n" +
                                     "Please, consider removing $distributionUrl and re-running the task."
@@ -112,7 +112,7 @@ object PipResolver {
     }
 
     object Cache {
-        private val storage = PaddlePyConfig.pipResolverCachePath.toFile()
+        private val storage = PyLocations.pipResolverCachePath.toFile()
 
         private var cache: Map<String, List<String>>
             get() {

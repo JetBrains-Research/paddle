@@ -1,10 +1,11 @@
 package io.paddle.plugin.python
 
 import io.paddle.utils.exists
+import java.io.File
 import java.nio.file.Path
 import java.nio.file.Paths
 
-object PaddlePyConfig {
+object PyLocations {
     /**
      * A home directory for Paddle. Contains installed package caches and internal virtual environment. Planning to support caching wheels, etc.
      */
@@ -51,4 +52,7 @@ object PaddlePyConfig {
     val distResolverCachePath: Path = paddleHome.resolve("distResolverCache.json")
 
     val pipResolverCachePath: Path = paddleHome.resolve("pipResolverCache.json")
+
+    val globalConfig: File = paddleHome.resolve("config.yaml").toFile()
 }
+

@@ -6,7 +6,7 @@ import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
-import io.paddle.plugin.python.PaddlePyConfig
+import io.paddle.plugin.python.PyLocations
 import io.paddle.plugin.python.utils.*
 import io.paddle.project.Project
 import kotlinx.coroutines.runBlocking
@@ -33,7 +33,7 @@ class PyInterpreter(val path: Path, val version: Version) {
         }
 
         private fun findCachedInstallation(userDefinedVersion: Version, project: Project): PyInterpreter? {
-            val interpreterDir = PaddlePyConfig.interpretersDir.toFile().listFiles()
+            val interpreterDir = PyLocations.interpretersDir.toFile().listFiles()
                 ?.filter { it.isDirectory && Version(it.name).matches(userDefinedVersion) }
                 ?.maxByOrNull { Version(it.name) }
             val execFile = interpreterDir?.deepResolve(
@@ -91,7 +91,7 @@ class PyInterpreter(val path: Path, val version: Version) {
                 ?: error("Can't find an appropriate version at $PYTHON_DISTRIBUTIONS_BASE_URL for version $userDefinedVersion")
 
             project.terminal.info("Downloading interpreter ${matchedVersion.fullName}...")
-            val workDir = PaddlePyConfig.interpretersDir.resolve(matchedVersion.number).toFile().also { it.mkdirs() }
+            val workDir = PyLocations.interpretersDir.resolve(matchedVersion.number).toFile().also { it.mkdirs() }
 
             val pythonDistName = "Python-${matchedVersion}"
             val archiveDistName = "$pythonDistName.tgz"

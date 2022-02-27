@@ -1,6 +1,6 @@
 package io.paddle.plugin.python.dependencies.resolvers
 
-import io.paddle.plugin.python.PaddlePyConfig
+import io.paddle.plugin.python.PyLocations
 import io.paddle.plugin.python.dependencies.index.PyPackageRepositoryIndexer
 import io.paddle.plugin.python.dependencies.index.distributions.*
 import io.paddle.plugin.python.dependencies.repositories.PyPackageRepository
@@ -68,7 +68,7 @@ object PyDistributionsResolver {
             ?: return null
 
         val distributionUrl = PyPackageRepositoryIndexer.getDistributionUrl(matchedDistributionInfo, repository)
-            ?: error("Distribution ${matchedDistributionInfo.distributionFilename} was not found in the repository ${repository.url}")
+            ?: error("Distribution ${matchedDistributionInfo.distributionFilename} was not found in the repository ${repository.url.getSecure()}")
         Cache.update(name, version, repository, distributionUrl)
 
         return distributionUrl
@@ -89,7 +89,7 @@ object PyDistributionsResolver {
     }
 
     object Cache {
-        private val storage = PaddlePyConfig.distResolverCachePath.toFile()
+        private val storage = PyLocations.distResolverCachePath.toFile()
 
         private var cache: Map<String, PyPackageUrl>
             get() {

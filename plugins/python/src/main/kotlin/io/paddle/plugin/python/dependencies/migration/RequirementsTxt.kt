@@ -1,8 +1,7 @@
 package io.paddle.plugin.python.dependencies.migration
 
 import io.paddle.plugin.python.dependencies.packages.PyPackageMetadata
-import io.paddle.plugin.python.utils.PyPackagesRepositoryUrl
-import io.paddle.plugin.python.utils.join
+import io.paddle.plugin.python.utils.*
 import io.paddle.project.Project
 import io.paddle.utils.hash.StringHashable
 import org.yaml.snakeyaml.DumperOptions
@@ -62,16 +61,12 @@ class RequirementsTxt(val project: Project) {
     }
 
     private fun parseRepoUrl(line: String, config: MutableMap<String, Any>, isExtra: Boolean) {
-        var url: PyPackagesRepositoryUrl =
+        val url: PyPackagesRepositoryUrl =
             if (isExtra)
-                line.substringAfter("--extra-index-url ")
+                line.substringAfter("--extra-index-url ").getSimple()
             else
-                line.substringAfter("--index-url ")
-        if (!url.trim('/').endsWith("simple")) {
-            url = url.join("simple")
-        }
-        val name: String = url.split("/").takeLast(2).getOrNull(0)
-            ?: StringHashable(url).hash()
+                line.substringAfter("--index-url ").getSimple()
+        val name: String = url.getDefaultName()
 
         val repos = config.getOrPut("repositories") { ArrayList<Map<String, Any>>() } as MutableList<Map<String, Any>>
         if (isExtra && !repos.any { it["name"] == name && it["url"] == url && it["secondary"] == "True" }) {

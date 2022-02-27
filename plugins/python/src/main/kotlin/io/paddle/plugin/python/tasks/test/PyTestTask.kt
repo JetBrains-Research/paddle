@@ -1,4 +1,4 @@
-package io.paddle.plugin.python.tasks.tests
+package io.paddle.plugin.python.tasks.test
 
 import io.paddle.plugin.python.extensions.*
 import io.paddle.plugin.standard.extensions.roots

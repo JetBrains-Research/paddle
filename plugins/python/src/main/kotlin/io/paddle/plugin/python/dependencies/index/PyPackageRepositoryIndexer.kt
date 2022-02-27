@@ -22,7 +22,7 @@ object PyPackageRepositoryIndexer {
                 return@execute allNamesDocument.body().getElementsByTag("a").map { it.text() }
             }
         } catch (exception: Throwable) {
-            error("Failed to update index of available packages for PyPI repository ${repository.name}: ${repository.url}")
+            error("Failed to update index of available packages for PyPI repository ${repository.name}: ${repository.url.getSecure()}")
         }
     }
 
@@ -37,7 +37,7 @@ object PyPackageRepositoryIndexer {
                     .mapNotNull { PyDistributionInfo.fromString(it.text()) }
             }
         } catch (exception: Throwable) {
-            error("Failed to update index of available distributions for PyPI repository ${repository.name}: ${repository.url}")
+            error("Failed to update index of available distributions for PyPI repository ${repository.name}: ${repository.url.getSecure()}")
         }
     }
 
@@ -53,7 +53,7 @@ object PyPackageRepositoryIndexer {
                 return@execute element?.attr("href")
             }
         } catch (exception: Throwable) {
-            error("Failed to resolve distribution ${distributionInfo.distributionFilename} in ${repository.url} due to network issues.")
+            error("Failed to resolve distribution ${distributionInfo.distributionFilename} in ${repository.url.getSecure()} due to network issues.")
         }
     }
 

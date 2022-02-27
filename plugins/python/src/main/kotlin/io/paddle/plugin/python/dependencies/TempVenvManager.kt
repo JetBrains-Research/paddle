@@ -1,7 +1,7 @@
 package io.paddle.plugin.python.dependencies
 
 import io.paddle.execution.ExecutionResult
-import io.paddle.plugin.python.PaddlePyConfig
+import io.paddle.plugin.python.PyLocations
 import io.paddle.plugin.python.dependencies.packages.CachedPyPackage.Companion.PYPACKAGE_CACHE_FILENAME
 import io.paddle.plugin.python.dependencies.packages.IResolvedPyPackage
 import io.paddle.plugin.python.dependencies.packages.PyPackage
@@ -30,7 +30,7 @@ class TempVenvManager private constructor(val venv: VenvDir, val project: Projec
             }
 
         private fun getTempVenvManager(project: Project): TempVenvManager {
-            val venv = VenvDir(PaddlePyConfig.venvsDir.resolve(project.id).toFile())
+            val venv = VenvDir(PyLocations.venvsDir.resolve(project.id).toFile())
             createTempVenv(project, venv).orElse { error("Failed to create Paddle's internal virtualenv. Check your python installation.") }
             return TempVenvManager(venv, project)
         }
@@ -38,8 +38,8 @@ class TempVenvManager private constructor(val venv: VenvDir, val project: Projec
         private fun createTempVenv(project: Project, venv: VenvDir, options: List<String> = emptyList(), verbose: Boolean = true): ExecutionResult {
             return project.executor.execute(
                 command = project.environment.localInterpreterPath.absolutePathString(),
-                args = listOf("-m", "venv") + options + PaddlePyConfig.venvsDir.resolve(project.id).toString(),
-                workingDir = PaddlePyConfig.paddleHome.toFile(),
+                args = listOf("-m", "venv") + options + PyLocations.venvsDir.resolve(project.id).toString(),
+                workingDir = PyLocations.paddleHome.toFile(),
                 terminal = Terminal.MOCK,
                 verbose = verbose
             ).then {
@@ -67,7 +67,7 @@ class TempVenvManager private constructor(val venv: VenvDir, val project: Projec
         return project.executor.execute(
             command = interpreterPath.absolutePathString(),
             args = listOf("-m", "pip", "install", "--no-deps", pkg.distributionUrl),
-            workingDir = PaddlePyConfig.paddleHome.toFile(),
+            workingDir = PyLocations.paddleHome.toFile(),
             terminal = project.terminal
         ).also {
             val infoDir = InstalledPackageInfoDir.findByNameAndVersion(venv.sitePackages, pkg.name, pkg.version)
@@ -79,7 +79,7 @@ class TempVenvManager private constructor(val venv: VenvDir, val project: Projec
         return project.executor.execute(
             command = interpreterPath.absolutePathString(),
             args = listOf("-m", "pip", "uninstall", "-y", pkg.name),
-            workingDir = PaddlePyConfig.paddleHome.toFile(),
+            workingDir = PyLocations.paddleHome.toFile(),
             terminal = Terminal.MOCK
         )
     }

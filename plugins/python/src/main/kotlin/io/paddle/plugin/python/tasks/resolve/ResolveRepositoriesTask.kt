@@ -1,10 +1,11 @@
 package io.paddle.plugin.python.tasks.resolve
 
-import io.paddle.plugin.python.PaddlePyConfig
+import io.paddle.plugin.python.PyLocations
 import io.paddle.plugin.python.dependencies.repositories.PyPackageRepository
 import io.paddle.plugin.python.extensions.repositories
 import io.paddle.plugin.python.tasks.PythonPluginTaskGroups
 import io.paddle.project.Project
+import io.paddle.tasks.Task
 import io.paddle.tasks.incremental.IncrementalTask
 import io.paddle.utils.hash.Hashable
 import io.paddle.utils.hash.hashable
@@ -24,10 +25,15 @@ class ResolveRepositoriesTask(project: Project) : IncrementalTask(project) {
     override val outputs: List<Hashable>
         get() {
             val descriptors = project.repositories.descriptors.map { PyPackageRepository(it.url, it.name) }
-            return PaddlePyConfig.indexDir.listDirectoryEntries()
+            return PyLocations.indexDir.listDirectoryEntries()
                 .filter { descriptors.any { desc -> desc.cacheFileName == it.name } }
                 .map { it.toFile().hashable() }
         }
+
+    override val dependencies: List<Task>
+        get() = listOf(
+            project.tasks.getOrFail("venv"),
+        )
 
     override fun act() {
         project.terminal.info("Resolving and indexing repositories...")

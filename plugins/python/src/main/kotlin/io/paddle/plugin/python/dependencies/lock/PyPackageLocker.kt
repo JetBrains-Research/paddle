@@ -7,8 +7,7 @@ import io.paddle.plugin.python.dependencies.lock.models.*
 import io.paddle.plugin.python.dependencies.packages.PyPackage
 import io.paddle.plugin.python.dependencies.repositories.PyPackageRepository
 import io.paddle.plugin.python.extensions.*
-import io.paddle.plugin.python.utils.parallelForEach
-import io.paddle.plugin.python.utils.parallelMap
+import io.paddle.plugin.python.utils.*
 import io.paddle.project.Project
 import java.util.concurrent.ConcurrentHashMap
 
@@ -72,7 +71,7 @@ object PyPackageLocker {
 
         if (availableDistributions == null && lockedPkg.distributions.isEmpty()) {
             project.terminal.warn("Can't find and check metadata for available distributions of package ${pkg.name}==${pkg.version}")
-            project.terminal.warn("Probably, the corresponding repository ${pkg.repo.url} doesn't contain JSON with metadata needed.")
+            project.terminal.warn("Probably, the corresponding repository ${pkg.repo.url.getSecure()} doesn't contain JSON with metadata needed.")
             // TODO: ask user - trust or not?
             return
         } else if (availableDistributions == null) {

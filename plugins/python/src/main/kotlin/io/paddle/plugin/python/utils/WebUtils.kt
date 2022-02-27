@@ -2,6 +2,7 @@ package io.paddle.plugin.python.utils
 
 import io.ktor.client.*
 import io.ktor.client.engine.cio.*
+import io.paddle.utils.StringHashable
 
 
 typealias PyUrl = String
@@ -40,6 +41,26 @@ fun PyUrl.join(vararg urlParts: String): String {
 
 fun PyUrl.trimmedEquals(other: PyUrl): Boolean {
     return this.trimEnd('/') == other.trimEnd('/')
+}
+
+fun PyPackagesRepositoryUrl.getDefaultName(): String {
+    val urlSimple = this.getSimple()
+    return urlSimple.split("/").takeLast(2).getOrNull(0)
+        ?: StringHashable(urlSimple).hash()
+}
+
+fun PyPackagesRepositoryUrl.getSimple(): String {
+    return if (!this.trim('/').endsWith("simple")) this.join("simple") else this
+}
+
+fun PyPackagesRepositoryUrl.removeSimple(): String {
+    return this.removeSuffix("/").removeSuffix("/simple")
+}
+
+fun PyPackagesRepositoryUrl.getSecure(): String {
+    val (protocol, uriWithToken) = split("://")
+    val uri = uriWithToken.substringAfter("@")
+    return "$protocol://***@$uri"
 }
 
 
