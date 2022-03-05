@@ -4,26 +4,24 @@ from concurrent import futures
 
 import grpc
 
-import project_pb2 as project_api
-import plugins_pb2_grpc as grpc_servicer
-import project_pb2_grpc as project_servicer
 import plugins_pb2 as plugins_api
+import plugins_pb2_grpc as grpc_servicer
+import provider
 
 
 class PaddlePlugins(grpc_servicer.PluginsServicer):
+    def __init__(self):
+        directory = "../plugins"
+        self.plugin_provider = provider.PluginsProvider(directory)
+
     def GetTasks(self, request, context):
-        greeting_info = plugins_api.TaskInfo(id="greeting", group="application", deps=[])
-        tasks = [greeting_info] if request.pluginId == "greeting" else []
+        plugin = self.plugin_provider.get_plugin(request.pluginId)
+        tasks = list(map(lambda task: plugins_api.TaskInfo(id=task.id, group=task.group, deps=task.deps), plugin.tasks().values()))
         return plugins_api.GetTasksResponse(taskInfoList=tasks)
 
     def Run(self, request, context):
-        with grpc.insecure_channel('localhost:50051') as channel:
-            stub = project_servicer.ProjectStub(channel)
-            if request.pluginId == "greeting" and request.taskId == "greeting":
-                stub.PrintMessage(project_api.PrintRequest(projectId="1", message="Hello, world!", isErr=False, color="GREEN"))
-            else:
-                stub.PrintMessage(project_api.PrintRequest(projectId="1", message="PADDLE TASK WARNING!", isErr=False, color="RED"))
-
+        plugin = self.plugin_provider.get_plugin(request.pluginId)
+        plugin.task(request.taskId).act()
         return plugins_api.google_dot_protobuf_dot_empty__pb2.Empty()
 
 
