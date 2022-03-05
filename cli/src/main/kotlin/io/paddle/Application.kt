@@ -2,6 +2,8 @@ package io.paddle
 
 import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.parameters.arguments.argument
+import io.paddle.interop.GrpcServer
+import io.paddle.interop.ProjectsDataProviderService
 import io.paddle.plugin.standard.extensions.plugins
 import io.paddle.project.Project
 import io.paddle.tasks.Task
@@ -27,9 +29,14 @@ fun main(args: Array<String>) {
         Terminal(TextOutput.Console).stderr("Can't find paddle.yaml in root")
         return
     }
-    val project = Project.load(file).also {
-        it.register(it.plugins.enabled)
-    }
+    val project = Project.load(file)
+//    GrpcServer(
+//        port = 50051,
+//        service = ProjectsDataProviderService().apply {
+//            register(project)
+//        }).start()
+
+    project.register(project.plugins.enabled)
 
     Paddle(project).main(args)
 }

@@ -21,6 +21,7 @@ plugins:
     - docker
     - ssh
     - simple-python-plugin
+    - greeting
 #    - example-test
 #  jars:
 #    - ".../paddle/example/plugins/test-plugin-0.1.0.jar"

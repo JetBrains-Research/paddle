@@ -4,7 +4,7 @@ import io.paddle.plugin.Plugin
 import io.paddle.utils.config.Configuration
 import io.paddle.utils.jar.JarUtils
 
-abstract class AbstractPluginsRepository : PluginsRepository {
+abstract class AbstractJVMBasedPluginsRepository : PluginsRepository {
     protected open val configPath = "META-INF/plugins.yaml"
     protected abstract val classLoader: ClassLoader
 

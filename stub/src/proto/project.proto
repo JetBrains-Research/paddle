@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+
+import "google/protobuf/empty.proto";
+package io.paddle.plugin.interop;
+
+// Paddle's project service definition.
+service Project {
+  /**
+  Prints message in associated terminal.
+   */
+  rpc PrintMessage (PrintRequest) returns (google.protobuf.Empty) {}
+}
+
+message PrintRequest {
+  string projectId = 1;
+  string message = 2;
+  bool isErr = 3;
+  string color = 4;
+}
