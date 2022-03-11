@@ -8,9 +8,10 @@ package io.paddle.plugin.interop;
 // Paddle's project service definition.
 service Project {
   /**
-  Prints message in associated terminal.
+  Prints message in terminal associated with specified project.
    */
   rpc PrintMessage (PrintRequest) returns (google.protobuf.Empty) {}
+
 }
 
 message PrintRequest {
