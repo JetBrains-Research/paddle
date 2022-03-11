@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-from src.container.paddle_api import PaddleTask, TaskDefaultGroups, AbstractPaddleProject, PaddlePlugin
+
+from src.paddle_api import PaddleTask, TaskDefaultGroups, AbstractPaddleProject, PaddlePlugin
 
 
 class GreetingTask(PaddleTask):
