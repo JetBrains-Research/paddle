@@ -2,7 +2,7 @@ group = rootProject.group
 version = rootProject.version
 
 plugins {
-    kotlin("plugin.serialization") version "1.4.31" apply true
+    kotlin("plugin.serialization") version "1.5.10" apply true
 }
 
 sourceSets {
@@ -23,11 +23,17 @@ dependencies {
 
     implementation("com.charleskorn.kaml", "kaml", "0.34.0")
     implementation("org.jetbrains.kotlinx", "kotlinx-serialization-json", "1.2.1")
-    implementation("com.fasterxml.jackson.core", "jackson-databind","2.12.5")
 
+    implementation(kotlin("stdlib"))
     implementation(kotlin("reflect"))
+    testImplementation(kotlin("test"))
+
     implementation("com.google.protobuf:protobuf-java:3.19.0")
     implementation("io.grpc:grpc-netty-shaded:1.44.0")
 
     compileOnly("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.0")
+}
+
+tasks.test {
+    useJUnitPlatform()
 }
