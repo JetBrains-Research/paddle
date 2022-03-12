@@ -1,6 +1,6 @@
 package io.paddle.specification.tree
 
-import io.paddle.specification.tree.MutableConfigSpecTree.SpecTreeNode
+import io.paddle.specification.tree.ConfigurationSpecification.SpecTreeNode
 import io.paddle.specification.visitor.SpecTreeVisitor
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -9,15 +9,14 @@ import kotlinx.serialization.Serializable
 @SerialName("object")
 open class CompositeSpecTreeNode(
     override val title: String? = null,
-    override val description: String? = null
-) : SpecTreeNode() {
+    override val description: String? = null,
 
     @SerialName("required")
-    val namesOfRequired: MutableList<String>? = null
+    var namesOfRequired: MutableList<String>? = null,
 
     @SerialName("properties")
     val children: MutableMap<String, SpecTreeNode> = hashMapOf()
-
+) : SpecTreeNode() {
     override fun <R, D> accept(visitor: SpecTreeVisitor<R, D>, ctx: D) = visitor.visit(this, ctx)
 }
 
@@ -28,43 +27,39 @@ open class ArraySpecTreeNode(override val title: String? = null, override val de
 }
 
 @Serializable
-abstract class SimpleSpecTreeNode : SpecTreeNode() {
-    @SerialName("enum")
-    abstract val validValues: MutableList<*>?
-}
-
-@Serializable
 @SerialName("string")
 class StringSpecTreeNode(
-    override val title: String? = null,
-    override val description: String? = null,
+    override var title: String? = null,
+    override var description: String? = null,
+
     @SerialName("enum")
-    override val validValues: MutableList<String>? = null
-) :
-    SimpleSpecTreeNode() {
+    var validValues: MutableList<String>? = null
+) : SpecTreeNode() {
     override fun <R, D> accept(visitor: SpecTreeVisitor<R, D>, ctx: D) = visitor.visit(this, ctx)
 }
 
 @Serializable
 @SerialName("boolean")
 class BooleanSpecTreeNode(
-    override val title: String? = null,
-    override val description: String? = null,
+    override var title: String? = null,
+    override var description: String? = null,
+
     @SerialName("enum")
-    override val validValues: MutableList<Boolean>? = null
+    var validValues: MutableList<Boolean>? = null
 ) :
-    SimpleSpecTreeNode() {
+    SpecTreeNode() {
     override fun <R, D> accept(visitor: SpecTreeVisitor<R, D>, ctx: D) = visitor.visit(this, ctx)
 }
 
 @Serializable
 @SerialName("number")
 class IntegerSpecTreeNode(
-    override val title: String? = null,
-    override val description: String? = null,
+    override var title: String? = null,
+    override var description: String? = null,
+
     @SerialName("enum")
-    override val validValues: MutableList<Int>? = null
+    var validValues: MutableList<Int>? = null
 ) :
-    SimpleSpecTreeNode() {
+    SpecTreeNode() {
     override fun <R, D> accept(visitor: SpecTreeVisitor<R, D>, ctx: D) = visitor.visit(this, ctx)
 }

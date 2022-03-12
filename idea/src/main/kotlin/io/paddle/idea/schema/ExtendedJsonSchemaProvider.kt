@@ -11,7 +11,7 @@ class ExtendedJsonSchemaProvider(resource: String, presentable: String, filesToA
         val baseSchema = super.getSchemaFile()
         if (baseSchema != null) {
             val configSpec = PaddleProject.currentProject?.configSpec
-            return if (configSpec is JsonSchemaSpecification) LightVirtualFile(name, configSpec.build()) else null
+            return (configSpec as? JsonSchemaSpecification)?.let { LightVirtualFile(name, it.specialize()) }
         }
         return baseSchema
     }

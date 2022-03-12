@@ -8,15 +8,9 @@ import kotlinx.serialization.modules.*
 
 internal object JSONSCHEMA {
     private val module = SerializersModule {
-        polymorphic(MutableConfigSpecTree.SpecTreeNode::class) {
+        polymorphic(ConfigurationSpecification.SpecTreeNode::class) {
             subclass(CompositeSpecTreeNode::class)
             subclass(ArraySpecTreeNode::class)
-            subclass(StringSpecTreeNode::class)
-            subclass(IntegerSpecTreeNode::class)
-            subclass(BooleanSpecTreeNode::class)
-        }
-
-        polymorphic(SimpleSpecTreeNode::class) {
             subclass(StringSpecTreeNode::class)
             subclass(IntegerSpecTreeNode::class)
             subclass(BooleanSpecTreeNode::class)

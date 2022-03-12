@@ -2,9 +2,9 @@ package io.paddle.idea.utils
 
 import io.paddle.interop.GrpcServer
 import io.paddle.interop.ProjectsDataProviderService
-import io.paddle.specification.tree.ConfigurationSpecification
 import io.paddle.plugin.standard.extensions.plugins
 import io.paddle.project.Project
+import io.paddle.specification.tree.SpecializedConfigSpec
 import io.paddle.terminal.TextOutput
 import io.paddle.utils.config.Configuration
 import java.io.File
@@ -21,7 +21,7 @@ object PaddleProject {
 
     fun load(file: File, workDir: File, output: TextOutput = TextOutput.Console): Project {
         val config = Configuration.from(file)
-        val configSpec = ConfigurationSpecification.fromResource("/schema/paddle-schema.json")
+        val configSpec = SpecializedConfigSpec.fromResource("/schema/paddle-schema.json")
         val project = Project(config, configSpec, workDir, output)
         service.register(project)
         project.register(project.plugins.enabled)

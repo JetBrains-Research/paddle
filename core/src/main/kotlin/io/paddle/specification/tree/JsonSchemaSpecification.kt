@@ -1,14 +1,32 @@
 package io.paddle.specification.tree
 
-import io.paddle.specification.*
-import io.paddle.specification.tree.MutableConfigSpecTree.SpecTreeNode
 import io.paddle.specification.visitor.JsonSchemaSpecVisitor
 import io.paddle.utils.json.schema.JSONSCHEMA
+import io.paddle.utils.splitAndTrim
 
-class JsonSchemaSpecification(baseSchemaResourceUrl: String) : ConfigurationSpecification() {
+class JsonSchemaSpecification(baseSchemaResourceUrl: String) : SpecializedConfigSpec<String, Unit>() {
     private val root = readSchemaBy(baseSchemaResourceUrl)
 
-    private val visitor = JsonSchemaSpecVisitor()
+    override val visitor = JsonSchemaSpecVisitor()
+
+    @Suppress("UNCHECKED_CAST")
+    override fun <T : SpecTreeNode> get(key: String): T? {
+        val parts = key.splitAndTrim(".").takeIf { it.isNotEmpty() } ?: return root as T?
+
+        val path = parts.dropLast(1)
+        val name = parts.last()
+
+        var current: Map<String, SpecTreeNode> = root.children
+        for (part in path) {
+            current = (current[part] as? CompositeSpecTreeNode)?.children ?: return null
+        }
+
+        return current[name] as? T?
+    }
+
+    override fun specialize() = visitor.visit(root, Unit)
+
+    override fun toString() = specialize()
 
     private fun readSchemaBy(url: String): CompositeSpecTreeNode {
         val inputStreamWithSchema = javaClass.classLoader.getResourceAsStream(url)
@@ -16,37 +34,5 @@ class JsonSchemaSpecification(baseSchemaResourceUrl: String) : ConfigurationSpec
             it.readText()
         }
         return schema?.let { JSONSCHEMA.parse(it) } ?: CompositeSpecTreeNode()
-    }
-
-    override fun build(): String = visitor.visit(root, Unit)
-
-    override fun toString() = build()
-
-    override fun insert(name: String, node: SpecTreeNode, destination: List<String>) {
-        val printedDest = destination.joinToString(".", "'", "'")
-        findBy(root, destination)?.also {
-            if (it is CompositeSpecTreeNode) {
-                it.children[name] = node
-//                    throw ConfigSpecificationException("Cannot insert to children of node specified by $printedDest")
-
-            } else
-                throw ConfigSpecificationException("Path $printedDest specify a node with not a Composite type")
-        } ?: throw ConfigSpecificationException("Cannot find a node by path $printedDest")
-    }
-
-    companion object {
-        private fun findBy(root: CompositeSpecTreeNode, targetPath: List<String>): SpecTreeNode? {
-            if (targetPath.isEmpty()) {
-                return root
-            }
-            var curNode: SpecTreeNode? = root
-            for (name in targetPath) {
-                if (curNode !is CompositeSpecTreeNode) {
-                    return null
-                }
-                curNode = curNode.children[name]
-            }
-            return curNode
-        }
     }
 }

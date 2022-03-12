@@ -98,7 +98,7 @@ internal class SerializeNodesHierarchyTest {
     @Test
     fun `test decode then encode is identity function`() {
         val content: String = readContent(schemas[0])
-        val encodedContent = JSONSCHEMA.string(JSONSCHEMA.parse<MutableConfigSpecTree.SpecTreeNode>(content))
+        val encodedContent = JSONSCHEMA.string(JSONSCHEMA.parse<ConfigurationSpecification.SpecTreeNode>(content))
         assertEquals(content.trim(), encodedContent.trim())
     }
 
@@ -113,7 +113,7 @@ internal class SerializeNodesHierarchyTest {
 
         private fun parseAndTypingTreeFrom(schema: String): CompositeSpecTreeNode {
             val content: String = readContent(schema)
-            val root: MutableConfigSpecTree.SpecTreeNode = JSONSCHEMA.parse(content)
+            val root: ConfigurationSpecification.SpecTreeNode = JSONSCHEMA.parse(content)
             assertIs<CompositeSpecTreeNode>(root)
             return root
         }
