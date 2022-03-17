@@ -51,8 +51,10 @@ object PipResolver {
 
         // TODO: resolve requirements which repo is specified directly
 
-        Cache.update(pipResolveArgs, output)
-        return parse(output, project)
+        val packages = parse(output, project)
+        Cache.update(pipResolveArgs, output) // update cache iff output was parsed successfully
+
+        return packages
     }
 
     private fun parse(output: List<String>, project: Project): Set<PyPackage> {

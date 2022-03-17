@@ -9,15 +9,16 @@ import org.yaml.snakeyaml.DumperOptions
 import org.yaml.snakeyaml.Yaml
 import java.io.File
 import java.io.FileWriter
+import java.util.*
 
 class PyGlobalConfig(file: File) {
     val repoDescriptors: List<Repositories.Descriptor>
 
     /**
-     * If `$PADDLE_HOME/config.yaml` file exists, then it is assumed to be a global configuration for Paddle.
+     * If `file` (YAML) exists, then it is assumed to be a global configuration for Paddle.
      *
      * Otherwise, Paddle tries to find `pip.conf` file somewhere on your local machine, and if it succeeds,
-     * it parses and saves a new `config.yaml` file.
+     * it parses and saves a new `config.yaml` to `file`.
      */
     init {
         if (file.exists()) {
@@ -61,8 +62,8 @@ class PyGlobalConfig(file: File) {
                     mapOf(
                         "name" to it.name,
                         "url" to it.url,
-                        "default" to it.default,
-                        "secondary" to it.secondary
+                        "default" to it.default.toString().replaceFirstChar { c -> c.titlecase(Locale.getDefault()) },
+                        "secondary" to it.secondary.toString().replaceFirstChar { c -> c.titlecase(Locale.getDefault()) },
                     )
                 }), writer
             )

@@ -23,7 +23,24 @@ class PipConfig private constructor(
 
                     return PipConfig(userConfig, globalConfig)
                 }
-                else -> TODO()
+                Os.isFamily(Os.FAMILY_UNIX) -> {
+                    val home = System.getenv("HOME")!!
+                    val userConfig = Paths.get(home, ".config", "pip", "pip.conf")
+                        .takeIf { it.exists() }?.let { Ini(it.toFile()) }
+                        ?: Paths.get(home, ".pip", "pip.conf")
+                            .takeIf { it.exists() }?.let { Ini(it.toFile()) }
+
+                    val xdgConfigDirs = System.getenv("XDG_CONFIG_DIRS") ?: "/etc/xdg"
+                    val globalConfig = Paths.get(xdgConfigDirs, "pip", "pip.conf")
+                        .takeIf { it.exists() }?.let { Ini(it.toFile()) }
+                        ?: Paths.get("etc", "pip.conf")
+                            .takeIf { it.exists() }?.let { Ini(it.toFile()) }
+
+                    return PipConfig(userConfig, globalConfig)
+                }
+                else -> {
+                    error("Can not find pip configuration file: only Unix and MacOS platforms are supported now.")
+                }
             }
         }
     }
@@ -34,8 +51,8 @@ class PipConfig private constructor(
     }
 
     val indexUrl: String?
-        get() = resolve("global", "indexUrl")
+        get() = resolve("global", "index-url")
 
     val extraIndexUrl: String?
-        get() = resolve("global", "extraIndexUrl")
+        get() = resolve("global", "extra-index-url")
 }
