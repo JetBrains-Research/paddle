@@ -66,7 +66,7 @@ object PipResolver {
         }
 
         val lines = output.slice((startIdx + 1) until endIdx)
-        val comesFromByPackage = HashMap<PyPackage, PyPackageUrl>()
+        val comesFromUrlByPackage = HashMap<PyPackage, PyPackageUrl>()
 
         for (i in lines.indices step PACKAGE_PROPERTIES_NUM) {
             val name = lines[i].substringAfter(": ")
@@ -99,18 +99,18 @@ object PipResolver {
             }
 
             val pkg = PyPackage(name, pyDistributionInfo.version, repo, distributionUrl)
-            comesFromByPackage[pkg] = comesFromDistributionUrl
+            comesFromUrlByPackage[pkg] = comesFromDistributionUrl
         }
 
         // Restoring inter-package dependencies via 'comesFrom' field
-        for ((pkg, comesFromDistributionUrl) in comesFromByPackage) {
+        for ((pkg, comesFromDistributionUrl) in comesFromUrlByPackage) {
             if (comesFromDistributionUrl != "None") {
-                val comesFrom = comesFromByPackage.keys.find { it.distributionUrl == comesFromDistributionUrl }
+                val comesFrom = comesFromUrlByPackage.keys.find { it.distributionUrl == comesFromDistributionUrl }
                 pkg.comesFrom = comesFrom
             }
         }
 
-        return comesFromByPackage.keys
+        return comesFromUrlByPackage.keys
     }
 
     object Cache {

@@ -53,20 +53,23 @@ class PyGlobalConfig(file: File) {
             }
 
             repoDescriptors = descriptors
-
-            val writer = FileWriter(PyLocations.globalConfig)
-            val options = DumperOptions()
-            options.defaultFlowStyle = DumperOptions.FlowStyle.BLOCK
-            Yaml(options).dump(
-                mapOf("repositories" to descriptors.map {
-                    mapOf(
-                        "name" to it.name,
-                        "url" to it.url,
-                        "default" to it.default.toString().replaceFirstChar { c -> c.titlecase(Locale.getDefault()) },
-                        "secondary" to it.secondary.toString().replaceFirstChar { c -> c.titlecase(Locale.getDefault()) },
-                    )
-                }), writer
-            )
+            saveGlobalConfigYAML()
         }
+    }
+
+    private fun saveGlobalConfigYAML() {
+        val writer = FileWriter(PyLocations.globalConfig)
+        val options = DumperOptions()
+        options.defaultFlowStyle = DumperOptions.FlowStyle.BLOCK
+        Yaml(options).dump(
+            mapOf("repositories" to repoDescriptors.map {
+                mapOf(
+                    "name" to it.name,
+                    "url" to it.url,
+                    "default" to it.default.toString().replaceFirstChar { c -> c.titlecase(Locale.getDefault()) },
+                    "secondary" to it.secondary.toString().replaceFirstChar { c -> c.titlecase(Locale.getDefault()) },
+                )
+            }), writer
+        )
     }
 }

@@ -16,7 +16,6 @@ import kotlinx.serialization.builtins.serializer
 object PyDistributionsResolver {
     // See https://www.python.org/dev/peps/pep-0425/#id1
     // https://docs.python.org/3/distutils/apiref.html#distutils.util.get_platform
-    // TODO: caching
     suspend fun resolve(name: PyPackageName, version: PyPackageVersion, repository: PyPackageRepository, project: Project): PyPackageUrl? {
         Cache.find(name, version, repository)?.let { return it }
 

@@ -10,7 +10,7 @@ typealias PyPackagesRepositoryUrl = PyUrl
 typealias PyPackageUrl = PyUrl
 
 private const val THREADS_COUNT = 24
-private const val TIMEOUT_MS = 5000L
+private const val TIMEOUT_MS = 20000L
 
 internal val httpClient = HttpClient(CIO) {
     followRedirects = true
@@ -60,7 +60,7 @@ fun PyPackagesRepositoryUrl.removeSimple(): String {
 fun PyPackagesRepositoryUrl.getSecure(): String {
     val (protocol, uriWithToken) = split("://")
     val uri = uriWithToken.substringAfter("@")
-    return "$protocol://***@$uri"
+    return "$protocol://$uri"
 }
 
 

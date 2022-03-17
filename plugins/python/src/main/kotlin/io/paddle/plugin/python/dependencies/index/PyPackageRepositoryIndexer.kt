@@ -9,6 +9,7 @@ import io.paddle.plugin.python.dependencies.index.metadata.JsonPackageMetadataIn
 import io.paddle.plugin.python.dependencies.packages.PyPackage
 import io.paddle.plugin.python.dependencies.repositories.PyPackageRepository
 import io.paddle.plugin.python.utils.*
+import io.paddle.terminal.Terminal
 import kotlinx.serialization.decodeFromString
 import org.jsoup.Jsoup
 import java.io.File
@@ -30,14 +31,10 @@ object PyPackageRepositoryIndexer {
         packageName: String,
         repository: PyPackageRepository
     ): List<PyDistributionInfo> {
-        return try {
-            httpClient.request<HttpStatement>(repository.urlSimple.join(packageName)).execute { response ->
-                val distributionsPage = Jsoup.parse(response.readText())
-                return@execute distributionsPage.body().getElementsByTag("a")
-                    .mapNotNull { PyDistributionInfo.fromString(it.text()) }
-            }
-        } catch (exception: Throwable) {
-            error("Failed to update index of available distributions for PyPI repository ${repository.name}: ${repository.url.getSecure()}")
+        return httpClient.request<HttpStatement>(repository.urlSimple.join(packageName)).execute { response ->
+            val distributionsPage = Jsoup.parse(response.readText())
+            return@execute distributionsPage.body().getElementsByTag("a")
+                .mapNotNull { PyDistributionInfo.fromString(it.text()) }
         }
     }
 
@@ -63,13 +60,16 @@ object PyPackageRepositoryIndexer {
         destination.writeBytes(responseBody)
     }
 
-    suspend fun downloadMetadata(pkg: PyPackage): JsonPackageMetadataInfo? {
+    suspend fun downloadMetadata(pkg: PyPackage, terminal: Terminal): JsonPackageMetadataInfo? {
         val metadataJsonUrl = pkg.repo.url.join("pypi", pkg.name, pkg.version, "json")
-        val response: HttpResponse = try {
-            httpClient.request(metadataJsonUrl)
-        } catch (exception: Throwable) {
-            error("Failed to download metadata for package '${pkg.name}' from $metadataJsonUrl")
+        val response: HttpResponse = httpClient.request(metadataJsonUrl)
+        return when (response.status) {
+            HttpStatusCode.OK -> jsonParser.decodeFromString(response.readText())
+            else -> {
+                terminal.warn("Failed to download metadata for package ${pkg.name}==${pkg.version} from $metadataJsonUrl")
+                terminal.warn("Http status: ${response.status}")
+                null
+            }
         }
-        return if (response.status == HttpStatusCode.OK) jsonParser.decodeFromString(response.readText()) else null
     }
 }
