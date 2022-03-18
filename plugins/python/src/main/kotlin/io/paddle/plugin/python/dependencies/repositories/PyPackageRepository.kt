@@ -34,7 +34,7 @@ class PyPackageRepository(val url: PyPackagesRepositoryUrl, val name: String) {
     val urlSimple: PyPackagesRepositoryUrl = url.join("simple")
 
     @Transient
-    val cacheFileName: String = StringHashable(url).hash()
+    val cacheFileName: String = "repo_" + StringHashable(url).hash() + ".json"
 
     suspend fun updateIndex() {
         packagesNamesCache = PackedWordList(PyPackageRepositoryIndexer.downloadPackagesNames(this).toSet())

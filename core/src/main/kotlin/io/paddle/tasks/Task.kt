@@ -37,18 +37,14 @@ abstract class Task(val project: Project) {
      * Perform action which is the core essence of the task.
      *
      * Note, that in case Cacheable task [act] still will be called since it does not check for cache.
+     * To check for the caches and current state, use [run].
      */
     protected abstract fun act()
 
     /**
-     * Run task with respect to the caches and current state.
+     * Decorated version of [act]: prints current state to project's terminal.
      */
-    open fun run() {
-        runDependent()
-        execute()
-    }
-
-    protected fun execute() {
+    protected open fun execute() {
         project.terminal.commands.stdout(CommandOutput.Command.Task(id, CommandOutput.Command.Task.Status.EXECUTE))
 
         try {
@@ -61,11 +57,40 @@ abstract class Task(val project: Project) {
         project.terminal.commands.stdout(CommandOutput.Command.Task(id, CommandOutput.Command.Task.Status.DONE))
     }
 
-    protected fun runDependent() {
-        for (dep in dependencies) {
-            dep.run()
+    /**
+     * Run task with respect to the caches and current state.
+     */
+    open fun run() {
+        executionOrder.forEach { it.execute() }
+    }
+
+    open val executionOrder: ExecutionOrder
+        get() = ExecutionOrder(this)
+
+    class ExecutionOrder(root: Task) : Iterable<Task> {
+        private val visited: MutableSet<Task>
+        private val topologicalOrder: MutableList<Task>
+
+        init {
+            visited = HashSet()
+            topologicalOrder = ArrayList()
+            dfs(root)
+        }
+
+        override fun iterator() = topologicalOrder.iterator()
+
+        private fun dfs(task: Task) {
+            visited.add(task)
+            for (dep in task.dependencies) {
+                if (dep !in visited) {
+                    dfs(dep)
+                }
+            }
+            topologicalOrder.add(task)
         }
     }
 
     class ActException(reason: String) : Exception(reason)
+
+    override fun hashCode(): Int = id.hashCode()
 }

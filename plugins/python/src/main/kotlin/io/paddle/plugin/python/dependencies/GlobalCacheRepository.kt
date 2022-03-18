@@ -16,7 +16,7 @@ import kotlin.io.path.name
 /**
  * A service class for managing Paddle's cache.
  *
- * @see PyLocations.cacheDir
+ * @see PyLocations.packagesDir
  */
 object GlobalCacheRepository {
     private const val CACHE_SYNC_PERIOD_MS: Long = 60000L
@@ -29,7 +29,7 @@ object GlobalCacheRepository {
 
     fun updateCache() {
         cachedPackages.clear()
-        PyLocations.cacheDir.toFile().listFiles()?.forEach { repoDir ->
+        PyLocations.packagesDir.toFile().listFiles()?.forEach { repoDir ->
             repoDir.listFiles()?.forEach { packageDir ->
                 packageDir.listFiles()?.forEach { srcPath ->
                     cachedPackages.add(CachedPyPackage.load(srcPath.toPath()))
@@ -39,7 +39,7 @@ object GlobalCacheRepository {
     }
 
     private fun getPathToCachedPackage(pkg: PyPackage): Path =
-        PyLocations.cacheDir.deepResolve(
+        PyLocations.packagesDir.deepResolve(
             pkg.repo.cacheFileName,
             pkg.name,
             pkg.version

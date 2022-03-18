@@ -20,7 +20,7 @@ class Project(val config: Configuration, val workDir: File = File("."), val outp
         fun create(project: Project): V
     }
 
-    val id: String = StringHashable(workDir.absolutePath).hash()
+    val id: String = "project_" + StringHashable(workDir.absolutePath).hash()
     val tasks = Tasks()
     val extensions = Extendable()
     var executor: CommandExecutor = LocalCommandExecutor(output)
