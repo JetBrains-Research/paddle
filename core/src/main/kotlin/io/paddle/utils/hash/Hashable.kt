@@ -2,9 +2,12 @@ package io.paddle.utils.hash
 
 import io.paddle.utils.json.JSON
 import kotlinx.serialization.SerializationStrategy
-import org.apache.commons.codec.binary.Hex
 import org.apache.commons.codec.digest.DigestUtils
 import java.io.File
+import java.nio.file.Files
+import java.nio.file.attribute.BasicFileAttributes
+import java.util.zip.Adler32
+
 
 interface Hashable {
     fun hash(): String
@@ -52,9 +55,9 @@ class FileHashable(private val file: File) : Hashable {
     }
 
     private fun hashFile(): String {
-        val path = StringHashable(file.canonicalPath)
-        val digest = StringHashable(Hex.encodeHexString(DigestUtils.digest(DigestUtils.getMd5Digest(), file)))
-        return AggregatedHashable(listOf(path, digest)).hash()
+        val ad32 = Adler32().apply { update(file.readBytes()) }
+        val updatedAt = Files.readAttributes(file.toPath(), BasicFileAttributes::class.java).lastModifiedTime()
+        return ad32.value.toString() + file.canonicalPath + updatedAt
     }
 
     private fun hashFolder(): String {

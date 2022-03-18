@@ -9,6 +9,7 @@ import io.paddle.schema.extensions.JsonSchema
 import io.paddle.terminal.*
 import io.paddle.utils.config.Configuration
 import io.paddle.utils.ext.Extendable
+import io.paddle.utils.hash.StringHashable
 import io.paddle.utils.yaml.YAML
 import io.paddle.utils.hash.StringHashable
 import java.io.File

@@ -2,7 +2,7 @@ package io.paddle.plugin.python.utils
 
 import io.ktor.client.*
 import io.ktor.client.engine.cio.*
-import io.paddle.utils.StringHashable
+import io.paddle.utils.hash.StringHashable
 
 
 typealias PyUrl = String
