@@ -13,15 +13,16 @@ environment:
   path: .venv
   python: 3.8
 
-# By default, any custom repository will have precedence over PyPI
+# By default, any custom repository will have precedence over PyPI (secondary == False)
 repositories:
-  #  - name: ml
-  #    url: https://repo.labs.intellij.net/artifactory/api/pypi/intellij-ml/simple/
-  #    default: False # If True, this would disable the global PyPI repo, and make <ml> the default fallback source
+  - name: grazie-ml
+    url: https://packages.jetbrains.team/pypi/p/grazi/grazie-ml/simple
+    default: False # If True, this would disable the global PyPI repo, and make <ml> the default fallback source
+    authentication: netrc
 
   - name: paper-analyzer
     url: https://repo.labs.intellij.net/artifactory/api/pypi/paper-analyzer/simple/
-    secondary: True # Thus, <ml> still would be the primary source. But without such flag, this repo would have precedence over <ml>
+    secondary: True # Thus, <grazie-ml> still would be the primary source. But without such flag, this repo would have precedence over <ml>
 
 requirements:
   - name: redis

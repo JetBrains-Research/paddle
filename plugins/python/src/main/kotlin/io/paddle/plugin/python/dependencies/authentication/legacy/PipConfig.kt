@@ -1,4 +1,4 @@
-package io.paddle.plugin.python.config
+package io.paddle.plugin.python.dependencies.authentication.legacy
 
 import io.paddle.plugin.python.utils.exists
 import org.codehaus.plexus.util.Os

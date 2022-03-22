@@ -112,6 +112,42 @@
           },
           "secondary": {
             "type": "boolean"
+          },
+          "auth": {
+            "description": "The way how credentials for authentication will be provided",
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": [
+                  "keyring",
+                  "netrc",
+                  "none",
+                  "profile"
+                ]
+              }
+            },
+            "allOf": [
+              {
+                "if": {
+                  "properties": {
+                    "type": {
+                      "const": "profile"
+                    }
+                  }
+                },
+                "then": {
+                  "required": [
+                    "profile"
+                  ],
+                  "properties": {
+                    "profile": {
+                      "description": "Profile name to be used for authentication (all profiles could be found at $PADDLE_HOME/profiles.yaml)",
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            ]
           }
         }
       }

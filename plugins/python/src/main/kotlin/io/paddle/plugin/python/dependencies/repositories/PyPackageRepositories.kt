@@ -1,7 +1,6 @@
 package io.paddle.plugin.python.dependencies.repositories
 
 import io.paddle.plugin.python.PyLocations
-import io.paddle.plugin.python.config.PyGlobalConfig
 import io.paddle.plugin.python.dependencies.index.distributions.PyDistributionInfo
 import io.paddle.plugin.python.extensions.Repositories
 import io.paddle.plugin.python.utils.*
@@ -22,15 +21,13 @@ class PyPackageRepositories(
             val repositories = hashSetOf(PyPackageRepository.PYPI_REPOSITORY)
             var primarySource = PyPackageRepository.PYPI_REPOSITORY
 
-            // Process local configuration
             for (descriptor in repoDescriptors) {
-                val url = descriptor.url.removeSimple()
-                require(url.isValidUrl()) { "The provided url is invalid: $url" }
-                val name = descriptor.name
+                require(descriptor.url.isValidUrl()) { "The provided url is invalid: ${descriptor.url}" }
+
+                val repo = PyPackageRepository(descriptor)
+
                 val default = descriptor.default ?: false
                 val secondary = descriptor.secondary ?: false
-
-                val repo = PyPackageRepository(url, name)
                 if (!secondary) {
                     primarySource = repo
                 }
@@ -39,27 +36,6 @@ class PyPackageRepositories(
                     primarySource = repo
                 }
 
-                repositories.add(repo)
-            }
-
-            // Process global configuration
-            val globalConfig = PyGlobalConfig(PyLocations.globalConfig)
-            for (descriptor in globalConfig.repoDescriptors) {
-                if ((descriptor.default == true || descriptor.secondary == false) && primarySource != PyPackageRepository.PYPI_REPOSITORY) {
-                    error(
-                        "Found at least 2 repositories which are specified as primary source indexes: " +
-                            "${primarySource.name} from paddle.yaml and ${descriptor.name} from ${PyLocations.globalConfig.path}.\n" +
-                            "Please, resolve this conflict manually by editing configuration files and re-run the task."
-                    )
-                }
-                val repo = PyPackageRepository(descriptor.url.removeSimple(), descriptor.name)
-                if (descriptor.secondary == false) {
-                    primarySource = repo
-                }
-                if (descriptor.default == true) {
-                    repositories.remove(PyPackageRepository.PYPI_REPOSITORY)
-                    primarySource = repo
-                }
                 repositories.add(repo)
             }
 
@@ -119,11 +95,6 @@ class PyPackageRepositories(
         }
     }
 
-    fun getRepositoryByPyPackageUrl(url: PyPackageUrl): PyPackageRepository {
-        return this.repositories.find { repo -> url.startsWith(repo.url) }
-            ?: throw IllegalStateException("The repository with specified URL was not found.")
-    }
-
     val all: Set<PyPackageRepository>
         get() = repositories.toSet()
 
@@ -133,11 +104,11 @@ class PyPackageRepositories(
     val asPipArgs: List<String>
         get() = ArrayList<String>().apply {
             add("--index-url")
-            add(this@PyPackageRepositories.primarySource.urlSimple)
+            add(this@PyPackageRepositories.primarySource.basicAuthUrlSimple)
             for (repo in this@PyPackageRepositories.repositories) {
                 if (repo != this@PyPackageRepositories.primarySource) {
                     add("--extra-index-url")
-                    add(repo.urlSimple)
+                    add(repo.basicAuthUrlSimple)
                 }
             }
         }

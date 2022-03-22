@@ -24,7 +24,7 @@ class ResolveRepositoriesTask(project: Project) : IncrementalTask(project) {
     // Outputs: checksums for file indexes of the repositories which are specified in the current project
     override val outputs: List<Hashable>
         get() {
-            val descriptors = project.repositories.descriptors.map { PyPackageRepository(it.url, it.name) }
+            val descriptors = project.repositories.descriptors.map { PyPackageRepository(it) }
             return PyLocations.indexDir.listDirectoryEntries()
                 .filter { descriptors.any { desc -> desc.cacheFileName == it.name } }
                 .map { it.toFile().hashable() }
