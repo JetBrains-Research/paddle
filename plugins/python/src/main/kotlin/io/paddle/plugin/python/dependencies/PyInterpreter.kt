@@ -13,43 +13,89 @@ import kotlinx.coroutines.runBlocking
 import org.codehaus.plexus.archiver.tar.TarGZipUnArchiver
 import org.codehaus.plexus.logging.console.ConsoleLoggerManager
 import org.codehaus.plexus.util.Os
+import org.codehaus.plexus.util.cli.CommandLineUtils
+import org.codehaus.plexus.util.cli.Commandline
+import org.jsoup.Jsoup
 import java.io.File
 import java.nio.file.Path
 
-// @path is a path to ./paddle/interpreters/... , not the local project/.venv/bin/python
-// (but the last one is a symlink for it)
+// @path is a path to executable in ./paddle/interpreters/... OR some local installation, not the local project/.venv/bin/python
+// (but the last one is a symlink to it)
 class PyInterpreter(val path: Path, val version: Version) {
     companion object {
         private const val PYTHON_DISTRIBUTIONS_BASE_URL = "http://www.python.org/ftp/python/"
         private const val LOCAL_PYTHON_DIR_NAME = ".localpython"
 
-        fun find(version: Version, project: Project): PyInterpreter {
-            val loc = getLocation(version, project)
-            return PyInterpreter(
-                path = loc.takeIf { it.exists() } ?: downloadAndInstall(version, project),
-                version = version
-            )
+        fun find(userDefinedVersion: Version, project: Project): PyInterpreter {
+            return findCachedInstallation(userDefinedVersion, project)
+                ?: findLocalInstallation(userDefinedVersion, project)
+                ?: downloadAndInstall(userDefinedVersion, project)
         }
 
-        fun getLocation(version: Version, project: Project): Path {
-            // TODO: check local installations
-            return PaddlePyConfig.interpretersDir.deepResolve(
-                version.number,
-                version.fullName,
+        private fun findCachedInstallation(userDefinedVersion: Version, project: Project): PyInterpreter? {
+            val interpreterDir = PaddlePyConfig.interpretersDir.toFile().listFiles()
+                ?.filter { it.isDirectory && Version(it.name).matches(userDefinedVersion) }
+                ?.maxByOrNull { Version(it.name) }
+            val execFile = interpreterDir?.deepResolve(
+                userDefinedVersion.fullName,
                 LOCAL_PYTHON_DIR_NAME,
                 "bin",
-                version.executableName
+                userDefinedVersion.executableName
             )
+            return execFile?.takeIf { it.exists() }?.let { PyInterpreter(it.toPath(), getVersion(it)) }?.also {
+                project.terminal.info("Found cached installation of ${it.version.fullName}: ${it.path}")
+            }
+        }
+
+        private fun findLocalInstallation(userDefinedVersion: Version, project: Project): PyInterpreter? {
+            if (Os.isFamily(Os.FAMILY_MAC) || Os.isFamily(Os.FAMILY_UNIX)) {
+                var bestCandidate: PyInterpreter? = null
+                System.getenv("PATH").split(":").forEach { path ->
+                    File(path).listFiles()?.filter { it.name.matches(RegexCache.PYTHON_EXECUTABLE_REGEX) }?.forEach { execFile ->
+                        val currentVersion = getVersion(execFile)
+                        if (currentVersion.matches(userDefinedVersion)) {
+                            if (bestCandidate == null || bestCandidate!!.version <= currentVersion) {
+                                bestCandidate = PyInterpreter(execFile.toPath(), currentVersion)
+                            }
+                        }
+                    }
+                }
+                return bestCandidate?.also {
+                    project.terminal.info("Found local installation of ${it.version.fullName}: ${it.path}")
+                }
+            } else {
+                TODO("Windows is not supported yet.")
+            }
+        }
+
+        private fun getVersion(execFile: File): Version {
+            var currentVersionNumber: String? = null
+            val processOutput = { line: String ->
+                currentVersionNumber = line.substringAfter("Python ", "").takeIf { it != "" }
+            }
+            CommandLineUtils.executeCommandLine(
+                Commandline().apply {
+                    executable = execFile.absolutePath
+                    addArguments(listOf("--version").toTypedArray())
+                },
+                processOutput,
+                processOutput
+            )
+            return currentVersionNumber?.let { Version(it) }
+                ?: error("Failed to determine version for interpreter: ${execFile.absolutePath}")
         }
 
         // TODO: implement layers caching
-        private fun downloadAndInstall(version: Version, project: Project): Path {
-            project.terminal.info("Downloading interpreter ${version.fullName}...")
-            val workDir = PaddlePyConfig.interpretersDir.resolve(version.number).toFile().also { it.mkdirs() }
+        private fun downloadAndInstall(userDefinedVersion: Version, project: Project): PyInterpreter {
+            val matchedVersion = Version.availableVersions.filter { it.matches(userDefinedVersion) }.maxOrNull()
+                ?: error("Can't find an appropriate version at $PYTHON_DISTRIBUTIONS_BASE_URL for version $userDefinedVersion")
 
-            val pythonDistName = "Python-${version}"
+            project.terminal.info("Downloading interpreter ${matchedVersion.fullName}...")
+            val workDir = PaddlePyConfig.interpretersDir.resolve(matchedVersion.number).toFile().also { it.mkdirs() }
+
+            val pythonDistName = "Python-${matchedVersion}"
             val archiveDistName = "$pythonDistName.tgz"
-            val url = PYTHON_DISTRIBUTIONS_BASE_URL.join(version.number, archiveDistName).trimEnd('/')
+            val url = PYTHON_DISTRIBUTIONS_BASE_URL.join(matchedVersion.number, archiveDistName).trimEnd('/')
             val file = workDir.resolve(archiveDistName)
 
             if (file.exists()) {
@@ -119,7 +165,8 @@ class PyInterpreter(val path: Path, val version: Version) {
             }
             project.terminal.info("Interpreter installed to ${localPythonDir.resolve("bin").path}")
 
-            return localPythonDir.deepResolve("bin", version.executableName).toPath()
+            val path = localPythonDir.deepResolve("bin", matchedVersion.executableName).toPath()
+            return PyInterpreter(path, matchedVersion)
         }
 
         private fun downloadArchive(url: String, target: File, project: Project) = runBlocking {
@@ -154,18 +201,38 @@ class PyInterpreter(val path: Path, val version: Version) {
         }
     }
 
-    data class Version(val number: String) {
+    data class Version(val number: String) : Comparable<Version> {
         init {
-            require(number.matches(RegexCache.PYTHON_VERSION_REGEX)) { "Invalid python version specified." }
+            require(number.matches(RegexCache.PYTHON_VERSION_REGEX) && number.count { it == '.' } <= 2) {
+                "Invalid python version specified."
+            }
         }
 
+        companion object {
+            val availableVersions: Set<Version> by lazy {
+                runBlocking {
+                    httpClient.request<HttpStatement>(PYTHON_DISTRIBUTIONS_BASE_URL).execute { response ->
+                        val page = Jsoup.parse(response.readText())
+                        return@execute page.body().getElementsByTag("a")
+                            .filter { it.text().matches(RegexCache.PYTHON_VERSION_REGEX) }
+                            .map { Version(it.text()) }
+                            .toSet()
+                    }
+                }
+            }
+        }
+
+        private val parts = number.split(".")
         private val supportedImplementations = listOf("cp", "py")
+        private val latest: Int = 9
+
+        val major: Int = parts[0].toInt()
+        val minor: Int? = parts.getOrNull(1)?.toInt()
+        val patch: Int? = parts.getOrNull(2)?.toInt()
 
         val pep425candidates: List<String>
             get() {
-                val parts = number.split(".")
-                val major = parts[0].toInt()
-                val minor = parts.getOrNull(1)?.toInt() ?: return supportedImplementations.map { it + major }
+                minor ?: return supportedImplementations.map { it + major }
                 return (minor downTo 0).toList()
                     .product(supportedImplementations)
                     .map { (minor, impl) -> "$impl$major$minor" } +
@@ -173,11 +240,36 @@ class PyInterpreter(val path: Path, val version: Version) {
             }
 
         val executableName: String
-            get() = "python${number.first()}"
+            get() = "python${major}"
 
         val fullName: String
             get() = "Python-$number"
 
         override fun toString() = number
+
+        fun matches(userDefinedVersion: Version): Boolean {
+            return when (userDefinedVersion.number.count { it == '.' }) {
+                0 -> major == userDefinedVersion.major
+                1 -> number.startsWith(userDefinedVersion.number)
+                2 -> number == userDefinedVersion.number
+                else -> throw IllegalStateException("Invalid python version specified.")
+            }
+        }
+
+        // Because of versions like "3.10.1" we can't just compare double representations of the strings
+        // Also, minor and patch version are not always specified
+        override fun compareTo(other: Version): Int {
+            if (major == other.major) {
+                if (minor == null || other.minor == null) return 0
+                if (minor == other.minor) {
+                    if (patch == null || other.patch == null) return 0
+                    return patch - other.patch
+                } else {
+                    return minor - other.minor
+                }
+            } else {
+                return major - other.major
+            }
+        }
     }
 }

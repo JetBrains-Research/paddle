@@ -11,7 +11,7 @@ roots:
 # https://github.com/pyenv/pyenv/wiki#suggested-build-environment
 environment:
   path: .venv
-  python: 3.9.0 # this will download and install Python-3.9.0 (tested on MacOS only)
+  python: 3.8
 
 # By default, any custom repository will have precedence over PyPI
 repositories:
