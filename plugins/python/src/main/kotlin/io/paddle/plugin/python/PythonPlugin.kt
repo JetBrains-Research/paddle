@@ -39,6 +39,7 @@ object PythonPlugin : Plugin {
             Repositories.Extension,
             Environment.Extension,
             Interpreter.Extension,
+            JsonSchema.Extension
         ) as List<Project.Extension<Any>>
     }
 }

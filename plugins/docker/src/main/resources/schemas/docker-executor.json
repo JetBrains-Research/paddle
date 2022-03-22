@@ -1,0 +1,20 @@
+{
+  "if": {
+    "properties": {
+      "type": {
+        "const": "docker"
+      }
+    }
+  },
+  "then": {
+    "required": [
+      "image"
+    ],
+    "properties": {
+      "image": {
+        "description": "Image to be used for build",
+        "type": "string"
+      }
+    }
+  }
+}

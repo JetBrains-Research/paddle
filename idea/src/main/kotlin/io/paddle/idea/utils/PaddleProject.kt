@@ -7,11 +7,13 @@ import io.paddle.utils.config.Configuration
 import java.io.File
 
 object PaddleProject {
+    var currentProject: Project? = null
+
     fun load(file: File, workDir: File, output: TextOutput = TextOutput.Console): Project {
         val config = Configuration.from(file)
         val project = Project(config, workDir, output).also {
             it.register(it.plugins.enabled)
         }
-        return project
+        return project.also { currentProject = it }
     }
 }
