@@ -14,7 +14,7 @@ data class ArchivePyDistributionInfo(
     companion object {
         private val ARCHIVE_DISTRIBUTION_PATTERN by lazy {
             Regex(
-                "^(?<name>.*?)-" +
+                "^(?<name>(.*)?)-" +
                     "(?<version>.*?)" +
                     "(?<buildTag>(-[0-9].*)?)" +
                     "(?<archExt>\\.tar\\.gz|\\.zip?)"

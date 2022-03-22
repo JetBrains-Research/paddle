@@ -31,11 +31,7 @@ class VenvDir(private val directory: File) : File(directory.path) {
         get() = sitePackages.resolve("__pycache__")
 
     val pyPackageFiles: List<File>
-        get() = sitePackages.listFiles()
-            ?.filter { it.isDirectory && (it.name.endsWith(".dist-info") || it.name.endsWith(".egg-info")) }
-            ?.map { it.resolve(PYPACKAGE_CACHE_FILENAME) }
-            ?.filter { it.exists() } // to avoid pre-installed packages like "setuptools"
-            ?: error("Incorrect venv structure")
+        get() = sitePackages.walkTopDown().asSequence().filter { it.name == PYPACKAGE_CACHE_FILENAME }.toList()
 
     val pyPackages: List<PyPackage>
         get() = pyPackageFiles.map { jsonParser.decodeFromString(it.readText()) }
