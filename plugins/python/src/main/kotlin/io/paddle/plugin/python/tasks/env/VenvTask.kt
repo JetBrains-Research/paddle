@@ -5,7 +5,7 @@ import io.paddle.plugin.standard.tasks.clean
 import io.paddle.project.Project
 import io.paddle.tasks.Task
 import io.paddle.tasks.incremental.IncrementalTask
-import io.paddle.utils.Hashable
+import io.paddle.utils.hash.Hashable
 import io.paddle.utils.tasks.TaskDefaultGroups
 import kotlin.system.measureTimeMillis
 

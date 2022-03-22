@@ -4,8 +4,8 @@ import io.paddle.plugin.python.extensions.*
 import io.paddle.project.Project
 import io.paddle.tasks.Task
 import io.paddle.tasks.incremental.IncrementalTask
-import io.paddle.utils.Hashable
-import io.paddle.utils.hashable
+import io.paddle.utils.hash.Hashable
+import io.paddle.utils.hash.hashable
 import io.paddle.utils.tasks.TaskDefaultGroups
 import kotlin.system.measureTimeMillis
 

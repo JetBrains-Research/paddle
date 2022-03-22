@@ -7,9 +7,9 @@ import io.paddle.plugin.standard.extensions.Plugins
 import io.paddle.schema.extensions.BaseJsonSchemaExtension
 import io.paddle.schema.extensions.JsonSchema
 import io.paddle.terminal.*
-import io.paddle.utils.StringHashable
 import io.paddle.utils.config.Configuration
 import io.paddle.utils.ext.Extendable
+import io.paddle.utils.hash.StringHashable
 import java.io.File
 
 class Project(val config: Configuration, val workDir: File = File("."), val output: TextOutput = TextOutput.Console) {

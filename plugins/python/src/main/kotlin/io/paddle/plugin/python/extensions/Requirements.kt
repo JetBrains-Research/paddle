@@ -5,9 +5,9 @@ import io.paddle.plugin.python.dependencies.resolvers.PipResolver
 import io.paddle.plugin.python.utils.PyPackageName
 import io.paddle.plugin.python.utils.PyPackageVersion
 import io.paddle.project.Project
-import io.paddle.utils.Hashable
 import io.paddle.utils.ext.Extendable
-import io.paddle.utils.hashable
+import io.paddle.utils.hash.Hashable
+import io.paddle.utils.hash.hashable
 
 
 val Project.requirements: Requirements

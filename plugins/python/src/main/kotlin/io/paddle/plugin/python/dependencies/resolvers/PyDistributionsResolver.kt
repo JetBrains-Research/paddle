@@ -8,7 +8,7 @@ import io.paddle.plugin.python.extensions.interpreter
 import io.paddle.plugin.python.extensions.repositories
 import io.paddle.plugin.python.utils.*
 import io.paddle.project.Project
-import io.paddle.utils.hashable
+import io.paddle.utils.hash.hashable
 import kotlinx.serialization.builtins.MapSerializer
 import kotlinx.serialization.builtins.serializer
 

@@ -6,7 +6,7 @@ import io.paddle.plugin.python.dependencies.index.distributions.PyDistributionIn
 import io.paddle.plugin.python.dependencies.index.wordlist.PackedWordList
 import io.paddle.plugin.python.dependencies.index.wordlist.PackedWordListSerializer
 import io.paddle.plugin.python.utils.*
-import io.paddle.utils.StringHashable
+import io.paddle.utils.hash.StringHashable
 import kotlinx.serialization.*
 import java.io.File
 

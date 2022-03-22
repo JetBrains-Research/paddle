@@ -7,10 +7,10 @@ import io.paddle.plugin.python.dependencies.packages.PyPackage
 import io.paddle.plugin.python.dependencies.resolvers.PipResolver
 import io.paddle.project.Project
 import io.paddle.terminal.Terminal
-import io.paddle.utils.Hashable
 import io.paddle.utils.config.ConfigurationView
 import io.paddle.utils.ext.Extendable
-import io.paddle.utils.hashable
+import io.paddle.utils.hash.Hashable
+import io.paddle.utils.hash.hashable
 import java.io.File
 import java.nio.file.Path
 import kotlin.io.path.absolutePathString

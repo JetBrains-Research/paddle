@@ -1,4 +1,4 @@
-package io.paddle.utils
+package io.paddle.utils.hash
 
 import io.paddle.utils.json.JSON
 import kotlinx.serialization.SerializationStrategy
