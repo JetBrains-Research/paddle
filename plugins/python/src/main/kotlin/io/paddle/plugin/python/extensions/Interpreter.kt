@@ -2,10 +2,10 @@ package io.paddle.plugin.python.extensions
 
 import io.paddle.plugin.python.dependencies.PyInterpreter
 import io.paddle.project.Project
-import io.paddle.utils.Hashable
 import io.paddle.utils.config.ConfigurationView
 import io.paddle.utils.ext.Extendable
-import io.paddle.utils.hashable
+import io.paddle.utils.hash.Hashable
+import io.paddle.utils.hash.hashable
 
 
 val Project.interpreter: Interpreter

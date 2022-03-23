@@ -4,7 +4,8 @@ import io.paddle.plugin.python.extensions.interpreter
 import io.paddle.plugin.python.tasks.PythonPluginTaskGroups
 import io.paddle.project.Project
 import io.paddle.tasks.incremental.IncrementalTask
-import io.paddle.utils.Hashable
+import io.paddle.utils.hash.Hashable
+import io.paddle.utils.tasks.TaskDefaultGroups
 import kotlin.system.measureTimeMillis
 
 class ResolveInterpreterTask(project: Project) : IncrementalTask(project) {

@@ -15,6 +15,7 @@ dependencies {
 
     implementation("com.charleskorn.kaml", "kaml", "0.34.0")
     implementation("org.jetbrains.kotlinx", "kotlinx-serialization-json", "1.2.1")
+    implementation("com.fasterxml.jackson.core", "jackson-databind","2.12.5")
 
     implementation(kotlin("reflect"))
 }

@@ -12,7 +12,7 @@ import java.io.File
 val Project.plugins: Plugins
     get() = extensions.get(Plugins.Extension.key)!!
 
-class Plugins(val enabled: List<Plugin>) {
+class Plugins(val enabled: List<Plugin>, val namesOfAvailable: List<String>) {
     object Extension : Project.Extension<Plugins> {
         override val key: Extendable.Key<Plugins> = Extendable.Key()
 
@@ -22,10 +22,14 @@ class Plugins(val enabled: List<Plugin>) {
                 val jarNames by list<String>("jars", emptyList())
             }
             val jarsReps = pluginsConfig.jarNames.map { SingleJarPluginsRepository(File(it)) }
-            val availablePlugins = (listOf(StandardPluginsRepository) + jarsReps)
+
+            val namesOfAvailablePlugins = jarsReps.flatMap { it.getAvailablePluginsIds() } +
+                StandardPluginsRepository.getAvailablePluginsIds()
+
+            val pluginsToEnable = (jarsReps + StandardPluginsRepository)
                 .flatMap { it.getPluginsBy(pluginsConfig.pluginsIds) }
 
-            return Plugins(listOf(StandardPlugin) + availablePlugins)
+            return Plugins(listOf(StandardPlugin) + pluginsToEnable, namesOfAvailablePlugins)
         }
     }
 }

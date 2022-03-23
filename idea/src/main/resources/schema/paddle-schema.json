@@ -56,63 +56,11 @@
         "type": {
           "type": "string",
           "enum": [
-            "docker",
-            "ssh",
             "local"
           ]
         }
       },
       "allOf": [
-        {
-          "if": {
-            "properties": {
-              "type": {
-                "const": "docker"
-              }
-            }
-          },
-          "then": {
-            "required": [
-              "image"
-            ],
-            "properties": {
-              "image": {
-                "description": "Image to be used for build",
-                "type": "string"
-              }
-            }
-          }
-        },
-        {
-          "if": {
-            "properties": {
-              "type": {
-                "const": "ssh"
-              }
-            }
-          },
-          "then": {
-            "required": [
-              "user",
-              "host",
-              "directory"
-            ],
-            "properties": {
-              "user": {
-                "description": "User to login via ssh",
-                "type": "string"
-              },
-              "host": {
-                "description": "Host to connect via ssh",
-                "type": "string"
-              },
-              "directory": {
-                "description": "Absolute path of remote working directory",
-                "type": "string"
-              }
-            }
-          }
-        },
         {
           "if": {
             "properties": {
@@ -197,11 +145,7 @@
           "type": "array",
           "items": {
             "type": "string",
-            "enum": [
-              "python",
-              "docker",
-              "ssh"
-            ]
+            "enum": []
           }
         },
         "jars": {
@@ -267,93 +211,5 @@
       }
     }
   },
-  "allOf": [
-    {
-      "if": {
-        "required": [
-          "executor"
-        ],
-        "properties": {
-          "executor": {
-            "required": [
-              "type"
-            ],
-            "properties": {
-              "type": {
-                "const": "ssh"
-              }
-            }
-          }
-        }
-      },
-      "then": {
-        "properties": {
-          "plugins": {
-            "properties": {
-              "enabled": {
-                "contains": {
-                  "const": "ssh"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    {
-      "if": {
-        "required": [
-          "executor"
-        ],
-        "properties": {
-          "executor": {
-            "required": [
-              "type"
-            ],
-            "properties": {
-              "type": {
-                "const": "docker"
-              }
-            }
-          }
-        }
-      },
-      "then": {
-        "properties": {
-          "plugins": {
-            "properties": {
-              "enabled": {
-                "contains": {
-                  "const": "docker"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    {
-      "if": {
-        "required": [
-          "environment"
-        ],
-        "properties": {
-          "environment": true
-        }
-      },
-      "then": {
-        "properties": {
-          "plugins": {
-            "properties": {
-              "enabled": {
-                "contains": {
-                  "const": "python"
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-  ]
+  "allOf": []
 }

@@ -3,8 +3,8 @@ package io.paddle.tasks.incremental
 import io.paddle.project.Project
 import io.paddle.tasks.Task
 import io.paddle.terminal.CommandOutput
-import io.paddle.utils.Hashable
-import io.paddle.utils.hashable
+import io.paddle.utils.hash.Hashable
+import io.paddle.utils.hash.hashable
 
 /**
  * Task that uses caches to make sure that it will not be re-executed each time.
