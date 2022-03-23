@@ -26,7 +26,7 @@ class RunTask(name: String, private val entrypoint: String, private val argument
 
     override val id: String = "run:${name}"
 
-    override val group: String = TaskDefaultGroups.APP
+    override val group: String = TaskDefaultGroups.RUN
 
     override val dependencies: List<Task>
         get() = listOf(project.tasks.getOrFail("venv"))

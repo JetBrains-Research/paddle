@@ -6,6 +6,7 @@ import io.paddle.plugin.python.tasks.env.*
 import io.paddle.plugin.python.tasks.exec.RunTask
 import io.paddle.plugin.python.tasks.linter.MyPyTask
 import io.paddle.plugin.python.tasks.linter.PyLintTask
+import io.paddle.plugin.python.tasks.migration.ParseRequirementsTxtTask
 import io.paddle.plugin.python.tasks.tests.PyTestTask
 import io.paddle.plugin.standard.tasks.CleanTask
 import io.paddle.project.Project
@@ -25,10 +26,10 @@ object PythonPlugin : Plugin {
             ResolveRepositoriesTask(project),
             LockTask(project),
             CiTask(project),
-        ) + listOf(
             MyPyTask(project),
             PyLintTask(project),
             PyTestTask(project),
+            ParseRequirementsTxtTask(project)
         ) + RunTask.from(project)
     }
 

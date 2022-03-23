@@ -21,7 +21,7 @@ data class WheelPyDistributionInfo(
     companion object {
         private val WHEEL_DISTRIBUTION_PATTERN by lazy {
             Regex(
-                "^(?<name>.*?)-" +
+                "^(?<name>(.*)?)-" +
                     "(?<version>.*?)" +
                     "(?<buildTag>(-[0-9].*)?)-" +
                     "(?<pyTag>((py|cp|ip|pp|jy)([0-9]+))(\\.(py|cp|ip|pp|jy)([0-9]+))*)-" +

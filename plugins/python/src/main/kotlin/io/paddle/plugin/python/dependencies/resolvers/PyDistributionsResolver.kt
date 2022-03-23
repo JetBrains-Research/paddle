@@ -68,6 +68,7 @@ object PyDistributionsResolver {
             ?: return null
 
         val distributionUrl = PyPackageRepositoryIndexer.getDistributionUrl(matchedDistributionInfo, repository)
+            ?: error("Distribution ${matchedDistributionInfo.distributionFilename} was not found in the repository ${repository.url}")
         Cache.update(name, version, repository, distributionUrl)
 
         return distributionUrl
@@ -88,7 +89,7 @@ object PyDistributionsResolver {
     }
 
     object Cache {
-        private val storage = PaddlePyConfig.resolverCachePath.toFile()
+        private val storage = PaddlePyConfig.distResolverCachePath.toFile()
 
         private var cache: Map<String, PyPackageUrl>
             get() {

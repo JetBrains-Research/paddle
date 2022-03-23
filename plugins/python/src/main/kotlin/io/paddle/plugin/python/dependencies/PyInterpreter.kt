@@ -37,7 +37,7 @@ class PyInterpreter(val path: Path, val version: Version) {
                 ?.filter { it.isDirectory && Version(it.name).matches(userDefinedVersion) }
                 ?.maxByOrNull { Version(it.name) }
             val execFile = interpreterDir?.deepResolve(
-                userDefinedVersion.fullName,
+                "Python-${interpreterDir.name}",
                 LOCAL_PYTHON_DIR_NAME,
                 "bin",
                 userDefinedVersion.executableName

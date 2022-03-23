@@ -3,6 +3,7 @@ package io.paddle.plugin.python.dependencies.index
 import io.ktor.client.call.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
+import io.ktor.http.*
 import io.paddle.plugin.python.dependencies.index.distributions.PyDistributionInfo
 import io.paddle.plugin.python.dependencies.index.metadata.JsonPackageMetadataInfo
 import io.paddle.plugin.python.dependencies.packages.PyPackage
@@ -43,13 +44,13 @@ object PyPackageRepositoryIndexer {
     suspend fun getDistributionUrl(
         distributionInfo: PyDistributionInfo,
         repository: PyPackageRepository
-    ): PyPackageUrl {
+    ): PyPackageUrl? {
         return try {
             httpClient.request<HttpStatement>(repository.urlSimple.join(distributionInfo.name)).execute { response ->
                 val distributionsPage = Jsoup.parse(response.readText())
                 val element = distributionsPage.body().getElementsByTag("a")
                     .find { it.text() == distributionInfo.distributionFilename }
-                return@execute element!!.attr("href")
+                return@execute element?.attr("href")
             }
         } catch (exception: Throwable) {
             error("Failed to resolve distribution ${distributionInfo.distributionFilename} in ${repository.url} due to network issues.")
@@ -62,13 +63,13 @@ object PyPackageRepositoryIndexer {
         destination.writeBytes(responseBody)
     }
 
-    suspend fun downloadMetadata(pkg: PyPackage): JsonPackageMetadataInfo {
+    suspend fun downloadMetadata(pkg: PyPackage): JsonPackageMetadataInfo? {
         val metadataJsonUrl = pkg.repo.url.join("pypi", pkg.name, pkg.version, "json")
         val response: HttpResponse = try {
             httpClient.request(metadataJsonUrl)
         } catch (exception: Throwable) {
             error("Failed to download metadata for package '${pkg.name}' from $metadataJsonUrl")
         }
-        return jsonParser.decodeFromString(response.readText())
+        return if (response.status == HttpStatusCode.OK) jsonParser.decodeFromString(response.readText()) else null
     }
 }

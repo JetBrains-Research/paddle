@@ -2,6 +2,7 @@ package io.paddle.plugin.python.dependencies.lock
 
 import io.paddle.plugin.python.dependencies.PyInterpreter
 import io.paddle.plugin.python.dependencies.index.PyPackageRepositoryIndexer
+import io.paddle.plugin.python.dependencies.index.metadata.JsonPackageMetadataReleaseInfo
 import io.paddle.plugin.python.dependencies.lock.models.*
 import io.paddle.plugin.python.dependencies.packages.PyPackage
 import io.paddle.plugin.python.dependencies.repositories.PyPackageRepository
@@ -16,8 +17,9 @@ object PyPackageLocker {
     suspend fun lock(project: Project) {
         val lockedPackages = project.requirements.resolved.parallelMap { pkg ->
             val metadata = PyPackageRepositoryIndexer.downloadMetadata(pkg)
-            val distributions = metadata.releases[pkg.version]
-                ?: error("Distribution $pkg was not found in metadata.")
+            val distributions = metadata?.releases?.get(pkg.version) ?: emptyList<JsonPackageMetadataReleaseInfo>().also {
+                project.terminal.warn("Can't find and check metadata for available distributions of package ${pkg.name}==${pkg.version}")
+            }
             LockedPyPackage(
                 LockedPyPackageIdentifier(pkg),
                 comesFrom = pkg.comesFrom?.let { LockedPyPackageIdentifier(it) },
@@ -49,7 +51,7 @@ object PyPackageLocker {
             val repo = PyPackageRepository(lockedPkg.repoMetadata)
             val distUrl = lockedPkg.resolveConcreteDistribution(repo, project)
             val pkg = PyPackage(lockedPkg.name, lockedPkg.version, repo, distUrl)
-            checkHashes(pkg, lockedPkg)
+            checkHashes(pkg, lockedPkg, project)
             packageByIdentifier[lockedPkg.identifier] = pkg
         }
 
@@ -64,12 +66,20 @@ object PyPackageLocker {
         }
     }
 
-    private suspend fun checkHashes(pkg: PyPackage, lockedPkg: LockedPyPackage) {
+    private suspend fun checkHashes(pkg: PyPackage, lockedPkg: LockedPyPackage, project: Project) {
         val metadata = PyPackageRepositoryIndexer.downloadMetadata(pkg)
-        val availableDistributions = metadata.releases[pkg.version]
-            ?: error("Locked distribution $pkg was not found in current package metadata. Consider upgrading your lockfile.")
-        val currentHash = availableDistributions.find { it.url == pkg.distributionUrl }?.packageHash
+        val availableDistributions = metadata?.releases?.get(pkg.version)
 
+        if (availableDistributions == null && lockedPkg.distributions.isEmpty()) {
+            project.terminal.warn("Can't find and check metadata for available distributions of package ${pkg.name}==${pkg.version}")
+            project.terminal.warn("Probably, the corresponding repository ${pkg.repo.url} doesn't contain JSON with metadata needed.")
+            // TODO: ask user - trust or not?
+            return
+        } else if (availableDistributions == null) {
+            error("Corresponding locked distribution ${pkg.distributionUrl} was not found in current package metadata. Consider upgrading your lockfile.")
+        }
+
+        val currentHash = availableDistributions.find { it.url == pkg.distributionUrl }?.packageHash
         if (currentHash !in lockedPkg.distributions.map { it.hash }) {
             error("Can not find appropriate distribution in the lockfile for ${pkg.distributionUrl}: inconsistent hashes.")
         }

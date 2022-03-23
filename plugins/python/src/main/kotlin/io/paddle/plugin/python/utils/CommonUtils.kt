@@ -15,7 +15,7 @@ fun PyPackageName.normalize(): PyPackageName {
 }
 
 fun PyPackageName.denormalize(): PyPackageName {
-    return this.replace('_', '-').replace('_', '.')
+    return this.uppercase().replace('_', '-').replace('_', '.')
 }
 
 fun Path.exists(): Boolean = Files.exists(this)

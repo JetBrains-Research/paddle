@@ -15,7 +15,7 @@ class InstallTask(project: Project) : IncrementalTask(project) {
 
     override val group: String = TaskDefaultGroups.BUILD
 
-    override val inputs: List<Hashable> = listOf(project.environment, project.repositories, project.requirements)
+    override val inputs: List<Hashable> = listOf(project.repositories, project.requirements)
     override val outputs: List<Hashable> = listOf(project.environment.venv.hashable())
 
     override val dependencies: List<Task>
