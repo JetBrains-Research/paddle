@@ -4,7 +4,7 @@ import io.paddle.plugin.python.dependencies.migration.RequirementsTxt
 import io.paddle.plugin.python.tasks.PythonPluginTaskGroups
 import io.paddle.project.Project
 import io.paddle.tasks.incremental.IncrementalTask
-import io.paddle.utils.*
+import io.paddle.utils.hash.*
 import kotlin.system.measureTimeMillis
 
 class ParseRequirementsTxtTask(project: Project) : IncrementalTask(project) {

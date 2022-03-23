@@ -4,7 +4,7 @@ import io.paddle.plugin.python.dependencies.packages.PyPackageMetadata
 import io.paddle.plugin.python.utils.PyPackagesRepositoryUrl
 import io.paddle.plugin.python.utils.join
 import io.paddle.project.Project
-import io.paddle.utils.StringHashable
+import io.paddle.utils.hash.StringHashable
 import org.yaml.snakeyaml.DumperOptions
 import org.yaml.snakeyaml.Yaml
 import java.io.File
