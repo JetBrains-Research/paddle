@@ -50,6 +50,7 @@ abstract class Task(val project: Project) {
         try {
             act()
         } catch (e: ActException) {
+            e.message?.let { project.terminal.error(it) }
             project.terminal.commands.stdout(CommandOutput.Command.Task(id, CommandOutput.Command.Task.Status.FAILED))
             throw e
         }

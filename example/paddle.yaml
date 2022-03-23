@@ -18,7 +18,7 @@ repositories:
   - name: grazie-ml
     url: https://packages.jetbrains.team/pypi/p/grazi/grazie-ml/simple
     default: False # If True, this would disable the global PyPI repo, and make <ml> the default fallback source
-    authentication: netrc
+    auth: netrc
 
   - name: paper-analyzer
     url: https://repo.labs.intellij.net/artifactory/api/pypi/paper-analyzer/simple/
@@ -28,6 +28,8 @@ requirements:
   - name: redis
     version: 3.5.3
     repository: pypi
+
+  - name: grazie-supar
 
 plugins:
   enabled:

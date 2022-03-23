@@ -7,7 +7,6 @@ import io.paddle.plugin.python.dependencies.packages.IResolvedPyPackage
 import io.paddle.plugin.python.dependencies.packages.PyPackage
 import io.paddle.plugin.python.dependencies.resolvers.PipResolver
 import io.paddle.plugin.python.extensions.environment
-import io.paddle.plugin.python.extensions.repositories
 import io.paddle.plugin.python.utils.jsonParser
 import io.paddle.project.Project
 import io.paddle.terminal.Terminal
@@ -65,10 +64,10 @@ class TempVenvManager private constructor(val venv: VenvDir, val project: Projec
         get() = venv.getInterpreterPath(project)
 
     fun install(pkg: PyPackage): ExecutionResult {
-        val indexArgs = project.repositories.resolved.asPipArgs
+        // Specifying index/extra-index urls is redundant since distributionUrl already contains it as a part of URI
         return project.executor.execute(
             command = interpreterPath.absolutePathString(),
-            args = listOf("-m", "pip", "install", "--no-deps", pkg.distributionUrl) + indexArgs,
+            args = listOf("-m", "pip", "install", "--no-deps", pkg.repo.credentials.authenticate(pkg.distributionUrl)),
             workingDir = PyLocations.paddleHome.toFile(),
             terminal = project.terminal
         ).also {

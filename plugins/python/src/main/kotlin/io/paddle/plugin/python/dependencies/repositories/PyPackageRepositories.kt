@@ -104,11 +104,11 @@ class PyPackageRepositories(
     val asPipArgs: List<String>
         get() = ArrayList<String>().apply {
             add("--index-url")
-            add(this@PyPackageRepositories.primarySource.basicAuthUrlSimple)
+            add(this@PyPackageRepositories.primarySource.authenticatedUrlSimple)
             for (repo in this@PyPackageRepositories.repositories) {
                 if (repo != this@PyPackageRepositories.primarySource) {
                     add("--extra-index-url")
-                    add(repo.basicAuthUrlSimple)
+                    add(repo.authenticatedUrlSimple)
                 }
             }
         }

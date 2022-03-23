@@ -57,7 +57,7 @@ fun PyPackagesRepositoryUrl.removeSimple(): String {
     return this.removeSuffix("/").removeSuffix("/simple")
 }
 
-fun PyPackagesRepositoryUrl.getSecure(): String {
+fun PyUrl.getSecure(): String {
     val (protocol, uriWithToken) = split("://")
     val uri = uriWithToken.substringAfter("@")
     return "$protocol://$uri"

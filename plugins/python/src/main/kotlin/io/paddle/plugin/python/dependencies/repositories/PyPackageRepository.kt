@@ -34,23 +34,25 @@ class PyPackageRepository(val url: PyPackagesRepositoryUrl, val name: String, va
         open val urlPrefix: String
             get() = "$login:$password@"
 
+        fun authenticate(url: PyUrl): PyUrl {
+            val (protocol, suffix) = url.split("://")
+            return "$protocol://$urlPrefix$suffix"
+        }
+
         class Empty : Credentials("", "") {
             override val urlPrefix: String
                 get() = ""
         }
     }
 
-    val basicAuthUrl: PyPackagesRepositoryUrl
-        get() {
-            val (protocol, suffix) = url.split("://")
-            return protocol + "://" + credentials.urlPrefix + suffix
-        }
+    val authenticatedUrl: PyPackagesRepositoryUrl
+        get() = credentials.authenticate(url)
 
     @Transient
     val urlSimple: PyPackagesRepositoryUrl = url.join("simple")
 
-    val basicAuthUrlSimple: PyPackagesRepositoryUrl
-        get() = basicAuthUrl.join("simple")
+    val authenticatedUrlSimple: PyPackagesRepositoryUrl
+        get() = credentials.authenticate(urlSimple)
 
     val credentials: Credentials
         get() = AuthenticationProvider.resolveCredentials(url, authInfo)
