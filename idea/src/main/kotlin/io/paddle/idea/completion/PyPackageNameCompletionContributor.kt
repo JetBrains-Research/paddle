@@ -7,7 +7,7 @@ import com.intellij.patterns.PlatformPatterns.*
 import com.intellij.util.ProcessingContext
 import io.paddle.idea.utils.PaddleProject
 import io.paddle.idea.utils.findPaddleInDirectory
-import io.paddle.plugin.python.extensions.requirements
+import io.paddle.plugin.python.extensions.repositories
 import org.jetbrains.yaml.psi.YAMLDocument
 import java.io.File
 import java.nio.file.Path
@@ -34,7 +34,7 @@ class PyPackageNameCompletionProvider : CompletionProvider<CompletionParameters>
         val project = PaddleProject.load(file, File(projectPath))
 
         val prefix = parameters.position.text.trim().removeSuffix(DUMMY_IDENTIFIER_TRIMMED)
-        val variants = project.requirements.repositories.findAvailablePackagesByPrefix(prefix)
+        val variants = project.repositories.resolved.findAvailablePackagesByPrefix(prefix)
 
         for ((pkgName, repo) in variants) {
             result.addElement(LookupElementBuilder.create(pkgName).withTypeText(repo.name, true))

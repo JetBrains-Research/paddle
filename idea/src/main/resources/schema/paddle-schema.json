@@ -78,69 +78,61 @@
       "description": "Environment that should be used by Paddle for Python build process",
       "properties": {
         "required": [
-          "type",
-          "path"
+          "path",
+          "python"
         ],
-        "type": {
-          "description": "Type of the virtual environment (only `virtualenv` currently supported)",
-          "type": "string",
-          "enum": [
-            "virtualenv"
-          ]
-        },
         "path": {
-          "description": "Path to virtual environment location",
+          "description": "Path to the virtual environment location",
+          "type": "string"
+        },
+        "python": {
+          "description": "Version of Python interpreter to be used",
           "type": "string"
         }
       }
     },
-    "requirements": {
-      "type": "object",
-      "properties": {
-        "repositories": {
-          "description": "List of the available repositories PyPi repositories",
-          "type": "array",
-          "items": {
-            "type": "object",
-            "required": [
-              "name",
-              "url"
-            ],
-            "properties": {
-              "name": {
-                "type": "string"
-              },
-              "url": {
-                "type": "string"
-              },
-              "default": {
-                "type": "boolean"
-              },
-              "secondary": {
-                "type": "boolean"
-              }
-            }
+    "repositories": {
+      "description": "List of the available PyPI repositories",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "name",
+          "url"
+        ],
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          },
+          "default": {
+            "type": "boolean"
+          },
+          "secondary": {
+            "type": "boolean"
           }
-        },
-        "libraries": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "required": [
-              "name",
-              "version"
-            ],
-            "properties": {
-              "name": {
-                "type": "string"
-              },
-              "version": {
-                "type": "string"
-              },
-              "repository": {
-                "type": "string"
-              }
-            }
+        }
+      }
+    },
+    "requirements": {
+      "description": "List of project requirements",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "name"
+        ],
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "version": {
+            "type": "string"
+          },
+          "repository": {
+            "type": "string"
           }
         }
       }

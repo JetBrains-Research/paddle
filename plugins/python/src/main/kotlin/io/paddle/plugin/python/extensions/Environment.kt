@@ -3,17 +3,27 @@ package io.paddle.plugin.python.extensions
 import io.paddle.execution.ExecutionResult
 import io.paddle.plugin.python.dependencies.GlobalCacheRepository
 import io.paddle.plugin.python.dependencies.VenvDir
-import io.paddle.plugin.python.dependencies.index.PyPackagesRepositories
+import io.paddle.plugin.python.dependencies.packages.PyPackage
+import io.paddle.plugin.python.dependencies.resolvers.PipResolver
 import io.paddle.project.Project
+import io.paddle.terminal.Terminal
 import io.paddle.utils.config.ConfigurationView
 import io.paddle.utils.ext.Extendable
+import io.paddle.utils.hash.Hashable
+import io.paddle.utils.hash.hashable
 import java.io.File
+import java.nio.file.Path
+import kotlin.io.path.absolutePathString
 
 
 val Project.environment: Environment
     get() = extensions.get(Environment.Extension.key)!!
 
-class Environment(val project: Project, val venv: VenvDir, val workDir: File) {
+class Environment(val project: Project, val venv: VenvDir) : Hashable {
+
+    val localInterpreterPath: Path
+        get() = venv.getInterpreterPath(project)
+
     object Extension : Project.Extension<Environment> {
         override val key: Extendable.Key<Environment> = Extendable.Key()
 
@@ -22,30 +32,51 @@ class Environment(val project: Project, val venv: VenvDir, val workDir: File) {
                 val venv by string("path", default = ".venv")
             }
 
-            return Environment(project, VenvDir(File(project.workDir, config.venv)), project.workDir)
+            return Environment(project, VenvDir(File(project.workDir, config.venv)))
         }
     }
 
     fun initialize(): ExecutionResult {
-        return project.executor.execute("python3", listOf("-m", "venv", venv.absolutePath), workDir, project.terminal)
+        return project.executor.execute(
+            project.interpreter.resolved.path.toString(),
+            listOf("-m", "venv", "--clear", venv.absolutePath),
+            project.workDir,
+            project.terminal
+        ).then {
+            project.executor.execute(
+                localInterpreterPath.absolutePathString(),
+                listOf("-m", "pip", "install", PipResolver.PIP_RESOLVER_URL),
+                project.workDir,
+                Terminal.MOCK
+            )
+        }
     }
 
     fun runModule(module: String, arguments: List<String> = emptyList()): ExecutionResult {
-        return project.executor.execute("${venv.absolutePath}/bin/python", listOf("-m", module, *arguments.toTypedArray()), workDir, project.terminal)
+        return project.executor.execute(
+            localInterpreterPath.absolutePathString(),
+            listOf("-m", module, *arguments.toTypedArray()),
+            project.workDir,
+            project.terminal
+        )
     }
 
     fun runScript(file: String, arguments: List<String> = emptyList()): ExecutionResult {
-        return project.executor.execute("${venv.absolutePath}/bin/python", listOf(file, *arguments.toTypedArray()), workDir, project.terminal)
+        return project.executor.execute(
+            localInterpreterPath.absolutePathString(),
+            listOf(file, *arguments.toTypedArray()),
+            project.workDir,
+            project.terminal
+        )
     }
 
-    fun install(dependencyDescriptor: Requirements.Descriptor, repositories: PyPackagesRepositories) {
-        if (venv.hasInstalledPackage(dependencyDescriptor)) return
-        val pkg = GlobalCacheRepository.findPackage(dependencyDescriptor, repositories)
-        GlobalCacheRepository.createSymlinkToPackageRecursively(pkg, symlinkDir = venv.sitePackages.toPath())
+    fun install(pkg: PyPackage) {
+        if (venv.hasInstalledPackage(pkg)) return
+        val cachedPkg = GlobalCacheRepository.findPackage(pkg, project)
+        GlobalCacheRepository.createSymlinkToPackage(cachedPkg, venv)
     }
 
-    fun install(requirements: File): ExecutionResult {
-        // TODO: throw away when descriptors will be ready
-        return project.executor.execute("${venv.absolutePath}/bin/pip", listOf("install", "-r", requirements.absolutePath), workDir, project.terminal)
+    override fun hash(): String {
+        return venv.hashable().hash()
     }
 }

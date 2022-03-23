@@ -6,8 +6,8 @@ import io.paddle.plugin.standard.tasks.clean
 import io.paddle.project.Project
 import io.paddle.tasks.Task
 import io.paddle.tasks.incremental.IncrementalTask
-import io.paddle.utils.Hashable
-import io.paddle.utils.hashable
+import io.paddle.utils.hash.Hashable
+import io.paddle.utils.hash.hashable
 import io.paddle.utils.tasks.TaskDefaultGroups
 import java.io.File
 
@@ -21,11 +21,15 @@ class PyTestTask(project: Project) : IncrementalTask(project) {
             listOf(project.requirements, project.environment.venv.hashable())
 
     override val dependencies: List<Task>
-        get() = listOf(project.tasks.getOrFail("venv"))
+        get() = listOf(project.tasks.getOrFail("install"))
 
     override fun initialize() {
         project.requirements.descriptors.add(
-            Requirements.Descriptor("pytest", project.config.get<String>("tasks.tests.pytest.version") ?: "6.2.4")
+            Requirements.Descriptor(
+                name = "pytest",
+                version = project.config.get<String>("tasks.tests.pytest.version") ?: "6.2.5",
+                repo = Repositories.Descriptor.PYPI.name
+            )
         )
         project.tasks.clean.locations.add(File(project.workDir, ".pytest_cache"))
     }

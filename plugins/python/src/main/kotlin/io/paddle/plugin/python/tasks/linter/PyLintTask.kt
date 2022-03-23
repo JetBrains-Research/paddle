@@ -6,8 +6,8 @@ import io.paddle.plugin.standard.tasks.clean
 import io.paddle.project.Project
 import io.paddle.tasks.Task
 import io.paddle.tasks.incremental.IncrementalTask
-import io.paddle.utils.Hashable
-import io.paddle.utils.hashable
+import io.paddle.utils.hash.Hashable
+import io.paddle.utils.hash.hashable
 import io.paddle.utils.tasks.TaskDefaultGroups
 import java.io.File
 
@@ -19,11 +19,15 @@ class PyLintTask(project: Project) : IncrementalTask(project) {
     override val inputs: List<Hashable> = project.roots.sources.map { it.hashable() }
 
     override val dependencies: List<Task>
-        get() = listOf(project.tasks.getOrFail("venv"))
+        get() = listOf(project.tasks.getOrFail("install"))
 
     override fun initialize() {
         project.requirements.descriptors.add(
-            Requirements.Descriptor("pylint", project.config.get<String>("tasks.linter.pylint.version") ?: "2.8.3"),
+            Requirements.Descriptor(
+                name = "pylint",
+                version = project.config.get<String>("tasks.linter.pylint.version") ?: "2.12.2",
+                repo = Repositories.Descriptor.PYPI.name
+            ),
         )
         project.tasks.clean.locations.add(File(project.workDir, ".pylint_cache"))
     }

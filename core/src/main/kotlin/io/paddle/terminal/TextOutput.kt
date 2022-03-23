@@ -14,4 +14,10 @@ interface TextOutput {
             System.out.print(text)
         }
     }
+
+    object MockConsole : TextOutput {
+        override fun stderr(text: String) {}
+
+        override fun stdout(text: String) {}
+    }
 }

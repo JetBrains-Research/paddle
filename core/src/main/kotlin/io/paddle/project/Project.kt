@@ -9,6 +9,7 @@ import io.paddle.schema.extensions.JsonSchema
 import io.paddle.terminal.*
 import io.paddle.utils.config.Configuration
 import io.paddle.utils.ext.Extendable
+import io.paddle.utils.hash.StringHashable
 import java.io.File
 
 class Project(val config: Configuration, val workDir: File = File("."), val output: TextOutput = TextOutput.Console) {
@@ -18,6 +19,7 @@ class Project(val config: Configuration, val workDir: File = File("."), val outp
         fun create(project: Project): V
     }
 
+    val id: String = StringHashable(workDir.absolutePath).hash()
     val tasks = Tasks()
     val extensions = Extendable()
     var executor: CommandExecutor = LocalCommandExecutor(output)

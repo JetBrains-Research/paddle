@@ -12,8 +12,10 @@ import io.paddle.terminal.TextOutput
 import io.paddle.utils.ext.Extendable
 import java.io.File
 
-class SshCommandExecutor(private val host: String, private val user: String,
-                         remoteDir: String, output: TextOutput) : CommandExecutor(OutputConfiguration(output)) {
+class SshCommandExecutor(
+    private val host: String, private val user: String,
+    remoteDir: String, output: TextOutput
+) : CommandExecutor(OutputConfiguration(output)) {
     object Extension : Project.Extension<SshCommandExecutor> {
         override val key: Extendable.Key<SshCommandExecutor> = Extendable.Key()
 
@@ -27,7 +29,14 @@ class SshCommandExecutor(private val host: String, private val user: String,
 
     private val remoteDir = if (remoteDir.endsWith("/")) remoteDir else "$remoteDir/"
 
-    override fun execute(command: String, args: Iterable<String>, workingDir: File, terminal: Terminal): ExecutionResult {
+    override fun execute(
+        command: String,
+        args: Iterable<String>,
+        workingDir: File,
+        terminal: Terminal,
+        envVars: Map<String, String>,
+        log: Boolean
+    ): ExecutionResult {
         terminal.stdout(
             "> Executor :remote-ssh: ${
                 Terminal.colored(
@@ -57,11 +66,16 @@ class SshCommandExecutor(private val host: String, private val user: String,
         val fixedArgs = args.map {
             val argPath = File(it)
             if (argPath.startsWith(workingDir)) remotePath.resolve(argPath.relativeTo(workingDir)).canonicalPath
-                else argPath
+            else argPath
         }
 
-        terminal.stdout("> Executor :remote-ssh: ${Terminal.colored(
-            "Execute commands via ssh with host: $host and username: $user", Terminal.Color.CYAN)}")
+        terminal.stdout(
+            "> Executor :remote-ssh: ${
+                Terminal.colored(
+                    "Execute commands via ssh with host: $host and username: $user", Terminal.Color.CYAN
+                )
+            }"
+        )
 
         val ssh = Ssh()
             .outputCommandline(true)

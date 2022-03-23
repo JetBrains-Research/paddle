@@ -1,97 +1,136 @@
 package io.paddle.plugin.python.dependencies
 
-import io.paddle.plugin.python.dependencies.index.PyPackagesRepositories
-import io.paddle.plugin.python.extensions.Requirements
-import java.nio.file.Files
-import java.nio.file.Path
+import io.paddle.plugin.python.PaddlePyConfig
+import io.paddle.plugin.python.dependencies.packages.*
+import io.paddle.plugin.python.utils.deepResolve
+import io.paddle.plugin.python.utils.exists
+import io.paddle.project.Project
+import java.io.File
+import java.nio.file.*
 import java.util.*
+import java.util.concurrent.ConcurrentHashMap
 import kotlin.concurrent.schedule
+import kotlin.io.path.deleteExisting
+import kotlin.io.path.name
 
 /**
  * A service class for managing Paddle's cache.
  *
- * @see PythonDependenciesConfig.cacheDir
+ * @see PaddlePyConfig.cacheDir
  */
 object GlobalCacheRepository {
     private const val CACHE_SYNC_PERIOD_MS: Long = 60000L
-    private val cachedPackages: MutableCollection<CachedPackage> = HashSet()
+    private val cachedPackages: MutableCollection<CachedPyPackage> = ConcurrentHashMap.newKeySet()
 
     init {
-        Timer("CachedPackagesSynchronizer", true).schedule(delay = 0, period = CACHE_SYNC_PERIOD_MS) {
-            synchronized(cachedPackages) {
-                cachedPackages.clear()
-                PythonDependenciesConfig.cacheDir.toFile().listFiles()?.forEach { packageDir ->
-                    packageDir.listFiles()?.forEach { versionDir ->
-                        val descriptor = Requirements.Descriptor(name = packageDir.name, version = versionDir.name)
-                        cachedPackages.add(CachedPackage(descriptor, versionDir.toPath()))
-                    }
-                }
-                for (pkg in cachedPackages) {
-                    for (dependencySpec in pkg.metadata.requiresDist) {
-                        val dependencyName = dependencySpec.nameReq().name().text
-                        // TODO: implement dependency resolution
-                        val dependency = cachedPackages.findLast { it.name == dependencyName } ?: continue
-                        pkg.dependencies.register(dependency)
-                    }
+        Timer("CachedPackagesSynchronizer", true)
+            .schedule(delay = 0, period = CACHE_SYNC_PERIOD_MS) { updateCache() }
+    }
+
+    fun updateCache() {
+        cachedPackages.clear()
+        PaddlePyConfig.cacheDir.toFile().listFiles()?.forEach { repoDir ->
+            repoDir.listFiles()?.forEach { packageDir ->
+                packageDir.listFiles()?.forEach { srcPath ->
+                    cachedPackages.add(CachedPyPackage.load(srcPath.toPath()))
                 }
             }
         }
     }
 
-    fun hasCached(descriptor: Requirements.Descriptor) = synchronized(cachedPackages) {
-        cachedPackages.any { it.descriptor == descriptor && it.srcPath.exists() }
+    private fun getPathToCachedPackage(pkg: PyPackage): Path =
+        PaddlePyConfig.cacheDir.deepResolve(
+            pkg.repo.cacheFileName,
+            pkg.name,
+            pkg.version
+        )
+
+    fun findPackage(pkg: PyPackage, project: Project): CachedPyPackage {
+        return cachedPackages.find { it.pkg == pkg && it.srcPath.exists() }
+            ?: installToCache(pkg, project)
     }
 
-    fun getPathToPackage(dependencyDescriptor: Requirements.Descriptor): Path =
-        PythonDependenciesConfig.cacheDir.resolve(dependencyDescriptor.name).resolve(dependencyDescriptor.version)
-
-    fun findPackage(dependencyDescriptor: Requirements.Descriptor, repositories: PyPackagesRepositories): CachedPackage {
-        return if (!hasCached(dependencyDescriptor)) {
-            installToCache(dependencyDescriptor, repositories)
-        } else {
-            synchronized(cachedPackages) { cachedPackages.find { it.descriptor == dependencyDescriptor }!! }
-        }
-    }
-
-    fun installToCache(dependencyDescriptor: Requirements.Descriptor, repositories: PyPackagesRepositories): CachedPackage {
-        return GlobalVenvManager.smartInstall(dependencyDescriptor, repositories).expose(
-            onSuccess = { copyPackageRecursivelyFromGlobalVenv(dependencyDescriptor) },
-            onFail = { error("Some conflict occurred during installation of ${dependencyDescriptor.name}.") }
+    private fun installToCache(pkg: PyPackage, project: Project): CachedPyPackage {
+        val tempVenvManager = TempVenvManager.getInstance(project)
+        return tempVenvManager.install(pkg).expose(
+            onSuccess = {
+                copyPackageRecursivelyFromTempVenv(pkg, project).also {
+                    tempVenvManager.uninstall(pkg)
+                }
+            },
+            onFail = { error("Some conflict occurred during installation of ${pkg.name}.") }
         )
     }
 
-    private fun copyPackageRecursivelyFromGlobalVenv(dependencyDescriptor: Requirements.Descriptor): CachedPackage {
-        val packageSources = GlobalVenvManager.getPackageRelatedStuff(dependencyDescriptor)
-        val targetPath = getPathToPackage(dependencyDescriptor)
-        packageSources.forEach { it.copyRecursively(target = targetPath.resolve(it.name).toFile(), overwrite = true) }
-        val pkg = CachedPackage(dependencyDescriptor, srcPath = targetPath)
+    private fun copyPackageRecursivelyFromTempVenv(pkg: PyPackage, project: Project): CachedPyPackage {
+        val tmpVenvManager = TempVenvManager.getInstance(project)
+        val targetPathToCache = getPathToCachedPackage(pkg)
 
-        for (dependencySpec in pkg.metadata.requiresDist) {
-            val dependencyName = dependencySpec.nameReq().name().text
-            if (!GlobalVenvManager.contains(dependencyName)) {
-                continue // assumption: PIP didn't install it => we don't need it
-            }
-            val dependencyVersion = GlobalVenvManager.getInstalledPackageVersionByName(dependencyName)
-                ?: error("Package $dependencyName (required by ${pkg.name}) is not installed.")
-            if (hasCached(Requirements.Descriptor(dependencyName, dependencyVersion))) {
-                continue
-            }
-            val dependentPkg = copyPackageRecursivelyFromGlobalVenv(Requirements.Descriptor(dependencyName, dependencyVersion))
-            pkg.dependencies.register(dependentPkg)
-        }
+        copyPackageSourcesFromTempVenv(tmpVenvManager, pkg, targetPathToCache)
 
-        synchronized(cachedPackages) { cachedPackages.add(pkg) }
-        return pkg
+        val cachedPkg = CachedPyPackage(pkg, srcPath = targetPathToCache)
+        cachedPackages.add(cachedPkg)
+
+        return cachedPkg
     }
 
-    fun createSymlinkToPackageRecursively(pkg: CachedPackage, symlinkDir: Path) {
-        if (Files.notExists(symlinkDir.resolve(pkg.name))) {
-            pkg.sources.forEach { Files.createSymbolicLink(symlinkDir.resolve(it.name), it.toPath()) }
-            for (dependentPkg in pkg.dependencies.all()) {
-                createSymlinkToPackageRecursively(dependentPkg, symlinkDir)
+    private fun copyPackageSourcesFromTempVenv(venvManager: TempVenvManager, pkg: IResolvedPyPackage, targetPathToCache: Path) {
+        val packageSources = venvManager.getFilesRelatedToPackage(pkg)
+        val sep = File.separatorChar
+        packageSources.forEach {
+            val commonPathBin = Paths.get(it.path.commonPrefixWith(venvManager.venv.bin.path).trim(sep))
+            val commonPathPyCache = Paths.get(it.path.commonPrefixWith(venvManager.venv.pycache.path).trim(sep))
+            val targetPathToFile = when {
+                commonPathBin.name == "bin" -> {
+                    // If common path prefix ends with "bin", copy it to "BIN" folder
+                    val suffix = it.path.substringAfter(venvManager.venv.bin.path).trim(sep)
+                    targetPathToCache.resolve("BIN").deepResolve(*suffix.split(sep).toTypedArray()).toFile()
+                }
+                commonPathPyCache.name == "__pycache__" -> {
+                    // If common path prefix ends with "__pycache__", copy it to "PYCACHE" folder
+                    val suffix = it.path.substringAfter(venvManager.venv.pycache.path).trim(sep)
+                    targetPathToCache.resolve("PYCACHE").deepResolve(*suffix.split(sep).toTypedArray()).toFile()
+                }
+                else -> {
+                    // Otherwise, it is general file from site-packages folder which should be copied as is
+                    val suffix = it.path.substringAfter(venvManager.venv.sitePackages.path).trim(sep)
+                    targetPathToCache.deepResolve(*suffix.split(sep).toTypedArray()).toFile()
+                }
             }
-        } else {
-            // TODO: check versions compatibility?
+            targetPathToFile.parentFile.mkdirs()
+            it.copyRecursively(targetPathToFile, overwrite = true)
+        }
+    }
+
+    fun createSymlinkToPackage(cachedPkg: CachedPyPackage, venv: VenvDir) {
+        cachedPkg.sources.forEach {
+            when (it.name) {
+                "BIN" -> {
+                    it.listFiles()?.forEach { executable ->
+                        val link = venv.bin.resolve(executable.name).toPath()
+                        if (link.exists()) {
+                            link.deleteExisting()
+                        }
+                        Files.createSymbolicLink(link, executable.toPath())
+                    }
+                }
+                "PYCACHE" -> {
+                    it.listFiles()?.forEach { pyc ->
+                        val link = venv.pycache.resolve(pyc.name).toPath()
+                        if (link.exists()) {
+                            link.deleteExisting()
+                        }
+                        Files.createSymbolicLink(link, pyc.toPath())
+                    }
+                }
+                else -> {
+                    val link = venv.sitePackages.resolve(it.name).toPath()
+                    if (link.exists()) {
+                        link.deleteExisting()
+                    }
+                    Files.createSymbolicLink(link, it.toPath())
+                }
+            }
         }
     }
 }

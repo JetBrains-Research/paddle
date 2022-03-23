@@ -2,7 +2,7 @@ group = rootProject.group
 version = rootProject.version
 
 plugins {
-    id("org.jetbrains.intellij") version "1.1.2" apply true
+    id("org.jetbrains.intellij") version "1.3.1" apply true
 }
 
 dependencies {

@@ -5,6 +5,7 @@ class Terminal(private val output: TextOutput) {
 
     companion object {
         private const val RESET_COLOR = "\u001B[0m"
+        val MOCK = Terminal(TextOutput.MockConsole)
 
         fun decolor(message: String): String {
             var result = message
@@ -30,6 +31,22 @@ class Terminal(private val output: TextOutput) {
         WHITE("\u001B[37m")
     }
 
+    fun debug(message: String, newline: Boolean = true) {
+        stdout("${colored("[DEBUG]", Color.WHITE)} $message", newline)
+    }
+
+    fun info(message: String, newline: Boolean = true) {
+        stdout("${colored("[INFO]", Color.WHITE)} $message", newline)
+    }
+
+    fun warn(message: String, newline: Boolean = true) {
+        stdout("${colored("[WARNING]", Color.YELLOW)} $message", newline)
+    }
+
+    fun error(message: String, newline: Boolean = true) {
+        stderr("${colored("[ERROR]", Color.RED)} $message", newline)
+    }
+
     fun stdout(message: String, newline: Boolean = true) {
         output.stdout(message)
         if (newline) output.stdout("\n")
@@ -37,6 +54,6 @@ class Terminal(private val output: TextOutput) {
 
     fun stderr(message: String, newline: Boolean = true) {
         output.stderr(message)
-        if (newline) output.stdout("\n")
+        if (newline) output.stderr("\n")
     }
 }

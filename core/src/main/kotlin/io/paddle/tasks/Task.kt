@@ -30,7 +30,8 @@ abstract class Task(val project: Project) {
     /**
      * Performs initial initialization during import of the whole Paddle project
      */
-    abstract fun initialize()
+    open fun initialize() {
+    }
 
     /**
      * Perform action which is the core essence of the task.
@@ -43,10 +44,11 @@ abstract class Task(val project: Project) {
      * Run task with respect to the caches and current state.
      */
     open fun run() {
-        for (dep in dependencies) {
-            dep.run()
-        }
+        runDependent()
+        execute()
+    }
 
+    protected fun execute() {
         project.terminal.commands.stdout(CommandOutput.Command.Task(id, CommandOutput.Command.Task.Status.EXECUTE))
 
         try {
@@ -57,6 +59,12 @@ abstract class Task(val project: Project) {
         }
 
         project.terminal.commands.stdout(CommandOutput.Command.Task(id, CommandOutput.Command.Task.Status.DONE))
+    }
+
+    protected fun runDependent() {
+        for (dep in dependencies) {
+            dep.run()
+        }
     }
 
     class ActException(reason: String) : Exception(reason)

@@ -1,7 +1,7 @@
 package io.paddle.plugin.python.dependencies.index.wordlist
 
-import io.paddle.plugin.python.dependencies.index.utils.letters
-import io.paddle.plugin.python.dependencies.index.utils.withIndexAt
+import io.paddle.plugin.python.utils.letters
+import io.paddle.plugin.python.utils.withIndexAt
 
 
 /**
