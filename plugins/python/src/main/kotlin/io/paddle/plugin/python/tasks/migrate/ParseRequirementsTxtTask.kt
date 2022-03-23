@@ -1,4 +1,4 @@
-package io.paddle.plugin.python.tasks.migration
+package io.paddle.plugin.python.tasks.migrate
 
 import io.paddle.plugin.python.dependencies.migration.RequirementsTxt
 import io.paddle.plugin.python.tasks.PythonPluginTaskGroups

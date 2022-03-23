@@ -1,4 +1,4 @@
-package io.paddle.plugin.python.tasks.env
+package io.paddle.plugin.python.tasks.resolve
 
 import io.paddle.plugin.python.PaddlePyConfig
 import io.paddle.plugin.python.dependencies.repositories.PyPackageRepository
@@ -8,7 +8,6 @@ import io.paddle.project.Project
 import io.paddle.tasks.incremental.IncrementalTask
 import io.paddle.utils.hash.Hashable
 import io.paddle.utils.hash.hashable
-import io.paddle.utils.tasks.TaskDefaultGroups
 import kotlin.io.path.listDirectoryEntries
 import kotlin.io.path.name
 import kotlin.system.measureTimeMillis
