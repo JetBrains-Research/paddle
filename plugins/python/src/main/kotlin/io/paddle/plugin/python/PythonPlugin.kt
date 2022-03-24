@@ -2,7 +2,7 @@ package io.paddle.plugin.python
 
 import io.paddle.plugin.Plugin
 import io.paddle.plugin.python.extensions.*
-import io.paddle.plugin.python.tasks.build.*
+import io.paddle.plugin.python.tasks.env.*
 import io.paddle.plugin.python.tasks.exec.RunTask
 import io.paddle.plugin.python.tasks.linter.MyPyTask
 import io.paddle.plugin.python.tasks.linter.PyLintTask
