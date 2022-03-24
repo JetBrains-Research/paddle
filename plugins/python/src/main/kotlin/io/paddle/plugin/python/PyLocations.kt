@@ -54,6 +54,6 @@ object PyLocations {
 
     val pipResolverCachePath: Path = paddleHome.deepResolve("cache", "pipResolverCache.json")
 
-    val globalConfig: File = paddleHome.resolve("config.yaml").toFile()
+    val profiles: File = paddleHome.resolve("profiles.yaml").toFile()
 }
 

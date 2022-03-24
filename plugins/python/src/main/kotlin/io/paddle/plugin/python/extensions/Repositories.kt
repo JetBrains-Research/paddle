@@ -17,25 +17,24 @@ class Repositories(val project: Project, val descriptors: List<Descriptor>) : Ha
 
     val resolved: PyPackageRepositories by lazy { PyPackageRepositories.resolve(descriptors) }
 
+    @Suppress("UNCHECKED_CAST")
     object Extension : Project.Extension<Repositories> {
         override val key: Extendable.Key<Repositories> = Extendable.Key()
 
         override fun create(project: Project): Repositories {
             val reposConfig = project.config.get<List<Map<String, Any>>>("repositories") ?: emptyList()
 
-            val descriptors = reposConfig.map {
-                val authType = AuthType.valueOf((it["auth"] as String? ?: "none").uppercase())
-                val authInfo = if (authType == AuthType.PROFILE)
-                    AuthInfo(authType, (it["auth"]!! as Map<*, *>)["profile"]!! as String)
-                else
-                    AuthInfo(authType)
+            val descriptors = reposConfig.map { repo ->
+                val authDescriptor: Map<String, String> = repo["auth"] as? Map<String, String> ?: emptyMap()
+                val type = AuthType.valueOf((authDescriptor["type"] ?: "none").uppercase())
+                val username = authDescriptor["username"]
 
                 Descriptor(
-                    it["name"]!! as String,
-                    it["url"]!! as String,
-                    (it["default"] as String?)?.toBoolean(),
-                    (it["secondary"] as String?)?.toBoolean(),
-                    authInfo,
+                    repo["name"]!! as String,
+                    repo["url"]!! as String,
+                    (repo["default"] as String?)?.toBoolean(),
+                    (repo["secondary"] as String?)?.toBoolean(),
+                    AuthInfo(type, username),
                 )
             }
 

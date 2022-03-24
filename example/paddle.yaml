@@ -18,7 +18,9 @@ repositories:
   - name: grazie-ml
     url: https://packages.jetbrains.team/pypi/p/grazi/grazie-ml/simple
     default: False # If True, this would disable the global PyPI repo, and make <ml> the default fallback source
-    auth: netrc
+    auth:
+      type: keyring
+      username: Oleg.Smirnov
 
   - name: paper-analyzer
     url: https://repo.labs.intellij.net/artifactory/api/pypi/paper-analyzer/simple/

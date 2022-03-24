@@ -11,12 +11,12 @@ typealias NetrcHost = String
 
 class NetrcConfig(private val hosts: Map<NetrcHost, PyPackageRepository.Credentials>) {
     companion object {
-        fun find(): NetrcConfig {
-            val home = System.getenv("HOME") ?: error("Environment variable \$HOME is not specified.")
-            val netrcLocation = System.getenv("NETRC")?.let { Paths.get(it) } ?: Paths.get(home, ".netrc")
-            val netrcContent = netrcLocation.takeIf { it.exists() }?.readText() ?: error(".netrc file not found.")
+        fun findInstance(): NetrcConfig? {
+            val home: String? = System.getenv("HOME")
+            val netrcLocation = System.getenv("NETRC")?.let { Paths.get(it) }
+                ?: home?.let { Paths.get(it, ".netrc") }
+            val netrcContent = netrcLocation?.takeIf { it.exists() }?.readText() ?: return null
             val lines = Parser.dropComments(netrcContent.lines())
-
             return NetrcConfig(Parser(lines).parse())
         }
     }

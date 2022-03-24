@@ -91,6 +91,27 @@
         }
       }
     },
+    "requirements": {
+      "description": "List of project requirements",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "name"
+        ],
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "version": {
+            "type": "string"
+          },
+          "repository": {
+            "type": "string"
+          }
+        }
+      }
+    },
     "repositories": {
       "description": "List of the available PyPI repositories",
       "type": "array",
@@ -115,14 +136,18 @@
           },
           "auth": {
             "description": "The way how credentials for authentication will be provided",
+            "type": "object",
+            "required": [
+              "type"
+            ],
             "properties": {
               "type": {
                 "type": "string",
                 "enum": [
                   "keyring",
                   "netrc",
-                  "none",
-                  "profile"
+                  "profile",
+                  "none"
                 ]
               }
             },
@@ -131,44 +156,22 @@
                 "if": {
                   "properties": {
                     "type": {
-                      "const": "profile"
+                      "enum": [
+                        "keyring",
+                        "profile"
+                      ]
                     }
                   }
                 },
                 "then": {
-                  "required": [
-                    "profile"
-                  ],
                   "properties": {
-                    "profile": {
-                      "description": "Profile name to be used for authentication (all profiles could be found at $PADDLE_HOME/profiles.yaml)",
+                    "username": {
                       "type": "string"
                     }
                   }
                 }
               }
             ]
-          }
-        }
-      }
-    },
-    "requirements": {
-      "description": "List of project requirements",
-      "type": "array",
-      "items": {
-        "type": "object",
-        "required": [
-          "name"
-        ],
-        "properties": {
-          "name": {
-            "type": "string"
-          },
-          "version": {
-            "type": "string"
-          },
-          "repository": {
-            "type": "string"
           }
         }
       }
@@ -246,6 +249,5 @@
         }
       }
     }
-  },
-  "allOf": []
+  }
 }

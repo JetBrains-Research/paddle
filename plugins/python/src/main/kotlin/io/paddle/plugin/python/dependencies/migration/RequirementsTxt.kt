@@ -3,7 +3,6 @@ package io.paddle.plugin.python.dependencies.migration
 import io.paddle.plugin.python.dependencies.packages.PyPackageMetadata
 import io.paddle.plugin.python.utils.*
 import io.paddle.project.Project
-import io.paddle.utils.hash.StringHashable
 import org.yaml.snakeyaml.DumperOptions
 import org.yaml.snakeyaml.Yaml
 import java.io.File
