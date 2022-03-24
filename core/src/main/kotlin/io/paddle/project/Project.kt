@@ -11,7 +11,6 @@ import io.paddle.utils.config.Configuration
 import io.paddle.utils.ext.Extendable
 import io.paddle.utils.hash.StringHashable
 import io.paddle.utils.yaml.YAML
-import io.paddle.utils.hash.StringHashable
 import java.io.File
 
 class Project(val config: Configuration, val workDir: File = File("."), val output: TextOutput = TextOutput.Console) {
