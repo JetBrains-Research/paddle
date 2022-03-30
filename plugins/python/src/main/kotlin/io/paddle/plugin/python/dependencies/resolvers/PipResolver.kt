@@ -16,6 +16,7 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.builtins.*
 import org.codehaus.plexus.util.cli.CommandLineUtils
 import org.codehaus.plexus.util.cli.Commandline
+import java.io.ByteArrayInputStream
 import kotlin.io.path.absolutePathString
 
 object PipResolver {
@@ -43,22 +44,24 @@ object PipResolver {
             val cacheInput = pipResolveArgs.map { it.hashable() }.hashable().hash()
 
             val output = ArrayList<String>()
-            getFromCache(cacheInput)?.let { output.addAll(it) }
-                ?: ExecutionResult(
-                    CommandLineUtils.executeCommandLine(
-                        Commandline().apply {
-                            executable = project.environment.localInterpreterPath.absolutePathString()
-                            addArguments(pipResolveArgs.toTypedArray())
-                        },
-                        { output.add(it); project.terminal.stdout(it) },
-                        { project.terminal.stderr(it) }
-                    )
+            getFromCache(cacheInput)?.let { output.addAll(it) } ?: ExecutionResult(
+                CommandLineUtils.executeCommandLine(
+                    Commandline().apply {
+                        executable = project.environment.localInterpreterPath.absolutePathString()
+                        addArguments(pipResolveArgs.toTypedArray())
+                    },
+                    ByteArrayInputStream("\n\n".encodeToByteArray()),
+                    { output.add(it); project.terminal.stdout(it) },
+                    { project.terminal.stderr(it) }
                 )
+            )
 
             // TODO: resolve requirements which repo is specified directly
 
             val packages = parse(output, project)
-            updateCache(cacheInput, output) // update cache iff output was parsed successfully
+            if (packages.isNotEmpty()) {
+                updateCache(cacheInput, output)
+            }
 
             return@cached packages
         }
@@ -67,6 +70,9 @@ object PipResolver {
         val startIdx = output.indexOfFirst { it == "--- RESOLVED-BEGIN ---" }
         val endIdx = output.indexOfLast { it == "--- RESOLVED-END ---" }
         if (startIdx == -1 || endIdx == -1) {
+            if (output.all { it.contains("Requirement already satisfied") }) {
+                return emptySet()
+            }
             output.map { project.terminal.stderr(it) }
             throw Task.ActException("Package resolution failed.")
         }

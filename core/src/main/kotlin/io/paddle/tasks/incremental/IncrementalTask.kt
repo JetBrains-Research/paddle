@@ -19,6 +19,9 @@ abstract class IncrementalTask(project: Project) : Task(project) {
     open val outputs: List<Hashable> = emptyList()
 
     private fun isUpToDate(): Boolean {
+        if (inputs.isEmpty() && outputs.isEmpty()) {
+            return false
+        }
         return IncrementalCache(project).isUpToDate(id, inputs.hashable(), outputs.hashable())
     }
 

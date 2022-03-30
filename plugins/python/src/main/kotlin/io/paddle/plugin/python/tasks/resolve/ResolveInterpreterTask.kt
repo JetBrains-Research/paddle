@@ -11,9 +11,6 @@ class ResolveInterpreterTask(project: Project) : IncrementalTask(project) {
 
     override val group: String = PythonPluginTaskGroups.RESOLVE
 
-    // Inputs: current configuration in the paddle.yaml file for interpreter
-    // override val inputs: List<Hashable> = listOf(project.interpreter)
-
     override fun act() {
         project.terminal.info("Resolving interpreter...")
         val duration = measureTimeMillis { project.interpreter.resolved }

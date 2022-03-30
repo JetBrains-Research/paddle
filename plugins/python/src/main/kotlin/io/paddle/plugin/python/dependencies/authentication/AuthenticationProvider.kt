@@ -44,8 +44,9 @@ object AuthenticationProvider {
             }
             AuthType.PROFILE -> {
                 val username = authInfo.username ?: throw IllegalStateException("Profiles auth: username must be specified.")
+                profiles ?: throw Task.ActException("File ${PyLocations.profiles.path} not found.")
                 val token = profiles?.getTokenByNameOrNull(username)
-                    ?: throw Task.ActException("File ${PyLocations.profiles.path} not found.")
+                    ?: throw Task.ActException("Username $username was not found at ${PyLocations.profiles.path}")
                 return PyPackageRepository.Credentials(username, token)
             }
             AuthType.NONE -> PyPackageRepository.Credentials.EMPTY
