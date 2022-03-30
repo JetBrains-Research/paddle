@@ -3,36 +3,34 @@ package io.paddle.plugin.python.tasks.env
 import io.paddle.plugin.python.extensions.*
 import io.paddle.plugin.standard.tasks.clean
 import io.paddle.project.Project
+import io.paddle.tasks.Task
 import io.paddle.tasks.incremental.IncrementalTask
-import io.paddle.utils.Hashable
-import io.paddle.utils.hashable
+import io.paddle.utils.hash.Hashable
+import io.paddle.utils.hash.hashable
 import io.paddle.utils.tasks.TaskDefaultGroups
+import kotlin.system.measureTimeMillis
 
 class VenvTask(project: Project) : IncrementalTask(project) {
     override val id: String = "venv"
 
     override val group: String = TaskDefaultGroups.BUILD
 
-    override val inputs: List<Hashable> = listOf(project.requirements)
-    override val outputs: List<Hashable> = listOf(project.environment.venv.hashable())
+    override val inputs: List<Hashable> = listOf(project.interpreter)
+    override val outputs: List<Hashable> = listOf(project.environment.venv.resolve("pyvenv.cfg").hashable())
+
+    override val dependencies: List<Task>
+        get() = listOf(project.tasks.getOrFail("resolveInterpreter"))
 
     override fun initialize() {
-        project.requirements.descriptors.add(Requirements.Descriptor("wheel", "0.36.2"))
+        project.requirements.descriptors.add(Requirements.Descriptor("wheel", "0.36.2", Repositories.Descriptor.PYPI.name))
         project.tasks.clean.locations.add(project.environment.venv)
     }
 
     override fun act() {
-        var code = project.environment.initialize()
-        if (code != 0) throw ActException("VirtualEnv creation has failed")
-
-        for (file in project.requirements.files) {
-            code = project.environment.install(file)
-            if (code != 0) throw ActException("Requirements.txt installation has failed")
+        project.terminal.info("Creating virtual environment...")
+        val duration = measureTimeMillis {
+            project.environment.initialize().orElse { throw ActException("Virtualenv creation has failed") }
         }
-
-        for (pkg in project.requirements.descriptors) {
-            code = project.environment.install(pkg)
-            if (code != 0) throw ActException("$pkg installation has failed")
-        }
+        project.terminal.info("Finished: ${duration}ms")
     }
 }

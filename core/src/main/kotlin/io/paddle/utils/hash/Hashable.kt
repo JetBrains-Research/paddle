@@ -1,4 +1,4 @@
-package io.paddle.utils
+package io.paddle.utils.hash
 
 import io.paddle.utils.json.JSON
 import kotlinx.serialization.SerializationStrategy
@@ -40,6 +40,8 @@ class StringHashable(private val input: String) : Hashable {
 }
 
 fun String.hashable() = StringHashable(this)
+
+fun Boolean.hashable() = StringHashable(this.toString())
 
 class FileHashable(private val file: File) : Hashable {
     override fun hash(): String {

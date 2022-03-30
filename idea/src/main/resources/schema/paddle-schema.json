@@ -62,6 +62,69 @@
         }
       }
     },
+    "environment": {
+      "description": "Environment that should be used by Paddle for Python build process",
+      "properties": {
+        "required": [
+          "path",
+          "python"
+        ],
+        "path": {
+          "description": "Path to the virtual environment location",
+          "type": "string"
+        },
+        "python": {
+          "description": "Version of Python interpreter to be used",
+          "type": "string"
+        }
+      }
+    },
+    "repositories": {
+      "description": "List of the available PyPI repositories",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "name",
+          "url"
+        ],
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          },
+          "default": {
+            "type": "boolean"
+          },
+          "secondary": {
+            "type": "boolean"
+          }
+        }
+      }
+    },
+    "requirements": {
+      "description": "List of project requirements",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "name"
+        ],
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "version": {
+            "type": "string"
+          },
+          "repository": {
+            "type": "string"
+          }
+        }
+      }
+    },
     "plugins": {
       "type": "object",
       "properties": {

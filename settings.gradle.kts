@@ -7,3 +7,12 @@ include(":plugins:python")
 include(":plugins:docker")
 include(":plugins:ssh")
 include(":stub")
+
+pluginManagement {
+    val kotlinVersion: String by settings
+    plugins {
+        kotlin("jvm") version kotlinVersion
+        kotlin("plugin.serialization") version kotlinVersion
+    }
+}
+

@@ -9,6 +9,7 @@ import com.github.dockerjava.core.DefaultDockerClientConfig
 import com.github.dockerjava.core.DockerClientImpl
 import com.github.dockerjava.httpclient5.ApacheDockerHttpClient
 import io.paddle.execution.CommandExecutor
+import io.paddle.execution.ExecutionResult
 import io.paddle.project.Project
 import io.paddle.terminal.Terminal
 import io.paddle.terminal.TextOutput
@@ -29,7 +30,14 @@ class DockerCommandExecutor(private val image: String, output: TextOutput) : Com
     private val http = ApacheDockerHttpClient.Builder().dockerHost(config.dockerHost).sslConfig(config.sslConfig).build()
     private val client = DockerClientImpl.getInstance(config, http)
 
-    override fun execute(command: String, args: Iterable<String>, working: File, terminal: Terminal): Int {
+    override fun execute(
+        command: String,
+        args: Iterable<String>,
+        workingDir: File,
+        terminal: Terminal,
+        envVars: Map<String, String>,
+        log: Boolean
+    ): ExecutionResult {
         val (name, tag) = image.split(":")
 
         if (client.listImagesCmd().exec().all { image !in it.repoTags }) {
@@ -40,14 +48,14 @@ class DockerCommandExecutor(private val image: String, output: TextOutput) : Com
         val oldPath = File(".").absolutePath.dropLast(2)
 
         //TODO-tanvd consider reworking this part and use standard File API instead of tricks like this one
-        val fixedCommand =  if (command.startsWith(oldPath)) "/project/${command.drop(oldPath.length + 1)}" else command
+        val fixedCommand = if (command.startsWith(oldPath)) "/project/${command.drop(oldPath.length + 1)}" else command
         val fixedArgs = args.map { if (it.startsWith(oldPath)) "/project/${it.drop(oldPath.length + 1)}" else it }
 
         val container = client.createContainerCmd(image)
             .withBinds(
                 Bind.parse(File(".").absolutePath + ":" + "/project"),
             )
-            .withWorkingDir("/project/${working.toRelativeString(File("."))}")
+            .withWorkingDir("/project/${workingDir.toRelativeString(File("."))}")
             .withCmd(fixedCommand, *fixedArgs.toTypedArray())
             .withAttachStderr(true)
             .withAttachStdout(true)
@@ -68,6 +76,6 @@ class DockerCommandExecutor(private val image: String, output: TextOutput) : Com
 
         val result = client.waitContainerCmd(container.id).exec(WaitContainerResultCallback()).awaitCompletion()
         client.removeContainerCmd(container.id).exec()
-        return result.awaitStatusCode()
+        return ExecutionResult(result.awaitStatusCode())
     }
 }

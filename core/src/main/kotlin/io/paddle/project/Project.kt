@@ -9,6 +9,8 @@ import io.paddle.specification.tree.SpecializedConfigSpec
 import io.paddle.terminal.*
 import io.paddle.utils.config.Configuration
 import io.paddle.utils.ext.Extendable
+import io.paddle.utils.yaml.YAML
+import io.paddle.utils.hash.StringHashable
 import java.io.File
 
 class Project(
@@ -21,10 +23,15 @@ class Project(
         fun create(project: Project): V
     }
 
+    val id: String = StringHashable(workDir.absolutePath).hash()
     val tasks = Tasks()
     val extensions = Extendable()
     var executor: CommandExecutor = LocalCommandExecutor(output)
     val terminal = Terminal(output)
+
+    val buildFile: File = workDir.resolve("paddle.yaml")
+    val yaml: MutableMap<String, Any> = buildFile.readText().let { YAML.parse(it) }
+
 
     init {
         extensions.register(Plugins.Extension.key, Plugins.Extension.create(this))
