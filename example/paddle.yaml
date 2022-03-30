@@ -19,7 +19,7 @@ repositories:
     url: https://packages.jetbrains.team/pypi/p/grazi/grazie-ml/simple
     default: False # If True, this would disable the global PyPI repo, and make <ml> the default fallback source
     auth:
-      type: keyring
+      type: profile
       username: Oleg.Smirnov
 
   - name: paper-analyzer

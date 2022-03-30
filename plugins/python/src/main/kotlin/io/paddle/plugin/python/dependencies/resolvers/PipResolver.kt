@@ -11,6 +11,7 @@ import io.paddle.plugin.python.extensions.*
 import io.paddle.plugin.python.utils.*
 import io.paddle.project.Project
 import io.paddle.tasks.Task
+import io.paddle.utils.hash.hashable
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.builtins.*
 import org.codehaus.plexus.util.cli.CommandLineUtils
@@ -29,33 +30,38 @@ object PipResolver {
             "\\((?<version>[\\w\\-_.*+!]+?)\\)"
     )
 
-    fun resolve(project: Project): Set<PyPackage> {
-        // Collect requirements which repo is not specified directly (or specified as PyPi)
-        val generalRequirements = project.requirements.descriptors
-            .filter { it.repo == null || it.repo == PyPackageRepository.PYPI_REPOSITORY.name }
-            .map { it.name + (it.version?.let { v -> "==$v" } ?: "") }
-        val pipResolveArgs = listOf("-m", "pip", "resolve") + generalRequirements + project.repositories.resolved.asPipArgs
+    fun resolve(project: Project): Set<PyPackage> =
+        cached(
+            storage = PyLocations.pipResolverCachePath.toFile(),
+            serializer = MapSerializer(String.serializer(), ListSerializer(String.serializer()))
+        ) {
+            // Collect requirements which repo is not specified directly (or specified as PyPi)
+            val generalRequirements = project.requirements.descriptors
+                .filter { it.repo == null || it.repo == PyPackageRepository.PYPI_REPOSITORY.name }
+                .map { it.name + (it.version?.let { v -> "==$v" } ?: "") }
+            val pipResolveArgs = listOf("-m", "pip", "resolve") + generalRequirements + project.repositories.resolved.asPipArgs
+            val cacheInput = pipResolveArgs.map { it.hashable() }.hashable().hash()
 
-        val output = ArrayList<String>()
-        Cache.find(pipResolveArgs)?.let { output.addAll(it) }
-            ?: ExecutionResult(
-                CommandLineUtils.executeCommandLine(
-                    Commandline().apply {
-                        executable = project.environment.localInterpreterPath.absolutePathString()
-                        addArguments(pipResolveArgs.toTypedArray())
-                    },
-                    { output.add(it); project.terminal.stdout(it) },
-                    { project.terminal.stderr(it) }
+            val output = ArrayList<String>()
+            getFromCache(cacheInput)?.let { output.addAll(it) }
+                ?: ExecutionResult(
+                    CommandLineUtils.executeCommandLine(
+                        Commandline().apply {
+                            executable = project.environment.localInterpreterPath.absolutePathString()
+                            addArguments(pipResolveArgs.toTypedArray())
+                        },
+                        { output.add(it); project.terminal.stdout(it) },
+                        { project.terminal.stderr(it) }
+                    )
                 )
-            )
 
-        // TODO: resolve requirements which repo is specified directly
+            // TODO: resolve requirements which repo is specified directly
 
-        val packages = parse(output, project)
-        Cache.update(pipResolveArgs, output) // update cache iff output was parsed successfully
+            val packages = parse(output, project)
+            updateCache(cacheInput, output) // update cache iff output was parsed successfully
 
-        return packages
-    }
+            return@cached packages
+        }
 
     private fun parse(output: List<String>, project: Project): Set<PyPackage> {
         val startIdx = output.indexOfFirst { it == "--- RESOLVED-BEGIN ---" }
@@ -111,38 +117,5 @@ object PipResolver {
         }
 
         return comesFromUrlByPackage.keys
-    }
-
-    object Cache {
-        private val storage = PyLocations.pipResolverCachePath.toFile()
-
-        private var cache: Map<String, List<String>>
-            get() {
-                storage.parentFile.mkdirs()
-                return storage.takeIf { it.exists() }
-                    ?.let {
-                        jsonParser.decodeFromString(
-                            MapSerializer(String.serializer(), ListSerializer(String.serializer())),
-                            it.readText()
-                        )
-                    }
-                    ?: emptyMap()
-            }
-            set(value) {
-                storage.parentFile.mkdirs()
-                storage.writeText(
-                    jsonParser.encodeToString(
-                        MapSerializer(String.serializer(), ListSerializer(String.serializer())),
-                        value
-                    )
-                )
-            }
-
-        fun find(pipResolveArgs: List<String>) = cache[pipResolveArgs.toString()]
-
-        @Synchronized
-        fun update(pipResolveArgs: List<String>, output: List<String>) {
-            cache = cache.toMutableMap().also { it[pipResolveArgs.toString()] = output }
-        }
     }
 }

@@ -9,7 +9,7 @@ import io.paddle.plugin.python.dependencies.index.wordlist.PackedWordList
 import io.paddle.plugin.python.dependencies.index.wordlist.PackedWordListSerializer
 import io.paddle.plugin.python.extensions.Repositories
 import io.paddle.plugin.python.utils.*
-import io.paddle.utils.hash.StringHashable
+import io.paddle.utils.hash.*
 import kotlinx.serialization.*
 import java.io.File
 
@@ -19,7 +19,9 @@ class PyPackageRepository(val url: PyPackagesRepositoryUrl, val name: String, va
     constructor(descriptor: Repositories.Descriptor) : this(descriptor.url.removeSimple(), descriptor.name, descriptor.authInfo)
 
     @Serializable
-    data class Metadata(val url: PyPackagesRepositoryUrl, val name: String, val authInfo: AuthInfo)
+    data class Metadata(val url: PyPackagesRepositoryUrl, val name: String, val authInfo: AuthInfo) : Hashable {
+        override fun hash() = listOf(url, name, authInfo.username.toString(), authInfo.type.toString()).map { it.hashable() }.hashable().hash()
+    }
 
     /**
      * Credentials for PyPi repository, used via Basic Auth.
