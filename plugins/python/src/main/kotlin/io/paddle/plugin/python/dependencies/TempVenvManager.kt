@@ -37,7 +37,7 @@ class TempVenvManager private constructor(val venv: VenvDir, val project: Projec
 
         private fun createTempVenv(project: Project, venv: VenvDir, options: List<String> = emptyList(), verbose: Boolean = true): ExecutionResult {
             return project.executor.execute(
-                command = project.environment.localInterpreterPath.absolutePathString(),
+                command = project.environment.interpreterPath.absolutePathString(),
                 args = listOf("-m", "venv") + options + PyLocations.venvsDir.resolve(project.id).toString(),
                 workingDir = PyLocations.paddleHome.toFile(),
                 terminal = Terminal.MOCK,

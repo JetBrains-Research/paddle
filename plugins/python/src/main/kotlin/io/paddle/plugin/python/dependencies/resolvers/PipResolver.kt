@@ -47,7 +47,7 @@ object PipResolver {
             getFromCache(cacheInput)?.let { output.addAll(it) } ?: ExecutionResult(
                 CommandLineUtils.executeCommandLine(
                     Commandline().apply {
-                        executable = project.environment.localInterpreterPath.absolutePathString()
+                        executable = project.environment.interpreterPath.absolutePathString()
                         addArguments(pipResolveArgs.toTypedArray())
                     },
                     ByteArrayInputStream("\n\n".encodeToByteArray()),

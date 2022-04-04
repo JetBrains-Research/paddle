@@ -18,7 +18,7 @@ abstract class IncrementalTask(project: Project) : Task(project) {
     /** Output of the task that should be used during incrementallity check */
     open val outputs: List<Hashable> = emptyList()
 
-    private fun isUpToDate(): Boolean {
+    protected fun isUpToDate(): Boolean {
         if (inputs.isEmpty() && outputs.isEmpty()) {
             return false
         }

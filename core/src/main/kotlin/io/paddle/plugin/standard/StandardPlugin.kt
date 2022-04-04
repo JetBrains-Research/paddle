@@ -8,6 +8,8 @@ import io.paddle.project.Project
 import io.paddle.tasks.Task
 
 object StandardPlugin: Plugin {
+    override val id: String = "standard"
+
     override fun configure(project: Project) {
     }
 

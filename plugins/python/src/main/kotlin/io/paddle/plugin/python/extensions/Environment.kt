@@ -21,7 +21,7 @@ val Project.environment: Environment
 
 class Environment(val project: Project, val venv: VenvDir) : Hashable {
 
-    val localInterpreterPath: Path
+    val interpreterPath: Path
         get() = venv.getInterpreterPath(project)
 
     object Extension : Project.Extension<Environment> {
@@ -39,12 +39,12 @@ class Environment(val project: Project, val venv: VenvDir) : Hashable {
     fun initialize(): ExecutionResult {
         return project.executor.execute(
             project.interpreter.resolved.path.toString(),
-            listOf("-m", "venv", "--clear", venv.absolutePath),
+            listOf("-m", "venv", venv.absolutePath),
             project.workDir,
             project.terminal
         ).then {
             project.executor.execute(
-                localInterpreterPath.absolutePathString(),
+                interpreterPath.absolutePathString(),
                 listOf("-m", "pip", "install", PipResolver.PIP_RESOLVER_URL),
                 project.workDir,
                 Terminal.MOCK
@@ -54,7 +54,7 @@ class Environment(val project: Project, val venv: VenvDir) : Hashable {
 
     fun runModule(module: String, arguments: List<String> = emptyList()): ExecutionResult {
         return project.executor.execute(
-            localInterpreterPath.absolutePathString(),
+            interpreterPath.absolutePathString(),
             listOf("-m", module, *arguments.toTypedArray()),
             project.workDir,
             project.terminal
@@ -63,7 +63,7 @@ class Environment(val project: Project, val venv: VenvDir) : Hashable {
 
     fun runScript(file: String, arguments: List<String> = emptyList()): ExecutionResult {
         return project.executor.execute(
-            localInterpreterPath.absolutePathString(),
+            interpreterPath.absolutePathString(),
             listOf(file, *arguments.toTypedArray()),
             project.workDir,
             project.terminal

@@ -3,7 +3,7 @@ package io.paddle.project
 import io.paddle.execution.CommandExecutor
 import io.paddle.execution.local.LocalCommandExecutor
 import io.paddle.plugin.Plugin
-import io.paddle.plugin.standard.extensions.Plugins
+import io.paddle.plugin.standard.extensions.*
 import io.paddle.schema.extensions.BaseJsonSchemaExtension
 import io.paddle.schema.extensions.JsonSchema
 import io.paddle.terminal.*
@@ -13,7 +13,7 @@ import io.paddle.utils.hash.StringHashable
 import io.paddle.utils.yaml.YAML
 import java.io.File
 
-class Project(val config: Configuration, val workDir: File = File("."), val output: TextOutput = TextOutput.Console) {
+class Project private constructor(val config: Configuration, val workDir: File, val parent: Project?, val output: TextOutput) {
     interface Extension<V : Any> {
         val key: Extendable.Key<V>
 
@@ -25,12 +25,14 @@ class Project(val config: Configuration, val workDir: File = File("."), val outp
     val extensions = Extendable()
     var executor: CommandExecutor = LocalCommandExecutor(output)
     val terminal = Terminal(output)
+    val hasParent: Boolean
+        get() = parent != null
 
     val buildFile: File = workDir.resolve("paddle.yaml")
     val yaml: MutableMap<String, Any> = buildFile.readText().let { YAML.parse(it) }
 
-
     init {
+        extensions.register(Subprojects.Extension.key, Subprojects.Extension.create(this))
         extensions.register(Plugins.Extension.key, Plugins.Extension.create(this))
         extensions.register(JsonSchema.Extension.key, JsonSchema.Extension.create(this))
     }
@@ -66,8 +68,10 @@ class Project(val config: Configuration, val workDir: File = File("."), val outp
     }
 
     companion object {
-        fun load(file: File): Project {
-            return Project(config = Configuration.from(file))
+        fun load(file: File, workDir: File = File("."), parent: Project? = null, output: TextOutput = TextOutput.Console): Project {
+            return Project(config = Configuration.from(file), workDir, parent, output).also {
+                it.register(it.plugins.enabled)
+            }
         }
     }
 }

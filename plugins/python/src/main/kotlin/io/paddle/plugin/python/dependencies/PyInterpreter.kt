@@ -214,8 +214,9 @@ class PyInterpreter(val path: Path, val version: Version) {
                     httpClient.request<HttpStatement>(PYTHON_DISTRIBUTIONS_BASE_URL).execute { response ->
                         val page = Jsoup.parse(response.readText())
                         return@execute page.body().getElementsByTag("a")
-                            .filter { it.text().matches(RegexCache.PYTHON_VERSION_REGEX) }
-                            .map { Version(it.text()) }
+                            .map { it.text().trim('/') }
+                            .filter { it.matches(RegexCache.PYTHON_VERSION_REGEX) }
+                            .map { Version(it) }
                             .toSet()
                     }
                 }

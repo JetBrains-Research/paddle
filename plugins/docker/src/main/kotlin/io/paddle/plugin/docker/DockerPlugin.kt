@@ -7,6 +7,8 @@ import io.paddle.tasks.Task
 import io.paddle.terminal.Terminal
 
 object DockerPlugin : Plugin {
+    override val id: String = "docker"
+
     override fun configure(project: Project) {
         val executor = project.extensions.get(DockerCommandExecutor.Extension.key) ?: return
         project.executor = executor

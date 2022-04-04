@@ -7,6 +7,8 @@ import io.paddle.tasks.Task
 import io.paddle.terminal.Terminal
 
 object SshPlugin : Plugin {
+    override val id: String = "ssh"
+
     override fun configure(project: Project) {
         val executor = project.extensions.get(SshCommandExecutor.Extension.key) ?: return
         project.executor = executor

@@ -14,4 +14,8 @@ open class Extendable {
     fun <T: Any> get(key: Key<T>) : T? {
         return storage[key] as T?
     }
+
+    operator fun <T: Any> contains(key: Key<T>): Boolean {
+        return key in storage
+    }
 }

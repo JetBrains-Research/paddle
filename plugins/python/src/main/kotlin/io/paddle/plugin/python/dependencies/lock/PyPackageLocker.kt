@@ -7,7 +7,9 @@ import io.paddle.plugin.python.dependencies.packages.PyPackage
 import io.paddle.plugin.python.dependencies.repositories.PyPackageRepository
 import io.paddle.plugin.python.extensions.*
 import io.paddle.plugin.python.utils.*
+import io.paddle.plugin.standard.extensions.subprojects
 import io.paddle.project.Project
+import io.paddle.tasks.Task
 import kotlinx.coroutines.supervisorScope
 import java.util.concurrent.ConcurrentHashMap
 
@@ -43,6 +45,19 @@ object PyPackageLocker {
             )
         }
 
+        val packages = extractPyPackages(pyLockFile, project)
+        for (pkg in packages) {
+            project.environment.install(pkg)
+        }
+
+        for (subproject in project.subprojects) {
+            for (pkg in subproject.requirements.resolved) {
+                project.environment.install(pkg)
+            }
+        }
+    }
+
+    private suspend fun extractPyPackages(pyLockFile: PyLockFile, project: Project): Collection<PyPackage> {
         val lockedPackages = pyLockFile.lockedPackages
         val packageByIdentifier = ConcurrentHashMap<LockedPyPackageIdentifier, PyPackage>()
 
@@ -60,9 +75,7 @@ object PyPackageLocker {
             packageByIdentifier[lockedPkg.identifier]!!.comesFrom = comesFrom
         }
 
-        for (pkg in packageByIdentifier.values) {
-            project.environment.install(pkg)
-        }
+        return packageByIdentifier.values
     }
 
     private suspend fun checkHashes(pkg: PyPackage, lockedPkg: LockedPyPackage, project: Project) {
@@ -79,7 +92,17 @@ object PyPackageLocker {
 
         val currentHash = availableDistributions.find { it.url == pkg.distributionUrl }?.packageHash
         if (currentHash !in lockedPkg.distributions.map { it.hash }) {
-            error("Can not find appropriate distribution in the lockfile for ${pkg.distributionUrl}: inconsistent hashes.")
+            val msg = "Can not find appropriate distribution in the lockfile for ${pkg.distributionUrl}: inconsistent hashes."
+            if (lockedPkg.repoMetadata.url.trimmedEquals(PyPackageRepository.PYPI_REPOSITORY.url)) {
+                throw Task.ActException(msg)
+            } else {
+                project.terminal.warn(msg)
+                project.terminal.warn(
+                    "If repo = ${lockedPkg.repoMetadata.url} is private, then (most probably) " +
+                        "the repo owner did not provide package metadata in a JSON format." +
+                        "You should consider contact them directly."
+                )
+            }
         }
     }
 }

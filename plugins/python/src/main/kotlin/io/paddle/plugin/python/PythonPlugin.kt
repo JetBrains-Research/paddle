@@ -9,11 +9,17 @@ import io.paddle.plugin.python.tasks.lint.PyLintTask
 import io.paddle.plugin.python.tasks.migrate.ParseRequirementsTxtTask
 import io.paddle.plugin.python.tasks.resolve.*
 import io.paddle.plugin.python.tasks.test.PyTestTask
+import io.paddle.plugin.standard.extensions.plugins
 import io.paddle.plugin.standard.tasks.CleanTask
 import io.paddle.project.Project
 import io.paddle.tasks.Task
 
+val Project.hasPython: Boolean
+    get() = PythonPlugin in this.plugins.enabled
+
 object PythonPlugin : Plugin {
+    override val id: String = "python"
+
     override fun configure(project: Project) {
     }
 

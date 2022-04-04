@@ -2,6 +2,9 @@ descriptor:
   name: example
   version: 0.1.0
 
+subprojects:
+  - subproject
+
 roots:
   sources:
     - src/main
@@ -11,7 +14,7 @@ roots:
 # https://github.com/pyenv/pyenv/wiki#suggested-build-environment
 environment:
   path: .venv
-  python: 3.8
+  python: 3.9
 
 # By default, any custom repository will have precedence over PyPI (secondary == False)
 repositories:

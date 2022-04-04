@@ -2,6 +2,7 @@ package io.paddle.plugin.python.tasks.resolve
 
 import io.paddle.plugin.python.extensions.repositories
 import io.paddle.plugin.python.tasks.PythonPluginTaskGroups
+import io.paddle.plugin.standard.extensions.subprojects
 import io.paddle.project.Project
 import io.paddle.tasks.Task
 import io.paddle.tasks.incremental.IncrementalTask
@@ -25,9 +26,7 @@ class ResolveRepositoriesTask(project: Project) : IncrementalTask(project) {
 //        }
 
     override val dependencies: List<Task>
-        get() = listOf(
-            project.tasks.getOrFail("venv"),
-        )
+        get() = project.subprojects.getAllTasksById(this.id)
 
     override fun act() {
         project.terminal.info("Resolving and indexing repositories...")

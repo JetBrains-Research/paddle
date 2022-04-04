@@ -4,6 +4,7 @@ import io.paddle.plugin.python.dependencies.GlobalCacheRepository
 import io.paddle.plugin.python.dependencies.lock.PyLockFile
 import io.paddle.plugin.python.dependencies.lock.PyPackageLocker
 import io.paddle.plugin.python.extensions.environment
+import io.paddle.plugin.standard.extensions.subprojects
 import io.paddle.project.Project
 import io.paddle.tasks.Task
 import io.paddle.tasks.incremental.IncrementalTask
@@ -30,7 +31,7 @@ class CiTask(project: Project) : IncrementalTask(project) {
     override val outputs: List<Hashable> = listOf(project.environment.venv.hashable())
 
     override val dependencies: List<Task>
-        get() = listOf(project.tasks.getOrFail("venv"))
+        get() = listOf(project.tasks.getOrFail("venv")) + project.subprojects.getAllTasksById(this.id)
 
     override fun act() = runBlocking {
         project.terminal.info("Installing dependencies from ${PyLockFile.FILENAME}...")

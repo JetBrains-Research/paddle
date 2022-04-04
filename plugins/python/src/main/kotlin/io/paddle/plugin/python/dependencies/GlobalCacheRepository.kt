@@ -103,32 +103,23 @@ object GlobalCacheRepository {
     }
 
     fun createSymlinkToPackage(cachedPkg: CachedPyPackage, venv: VenvDir) {
-        cachedPkg.sources.forEach {
-            when (it.name) {
-                "BIN" -> {
-                    it.listFiles()?.forEach { executable ->
-                        val link = venv.bin.resolve(executable.name).toPath()
+        cachedPkg.sources.forEach { src ->
+            when (src.name) {
+                "BIN", "PYCACHE" -> {
+                    src.listFiles()?.forEach { file ->
+                        val link = venv.bin.resolve(file.name).also { it.mkdirs() }
                         if (link.exists()) {
-                            link.deleteExisting()
+                            link.delete()
                         }
-                        Files.createSymbolicLink(link, executable.toPath())
-                    }
-                }
-                "PYCACHE" -> {
-                    it.listFiles()?.forEach { pyc ->
-                        val link = venv.pycache.resolve(pyc.name).toPath()
-                        if (link.exists()) {
-                            link.deleteExisting()
-                        }
-                        Files.createSymbolicLink(link, pyc.toPath())
+                        Files.createSymbolicLink(link.toPath(), file.toPath())
                     }
                 }
                 else -> {
-                    val link = venv.sitePackages.resolve(it.name).toPath()
+                    val link = venv.sitePackages.resolve(src.name).toPath()
                     if (link.exists()) {
                         link.deleteExisting()
                     }
-                    Files.createSymbolicLink(link, it.toPath())
+                    Files.createSymbolicLink(link, src.toPath())
                 }
             }
         }
