@@ -8,6 +8,7 @@ import io.paddle.plugin.python.extensions.interpreter
 import io.paddle.plugin.python.extensions.repositories
 import io.paddle.plugin.python.utils.*
 import io.paddle.project.Project
+import io.paddle.tasks.Task
 import io.paddle.utils.hash.hashable
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.builtins.MapSerializer
@@ -76,7 +77,10 @@ object PyDistributionsResolver {
                 ?: return@cached null
 
             val distributionUrl = runBlocking { PyPackageRepositoryIndexer.getDistributionUrl(matchedDistributionInfo, repository) }
-                ?: error("Distribution ${matchedDistributionInfo.distributionFilename} was not found in the repository ${repository.url.getSecure()}")
+                ?: throw Task.ActException(
+                    "Distribution ${matchedDistributionInfo.distributionFilename} " +
+                        "was not found in the repository ${repository.url.getSecure()}"
+                )
             updateCache(cacheInput, distributionUrl)
 
             return@cached distributionUrl
@@ -93,6 +97,6 @@ object PyDistributionsResolver {
                 return extraUrl to repo
             }
         }
-        error("Could not resolve $name:$version within specified set of repositories.")
+        throw Task.ActException("Could not resolve $name:$version within specified set of repositories.")
     }
 }

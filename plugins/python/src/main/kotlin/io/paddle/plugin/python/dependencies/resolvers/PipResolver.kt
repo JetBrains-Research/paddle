@@ -91,13 +91,13 @@ object PipResolver {
 
             val pyDistributionInfo = WheelPyDistributionInfo.fromString(filename)
                 ?: ArchivePyDistributionInfo.fromString(filename)
-                ?: error("FIXME: Unknown distribution type: $filename")
+                ?: throw Task.ActException("FIXME: Unknown distribution type: $filename")
 
             val repo = if (repoUrl == "None") {
                 runBlocking {
                     PyPackageRepository.PYPI_REPOSITORY.also {
                         distributionUrl = PyPackageRepositoryIndexer.getDistributionUrl(pyDistributionInfo, it)
-                            ?: error(
+                            ?: throw Task.ActException(
                                 "Distribution $filename was not found in the repository ${it.url.getSecure()}.\n" +
                                     "It is possible that it was resolved from your local cache, " +
                                     "which is deprecated since it is not available online anymore.\n" +

@@ -5,6 +5,7 @@ import io.paddle.plugin.python.dependencies.packages.*
 import io.paddle.plugin.python.utils.deepResolve
 import io.paddle.plugin.python.utils.exists
 import io.paddle.project.Project
+import io.paddle.tasks.Task
 import java.io.File
 import java.nio.file.*
 import java.util.*
@@ -58,7 +59,7 @@ object GlobalCacheRepository {
                     tempVenvManager.uninstall(pkg)
                 }
             },
-            onFail = { error("Some conflict occurred during installation of ${pkg.name}.") }
+            onFail = { throw Task.ActException("Some conflict occurred during installation of ${pkg.name}.") }
         )
     }
 

@@ -5,6 +5,7 @@ import io.paddle.plugin.python.dependencies.repositories.PyPackageRepository
 import io.paddle.plugin.python.dependencies.resolvers.PyDistributionsResolver
 import io.paddle.plugin.python.utils.PyPackageUrl
 import io.paddle.project.Project
+import io.paddle.tasks.Task
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -18,6 +19,6 @@ data class LockedPyPackageIdentifier(
     suspend fun resolveConcreteDistribution(repo: PyPackageRepository, project: Project): PyPackageUrl {
         return PyDistributionsResolver.resolve(name, version, repo, project)
             ?.substringBefore("#") // drop hash since hashes are compared separately later
-            ?: error("Could not resolve '$name' $version within specified repo: $repoMetadata")
+            ?: throw Task.ActException("Could not resolve '$name' $version within specified repo: $repoMetadata")
     }
 }

@@ -9,6 +9,7 @@ import io.ktor.utils.io.core.*
 import io.paddle.plugin.python.PyLocations
 import io.paddle.plugin.python.utils.*
 import io.paddle.project.Project
+import io.paddle.tasks.Task
 import kotlinx.coroutines.runBlocking
 import org.codehaus.plexus.archiver.tar.TarGZipUnArchiver
 import org.codehaus.plexus.logging.console.ConsoleLoggerManager
@@ -82,13 +83,13 @@ class PyInterpreter(val path: Path, val version: Version) {
                 processOutput
             )
             return currentVersionNumber?.let { Version(it) }
-                ?: error("Failed to determine version for interpreter: ${execFile.absolutePath}")
+                ?: throw Task.ActException("Failed to determine version for interpreter: ${execFile.absolutePath}")
         }
 
         // TODO: implement layers caching
         private fun downloadAndInstall(userDefinedVersion: Version, project: Project): PyInterpreter {
             val matchedVersion = Version.availableVersions.filter { it.matches(userDefinedVersion) }.maxOrNull()
-                ?: error("Can't find an appropriate version at $PYTHON_DISTRIBUTIONS_BASE_URL for version $userDefinedVersion")
+                ?: throw Task.ActException("Can't find an appropriate version at $PYTHON_DISTRIBUTIONS_BASE_URL for version $userDefinedVersion")
 
             project.terminal.info("Downloading interpreter ${matchedVersion.fullName}...")
             val workDir = PyLocations.interpretersDir.resolve(matchedVersion.number).toFile().also { it.mkdirs() }
@@ -160,7 +161,7 @@ class PyInterpreter(val path: Path, val version: Version) {
                     }.then {
                         execute("make", listOf("install"), repoDir, envVars = envVars, terminal = project.terminal)
                     }.orElseDo { code ->
-                        error("Failed to install interpreter $pythonDistName. Exit code is $code")
+                        throw Task.ActException("Failed to install interpreter $pythonDistName. Exit code is $code")
                     }
             }
             project.terminal.info("Interpreter installed to ${localPythonDir.resolve("bin").path}")
@@ -172,8 +173,10 @@ class PyInterpreter(val path: Path, val version: Version) {
         private fun downloadArchive(url: String, target: File, project: Project) = runBlocking {
             httpClient.get<HttpStatement>(url).execute { httpResponse ->
                 when {
-                    httpResponse.status == HttpStatusCode.NotFound -> error("The specified interpreter was not found at $url: ${httpResponse.status}")
-                    httpResponse.status != HttpStatusCode.OK -> error("Problems with network access: $url, status: $httpResponse.status")
+                    httpResponse.status == HttpStatusCode.NotFound ->
+                        throw Task.ActException("The specified interpreter was not found at $url: ${httpResponse.status}")
+                    httpResponse.status != HttpStatusCode.OK ->
+                        throw Task.ActException("Problems with network access: $url, status: $httpResponse.status")
                 }
                 val channel: ByteReadChannel = httpResponse.receive()
                 while (!channel.isClosedForRead) {

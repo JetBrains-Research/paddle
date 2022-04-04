@@ -7,6 +7,7 @@ import io.paddle.plugin.python.extensions.interpreter
 import io.paddle.plugin.python.utils.RegexCache
 import io.paddle.plugin.python.utils.jsonParser
 import io.paddle.project.Project
+import io.paddle.tasks.Task
 import kotlinx.serialization.decodeFromString
 import java.io.File
 import java.nio.file.Path
@@ -23,7 +24,8 @@ class VenvDir(private val directory: File) : File(directory.path) {
     val sitePackages: File
         get() {
             val libDir = directory.resolve("lib")
-            val pythonDir = libDir.listFiles()?.find { it.name.matches(RegexCache.PYTHON_DIR_NAME_REGEX) } ?: error("Incorrect venv structure")
+            val pythonDir = libDir.listFiles()?.find { it.name.matches(RegexCache.PYTHON_DIR_NAME_REGEX) }
+                ?: throw Task.ActException("Incorrect venv structure")
             return pythonDir.resolve("site-packages")
         }
 

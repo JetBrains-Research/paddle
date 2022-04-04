@@ -9,6 +9,7 @@ import io.paddle.plugin.python.dependencies.resolvers.PipResolver
 import io.paddle.plugin.python.extensions.environment
 import io.paddle.plugin.python.utils.jsonParser
 import io.paddle.project.Project
+import io.paddle.tasks.Task
 import io.paddle.terminal.Terminal
 import kotlinx.serialization.encodeToString
 import java.io.File
@@ -31,7 +32,7 @@ class TempVenvManager private constructor(val venv: VenvDir, val project: Projec
 
         private fun getTempVenvManager(project: Project): TempVenvManager {
             val venv = VenvDir(PyLocations.venvsDir.resolve(project.id).toFile())
-            createTempVenv(project, venv).orElse { error("Failed to create Paddle's internal virtualenv. Check your python installation.") }
+            createTempVenv(project, venv).orElse { throw Task.ActException("Failed to create Paddle's internal virtualenv. Check your python installation.") }
             return TempVenvManager(venv, project)
         }
 

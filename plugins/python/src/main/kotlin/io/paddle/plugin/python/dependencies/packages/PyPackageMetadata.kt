@@ -3,6 +3,7 @@ package io.paddle.plugin.python.dependencies.packages
 import io.paddle.plugin.python.dependencies.parser.antlr.DependencySpecificationLexer
 import io.paddle.plugin.python.dependencies.parser.antlr.DependencySpecificationParser
 import io.paddle.plugin.python.utils.RegexCache
+import io.paddle.tasks.Task
 import org.antlr.v4.runtime.CharStreams
 import org.antlr.v4.runtime.CommonTokenStream
 import java.io.*
@@ -44,11 +45,13 @@ class PyPackageMetadata private constructor(private val headers: Map<String, Any
                 val (key, value) = Pair((header as Header).name, header.value)
                 when (key) {
                     "Requires-Dist" -> {
-                        val parser = createDependencySpecificationParser(value) ?: error("Parse error in package $pkgName: '$key: $value'")
+                        val parser = createDependencySpecificationParser(value)
+                            ?: throw Task.ActException("Parse error in package $pkgName: '$key: $value'")
                         (headers[key] as MutableList<DependencySpecificationParser.SpecificationContext>).add(parser.specification())
                     }
                     "Requires-Python" -> {
-                        val parser = createDependencySpecificationParser(value) ?: error("Parse error in package $pkgName: '$key: $value'")
+                        val parser = createDependencySpecificationParser(value)
+                            ?: throw Task.ActException("Parse error in package $pkgName: '$key: $value'")
                         headers[key] = parser.versionspec()
                     }
                     else -> {

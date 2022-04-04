@@ -39,7 +39,7 @@ object PyPackageLocker {
 
         val lockedInterpreter = PyInterpreter.find(PyInterpreter.Version(pyLockFile.interpreterVersion), project)
         if (lockedInterpreter.version != project.interpreter.resolved.version) {
-            error(
+            throw Task.ActException(
                 "Locked interpreter version (${lockedInterpreter.version.number}) is not consistent with " +
                     "current interpreter version ${project.interpreter.resolved.version}."
             )
@@ -87,7 +87,10 @@ object PyPackageLocker {
             // TODO: ask user - trust or not?
             return
         } else if (availableDistributions == null) {
-            error("Corresponding locked distribution ${pkg.distributionUrl} was not found in current package metadata. Consider upgrading your lockfile.")
+            throw Task.ActException(
+                "Corresponding locked distribution ${pkg.distributionUrl} was not found in current package metadata. " +
+                    "Consider upgrading your lockfile."
+            )
         }
 
         val currentHash = availableDistributions.find { it.url == pkg.distributionUrl }?.packageHash
@@ -96,6 +99,7 @@ object PyPackageLocker {
             if (lockedPkg.repoMetadata.url.trimmedEquals(PyPackageRepository.PYPI_REPOSITORY.url)) {
                 throw Task.ActException(msg)
             } else {
+                // TODO: ask user - trust or not?
                 project.terminal.warn(msg)
                 project.terminal.warn(
                     "If repo = ${lockedPkg.repoMetadata.url} is private, then (most probably) " +

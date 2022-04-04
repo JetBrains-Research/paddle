@@ -8,6 +8,7 @@ import io.paddle.plugin.python.dependencies.index.metadata.JsonPackageMetadataIn
 import io.paddle.plugin.python.dependencies.packages.PyPackage
 import io.paddle.plugin.python.dependencies.repositories.PyPackageRepository
 import io.paddle.plugin.python.utils.*
+import io.paddle.tasks.Task
 import io.paddle.terminal.Terminal
 import kotlinx.serialization.decodeFromString
 import org.jsoup.Jsoup
@@ -22,7 +23,10 @@ object PyPackageRepositoryIndexer {
                 return@execute allNamesDocument.body().getElementsByTag("a").map { it.text() }
             }
         } catch (exception: Throwable) {
-            error("Failed to update index of available packages for PyPI repository ${repository.name}: ${repository.urlSimple.getSecure()}")
+            throw Task.ActException(
+                "Failed to update index of available packages for PyPI repository " +
+                    "${repository.name}: ${repository.urlSimple.getSecure()}"
+            )
         }
     }
 
@@ -51,7 +55,10 @@ object PyPackageRepositoryIndexer {
                 return@execute element?.attr("href")
             }
         } catch (exception: Throwable) {
-            error("Failed to resolve distribution ${distributionInfo.distributionFilename} in ${repository.urlSimple.getSecure()} due to network issues.")
+            throw Task.ActException(
+                "Failed to resolve distribution ${distributionInfo.distributionFilename} in " +
+                    "${repository.urlSimple.getSecure()} due to network issues."
+            )
         }
     }
 
