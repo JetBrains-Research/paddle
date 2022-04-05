@@ -9,8 +9,7 @@ class PaddleProjectSettings : ExternalProjectSettings() {
 
         class DelegatingAdapter(delegate: ExternalSystemSettingsListener<PaddleProjectSettings>) :
             DelegatingExternalSystemSettingsListener<PaddleProjectSettings>(delegate),
-            Listener {
-        }
+            Listener
 
         companion object {
             @JvmField

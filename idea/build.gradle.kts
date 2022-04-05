@@ -24,14 +24,14 @@ intellij {
     pluginName.set("Paddle")
 
     type.set("PC")
-    version.set("PC-2021.1.3")
+    version.set("PC-2021.3.3")
 
     downloadSources.set(true)
 
     plugins.set(
         listOf(
-            "PythonCore:211.7628.24",
-            "org.jetbrains.plugins.yaml:211.7142.37"
+            "PythonCore:213.7172.26",
+            "org.jetbrains.plugins.yaml:213.6777.22"
         )
     )
 

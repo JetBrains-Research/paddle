@@ -2,6 +2,10 @@ descriptor:
   name: subproject
   version: 0.1.0
 
+roots:
+  sources:
+    - src/main
+
 plugins:
   enabled:
     - python

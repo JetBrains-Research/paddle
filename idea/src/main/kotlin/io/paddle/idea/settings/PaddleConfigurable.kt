@@ -6,7 +6,6 @@ import com.intellij.openapi.externalSystem.util.ExternalSystemSettingsControl
 import com.intellij.openapi.externalSystem.util.PaintAwarePanel
 import com.intellij.openapi.project.Project
 import io.paddle.idea.PaddleManager
-import org.jetbrains.annotations.NonNls
 
 
 class PaddleConfigurable(project: Project) :
@@ -46,11 +45,11 @@ class PaddleConfigurable(project: Project) :
     }
 
     override fun getHelpTopic(): String {
-        return HELP_TOPIC!!
+        return HELP_TOPIC
     }
 
     companion object {
         const val ID = "reference.settingsdialog.project.paddle"
-        val HELP_TOPIC: @NonNls String = ID
+        const val HELP_TOPIC: String = ID
     }
 }
