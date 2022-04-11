@@ -13,3 +13,5 @@ fun File.deleteRecursivelyWithoutSymlinks() {
 }
 
 fun Path.exists(): Boolean = Files.exists(this)
+
+fun String.toFile(): File = File(this)

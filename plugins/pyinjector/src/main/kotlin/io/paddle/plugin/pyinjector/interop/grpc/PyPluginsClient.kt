@@ -1,13 +1,12 @@
-package io.paddle.interop.python
+package io.paddle.plugin.pyinjector.interop.grpc
 
 import io.grpc.ManagedChannel
 import io.grpc.ManagedChannelBuilder
 import io.paddle.plugin.interop.*
-import io.paddle.plugin.interop.PluginsGrpcKt.PluginsCoroutineStub
 import java.io.Closeable
 import java.util.concurrent.TimeUnit
 
-object PythonPluginsClient : Closeable {
+object PyPluginsClient : Closeable {
     private const val port = 50052
 
     private val channel: ManagedChannel = ManagedChannelBuilder
@@ -15,7 +14,7 @@ object PythonPluginsClient : Closeable {
         .usePlaintext()
         .build()
 
-    private val client = PluginsCoroutineStub(channel)
+    private val client = PluginsGrpcKt.PluginsCoroutineStub(channel)
 
     suspend fun getInfoAboutAvailableTasksFor(pluginId: String): List<TaskInfo> {
         val request = getTasksRequest {

@@ -29,15 +29,34 @@ requirements:
     repository: pypi
 
 plugins:
-  enabled:
-    - python
-    - docker
-    - ssh
-    - simple-python-plugin
-    - greeting
-#    - example-test
-#  jars:
-#    - ".../paddle/example/plugins/test-plugin-0.1.0.jar"
+  - repositories:
+#      - name: base
+#        url: https://some.ru
+#
+#      - name: other
+#        dir: /home/some_dir/
+
+      - name: java
+        jar: "./plugins/test-plugin-0.1.0.jar"
+
+  - enabled:
+      - embedded:
+        - python
+        - docker
+        - ssh
+
+      - local:
+        - name: example-test
+          repository: java
+
+#        - name: greeting
+#          repository: other
+
+#      - py:
+#        - name: greeting
+#          version: 0.0.1
+#          repository: base
+#
 
 tasks:
   run:

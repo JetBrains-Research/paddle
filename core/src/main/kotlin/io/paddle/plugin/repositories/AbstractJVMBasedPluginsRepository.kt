@@ -1,10 +1,10 @@
-package io.paddle.plugin.repository
+package io.paddle.plugin.repositories
 
 import io.paddle.plugin.Plugin
 import io.paddle.utils.config.Configuration
 import io.paddle.utils.resource.ResourceUtils
 
-abstract class AbstractJVMBasedPluginsRepository : PluginsRepository {
+abstract class AbstractJVMBasedPluginsRepository {
     protected open val configPath = "META-INF/plugins.yaml"
     protected abstract val classLoader: ClassLoader
 
@@ -26,19 +26,19 @@ abstract class AbstractJVMBasedPluginsRepository : PluginsRepository {
         }
     }
 
-    override fun getAvailablePluginsIds(): Set<String> {
+    fun namesOfAvailablePlugins(): Set<String> {
         return pluginsIdsToClassnames.keys
     }
 
-    override fun getPluginBy(id: String): Plugin? {
-        return pluginsIdsToClassnames[id]?.let { loadClassBy(it) }
+    fun plugin(name: String): Plugin? {
+        return pluginsIdsToClassnames[name]?.let { loadClassBy(it) }
     }
 
     private fun loadClassBy(classname: String): Plugin {
         return Class.forName(classname, true, classLoader).kotlin.objectInstance as Plugin
     }
 
-    override fun getPluginsBy(ids: List<String>): List<Plugin> {
-        return ids.mapNotNull { getPluginBy(it) }
+    fun plugins(names: List<String>): List<Plugin> {
+        return names.mapNotNull { plugin(it) }
     }
 }

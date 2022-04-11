@@ -2,15 +2,14 @@ package io.paddle.project
 
 import io.paddle.execution.CommandExecutor
 import io.paddle.execution.local.LocalCommandExecutor
-import io.paddle.plugin.Plugin
-import io.paddle.plugin.standard.extensions.Plugins
-import io.paddle.specification.tree.ConfigurationSpecification
+import io.paddle.plugin.*
+import io.paddle.plugin.repositories.JarPluginsRepositories
 import io.paddle.specification.tree.SpecializedConfigSpec
 import io.paddle.terminal.*
 import io.paddle.utils.config.Configuration
 import io.paddle.utils.ext.Extendable
-import io.paddle.utils.yaml.YAML
 import io.paddle.utils.hash.StringHashable
+import io.paddle.utils.yaml.YAML
 import java.io.File
 
 class Project(
@@ -34,12 +33,12 @@ class Project(
 
 
     init {
+        extensions.register(JarPluginsRepositories.Extension.key, JarPluginsRepositories.Extension.create(this))
+        extensions.register(LocalPluginsDescriptors.Extension.key, LocalPluginsDescriptors.Extension.create(this))
         extensions.register(Plugins.Extension.key, Plugins.Extension.create(this))
     }
 
     fun register(plugin: Plugin) {
-        plugin.configure(this)
-
         for (extension in plugin.extensions(this)) {
             extensions.register(extension.key, extension.create(this))
         }
@@ -47,10 +46,12 @@ class Project(
         for (task in plugin.tasks(this)) {
             tasks.register(task)
         }
+
+        plugin.configure(this)
     }
 
     fun register(plugins: Iterable<Plugin>) {
-        plugins.forEach { this.register(it) }
+        plugins.forEach(::register)
     }
 
     fun execute(id: String) {
