@@ -68,7 +68,7 @@ internal class SerializeNodesHierarchyTest {
         assertEquals("Roots of the projects", roots.description)
 
         val rootsTests = roots.children["tests"]
-        assertIs<ArraySpecTreeNode>(rootsTests)
+        assertIs<ArraySpecTreeNode<StringSpecTreeNode>>(rootsTests)
         assertEquals("Tests locations that should be used", rootsTests.description)
         assertIs<StringSpecTreeNode>(rootsTests.items)
 

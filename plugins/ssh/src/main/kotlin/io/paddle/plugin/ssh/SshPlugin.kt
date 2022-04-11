@@ -27,7 +27,7 @@ object SshPlugin : Plugin {
         }
         if (isSshExecutorSelectedIn(project)) {
             project.configSpec.get<CompositeSpecTreeNode>("executor")?.run {
-                namesOfRequired = namesOfRequired ?: mutableListOf()
+                namesOfRequired = namesOfRequired ?: mutableSetOf()
                 namesOfRequired!!.addAll(listOf("user", "host", "directory"))
                 children["user"] = StringSpecTreeNode(description = "User to login via ssh")
                 children["host"] = StringSpecTreeNode(description = "Host to connect via ssh")

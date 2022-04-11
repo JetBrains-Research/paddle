@@ -16,7 +16,7 @@ abstract class ConfigurationSpecification {
     fun bool(name: String, default: BooleanSpecTreeNode? = null) = ConfigSpecDelegate(name, default)
     fun integer(name: String, default: IntegerSpecTreeNode? = null) = ConfigSpecDelegate(name, default)
     fun string(name: String, default: StringSpecTreeNode? = null) = ConfigSpecDelegate(name, default)
-    fun list(name: String, default: ArraySpecTreeNode? = null) = ConfigSpecDelegate(name, default)
+    fun <T : SpecTreeNode> list(name: String, default: ArraySpecTreeNode<T>? = null) = ConfigSpecDelegate(name, default)
 
     abstract fun <T : SpecTreeNode> get(key: String): T?
 
@@ -30,6 +30,8 @@ abstract class ConfigurationSpecification {
 }
 
 abstract class SpecializedConfigSpec<R, D> : ConfigurationSpecification() {
+    abstract val root: CompositeSpecTreeNode
+
     abstract val visitor: SpecTreeVisitor<R, D>
 
     abstract fun specialize(): R

@@ -10,7 +10,7 @@ class JsonSchemaSpecVisitor : SpecTreeVisitor<String, Unit> {
 
     override fun visit(stringNode: StringSpecTreeNode, ctx: Unit) = JSONSCHEMA.string(stringNode)
 
-    override fun visit(arrayNode: ArraySpecTreeNode, ctx: Unit) = JSONSCHEMA.string(arrayNode)
+    override fun <T : ConfigurationSpecification.SpecTreeNode> visit(arrayNode: ArraySpecTreeNode<T>, ctx: Unit) = JSONSCHEMA.string(arrayNode)
 
     override fun visit(compositeNode: CompositeSpecTreeNode, ctx: Unit) = JSONSCHEMA.string(compositeNode)
 }

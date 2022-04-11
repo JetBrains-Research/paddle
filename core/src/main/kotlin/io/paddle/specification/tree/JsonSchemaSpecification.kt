@@ -5,7 +5,7 @@ import io.paddle.utils.json.schema.JSONSCHEMA
 import io.paddle.utils.splitAndTrim
 
 class JsonSchemaSpecification(baseSchemaResourceUrl: String) : SpecializedConfigSpec<String, Unit>() {
-    private val root = readSchemaBy(baseSchemaResourceUrl)
+    override val root = readSchemaBy(baseSchemaResourceUrl)
 
     override val visitor = JsonSchemaSpecVisitor()
 

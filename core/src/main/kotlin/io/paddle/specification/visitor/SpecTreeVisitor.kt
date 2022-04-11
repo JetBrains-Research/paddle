@@ -9,7 +9,7 @@ interface SpecTreeVisitor<R, D> {
 
     fun visit(stringNode: StringSpecTreeNode, ctx: D): R
 
-    fun visit(arrayNode: ArraySpecTreeNode, ctx: D): R
+    fun <T : ConfigurationSpecification.SpecTreeNode> visit(arrayNode: ArraySpecTreeNode<T>, ctx: D): R
 
     fun visit(compositeNode: CompositeSpecTreeNode, ctx: D): R
 }

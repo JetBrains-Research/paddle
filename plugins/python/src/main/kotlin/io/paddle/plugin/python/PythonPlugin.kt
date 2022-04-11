@@ -11,7 +11,6 @@ import io.paddle.plugin.python.tasks.resolve.*
 import io.paddle.plugin.python.tasks.tests.PyTestTask
 import io.paddle.plugin.standard.tasks.CleanTask
 import io.paddle.project.Project
-import io.paddle.specification.ConfigSpecView
 import io.paddle.specification.tree.*
 import io.paddle.tasks.Task
 import io.paddle.utils.config.ConfigurationView
@@ -19,32 +18,40 @@ import io.paddle.utils.config.ConfigurationView
 object PythonPlugin : Plugin {
     override fun configure(project: Project) {
         val plugins = object : ConfigurationView("plugins", project.config) {
-            val enabled by list<String>("enabled", emptyList())
+            val enabled by list<String>("enabled")
         }
         if (plugins.enabled.contains("python")) {
-            project.configSpec.get<CompositeSpecTreeNode>("")!!.children["environment"] =
+            project.configSpec.root.children["environment"] =
                 CompositeSpecTreeNode(
                     description = "Environment that should be used by Paddle for Python build process",
-                    namesOfRequired = mutableListOf("type"),
-                    children = mutableMapOf("type" to StringSpecTreeNode(validValues = mutableListOf("virtualenv", "global")))
-                )
-            if (project.config.get<String>("environment.type") == "virtualenv") {
-                val environment = object : ConfigSpecView("environment", project.configSpec) {}
-                environment.get<CompositeSpecTreeNode>("")?.run {
-                    namesOfRequired!!.add("path")
-                    children["path"] = StringSpecTreeNode(description = "Path to virtual environment location")
-                }
-            }
-
-            project.configSpec.get<CompositeSpecTreeNode>("")!!.children["requirements"] =
-                CompositeSpecTreeNode(
+                    namesOfRequired = mutableSetOf("path", "python"),
                     children = mutableMapOf(
-                        "file" to StringSpecTreeNode(),
-                        "libraries" to ArraySpecTreeNode(
-                            items = CompositeSpecTreeNode(
-                                namesOfRequired = mutableListOf("name", "version"),
-                                children = mutableMapOf("name" to StringSpecTreeNode(), "version" to StringSpecTreeNode())
-                            )
+                        "path" to StringSpecTreeNode(description = "Path to the virtual environment location"),
+                        "python" to StringSpecTreeNode(description = "Version of Python interpreter to be used")
+                    )
+                )
+
+            project.configSpec.root.children["repositories"] =
+                ArraySpecTreeNode(
+                    description = "List of the available PyPI repositories",
+                    items = CompositeSpecTreeNode(
+                        namesOfRequired = mutableSetOf("name", "url"),
+                        children = mutableMapOf(
+                            "name" to StringSpecTreeNode(), "url" to StringSpecTreeNode(),
+                            "default" to BooleanSpecTreeNode(), "secondary" to BooleanSpecTreeNode()
+                        )
+                    )
+                )
+
+            project.configSpec.root.children["requirements"] =
+                ArraySpecTreeNode(
+                    description = "List of project requirements",
+                    items = CompositeSpecTreeNode(
+                        namesOfRequired = mutableSetOf("name"),
+                        children = mutableMapOf(
+                            "name" to StringSpecTreeNode(),
+                            "version" to StringSpecTreeNode(),
+                            "repository" to StringSpecTreeNode()
                         )
                     )
                 )

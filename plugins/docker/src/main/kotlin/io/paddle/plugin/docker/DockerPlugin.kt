@@ -27,7 +27,7 @@ object DockerPlugin : Plugin {
         }
         if (isDockerExecutorSelectedIn(project)) {
             project.configSpec.get<CompositeSpecTreeNode>("executor")?.run {
-                namesOfRequired = namesOfRequired ?: mutableListOf()
+                namesOfRequired = namesOfRequired ?: mutableSetOf()
                 namesOfRequired!!.add("image")
                 children["image"] = StringSpecTreeNode(description = "Image to be used for build")
             }

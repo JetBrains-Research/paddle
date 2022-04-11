@@ -23,7 +23,7 @@ class SpecTreeStructureVisitor: SpecTreeVisitor<Unit, MutableMap<String, Any?>> 
 
     }
 
-    override fun visit(arrayNode: ArraySpecTreeNode, ctx: MutableMap<String, Any?>) {
+    override fun <T : ConfigurationSpecification.SpecTreeNode> visit(arrayNode: ArraySpecTreeNode<T>, ctx: MutableMap<String, Any?>) {
 
     }
 }
