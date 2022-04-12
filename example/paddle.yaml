@@ -4,6 +4,7 @@ descriptor:
 
 subprojects:
   - subproject
+  - subsubproject
 
 roots:
   sources:

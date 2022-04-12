@@ -1,0 +1,11 @@
+descriptor:
+  name: subsubproject
+  version: 0.1.0
+
+plugins:
+  enabled:
+    - python
+
+environment:
+  path: .venv
+  python: 3.9

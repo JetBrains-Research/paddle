@@ -2,9 +2,14 @@ descriptor:
   name: subproject
   version: 0.1.0
 
+subprojects:
+  - subsubproject
+
 roots:
   sources:
     - src/main
+  tests:
+    - src/test
 
 plugins:
   enabled:
@@ -12,6 +17,7 @@ plugins:
 
 requirements:
   - name: aioredis
+
 
 environment:
   path: .venv
