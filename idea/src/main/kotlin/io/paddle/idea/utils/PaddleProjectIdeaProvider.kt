@@ -5,7 +5,8 @@ import io.paddle.project.ProjectProvider
 import io.paddle.terminal.TextOutput
 import java.io.File
 
-object PaddleProject {
+@Deprecated("Replaced with DI via ProjectProvider")
+object PaddleProjectIdeaProvider {
     var currentProject: Project? = null
 
     fun load(workDir: File, output: TextOutput = TextOutput.Console): Project {
