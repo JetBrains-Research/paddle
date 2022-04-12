@@ -1,11 +1,14 @@
 package io.paddle.project
 
-import io.paddle.plugin.standard.extensions.Subprojects
-import io.paddle.plugin.standard.extensions.plugins
+import io.paddle.plugin.standard.extensions.*
 import io.paddle.terminal.TextOutput
 import io.paddle.utils.config.Configuration
 import io.paddle.utils.hash.FileHashable
+import io.paddle.utils.isPaddle
 import java.io.File
+
+val Project.provider: ProjectProvider
+    get() = ProjectProvider.getInstance(this.rootDir)
 
 class ProjectProvider private constructor(private val rootDir: File) {
     companion object {
@@ -19,7 +22,8 @@ class ProjectProvider private constructor(private val rootDir: File) {
         }
     }
 
-    private val cache = HashMap<String, Project>()
+    private val projectByWorkDir = HashMap<String, Project>()
+    private val projectByName = HashMap<String, Project>()
 
     /**
      * This method creates and initializes [Project] and all its subprojects.
@@ -27,28 +31,43 @@ class ProjectProvider private constructor(private val rootDir: File) {
     fun initializeProject(output: TextOutput = TextOutput.Console): Project {
         val rootBuildFile = rootDir.resolve("paddle.yaml").takeIf { it.exists() }
             ?: throw Project.ProjectInitializationException("Root project does not have paddle.yaml file")
+
         val rootProject = getOrCreate(workDir = rootBuildFile.parentFile, output = output)
-        for (project in rootProject.projectByName.values) {
+
+        projectByName.putAll(
+            rootDir.walkTopDown()
+                .filter { it.isPaddle }
+                .map { getOrCreate(workDir = it.parentFile, output = output) }
+                .associateBy { it.descriptor.name }
+        )
+
+        for (project in projectByName.values) {
             project.extensions.register(Subprojects.Extension.key, Subprojects.Extension.create(project))
         }
+
         return rootProject
     }
 
     /**
-     * This method only creates [Project]. If the project was already create, it uses internal [cache].
+     * This method only creates [Project]. If the project was already create, it uses internal [projectByWorkDir].
      */
-    fun getOrCreate(
+    private fun getOrCreate(
         workDir: File = File("."),
         output: TextOutput = TextOutput.Console
     ): Project {
-        return cache.getOrPut(workDir.canonicalPath) {
+        return projectByWorkDir.getOrPut(workDir.canonicalPath) {
             Project(config = Configuration.from(workDir.resolve("paddle.yaml")), workDir, rootDir, output).also {
                 it.register(it.plugins.enabled)
             }
         }
     }
 
-    fun findBy(workDir: File): Project? = cache[workDir.canonicalPath]
+    val rootProject: Project?
+        get() = projectByWorkDir[rootDir.canonicalPath]
 
-    fun hasProjectsIn(dir: File): Boolean = cache.keys.any { it.startsWith(dir.canonicalPath) }
+    fun findBy(workDir: File): Project? = projectByWorkDir[workDir.canonicalPath]
+
+    fun findBy(name: String): Project? = projectByName[name]
+
+    fun hasProjectsIn(dir: File): Boolean = projectByWorkDir.keys.any { it.startsWith(dir.canonicalPath) }
 }

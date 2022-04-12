@@ -21,7 +21,7 @@
 
     <extensions defaultExtensionNs="com.intellij">
         <projectOpenProcessor implementation="io.paddle.idea.project.open.PaddleProjectOpenProcessor"/>
-
+        <externalSystemSettingsListener implementation="io.paddle.idea.startup.PaddleProjectSettingsUpdater"/>
         <externalSystemUnlinkedProjectAware implementation="io.paddle.idea.project.PaddleUnlinkedProjectAware"/>
         <externalSystemManager implementation="io.paddle.idea.PaddleManager"/>
         <projectService serviceImplementation="io.paddle.idea.settings.PaddleSettings"/>

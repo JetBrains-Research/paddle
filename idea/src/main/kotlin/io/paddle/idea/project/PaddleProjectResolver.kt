@@ -8,7 +8,6 @@ import com.intellij.openapi.externalSystem.service.project.ExternalSystemProject
 import com.intellij.openapi.module.ModuleTypeManager
 import io.paddle.idea.PaddleManager
 import io.paddle.idea.settings.PaddleExecutionSettings
-import io.paddle.idea.utils.PaddleProject
 import io.paddle.plugin.python.extensions.environment
 import io.paddle.plugin.python.hasPython
 import io.paddle.plugin.standard.extensions.*
@@ -24,9 +23,9 @@ class PaddleProjectResolver : ExternalSystemProjectResolver<PaddleExecutionSetti
         settings: PaddleExecutionSettings?,
         listener: ExternalSystemTaskNotificationListener
     ): DataNode<ProjectData> {
-        val pathToProjectFile = File(projectPath)
-        val pathToProject = pathToProjectFile.parentFile
-        val project = PaddleProject.load(pathToProjectFile, pathToProject) // fixme: add DI
+        val pathToProject = File(projectPath).parentFile
+        val projectProvider = ProjectProvider.getInstance(rootDir = pathToProject)
+        val project = projectProvider.initializeProject() // first initialization
 
         val projectData = ProjectData(
             PaddleManager.ID,
@@ -43,7 +42,6 @@ class PaddleProjectResolver : ExternalSystemProjectResolver<PaddleExecutionSetti
             attachTasks(project)
             attachContentRoots(project)
         }
-        val projectProvider = ProjectProvider.getInstance(rootDir = pathToProject)
         createModuleNodes(project.workDir, rootModuleNode, projectProvider).also {
             createModuleDependencies(project, it + (project to rootModuleNode))
         }

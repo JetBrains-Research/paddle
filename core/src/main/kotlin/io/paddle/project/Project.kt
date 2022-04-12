@@ -4,18 +4,17 @@ import io.paddle.execution.CommandExecutor
 import io.paddle.execution.local.LocalCommandExecutor
 import io.paddle.plugin.Plugin
 import io.paddle.plugin.standard.extensions.Plugins
-import io.paddle.plugin.standard.extensions.descriptor
+import io.paddle.plugin.standard.extensions.subprojects
 import io.paddle.schema.extensions.BaseJsonSchemaExtension
 import io.paddle.schema.extensions.JsonSchema
 import io.paddle.terminal.*
 import io.paddle.utils.config.Configuration
 import io.paddle.utils.ext.Extendable
 import io.paddle.utils.hash.StringHashable
-import io.paddle.utils.isPaddle
 import io.paddle.utils.yaml.YAML
 import java.io.File
 
-class Project internal constructor(val config: Configuration, val workDir: File, val rootDir: File, val output: TextOutput) {
+class Project internal constructor(val config: Configuration, val workDir: File, val rootDir: File, output: TextOutput) {
     interface Extension<V : Any> {
         val key: Extendable.Key<V>
 
@@ -25,20 +24,20 @@ class Project internal constructor(val config: Configuration, val workDir: File,
     val id: String = "project_" + StringHashable(workDir.canonicalPath).hash()
     val tasks = Tasks()
     val extensions = Extendable()
-    var executor: CommandExecutor = LocalCommandExecutor(output)
-    val terminal = Terminal(output)
     val parents = ArrayList<Project>()
+
+    var output: TextOutput = output
+        set(value) {
+            field = value
+            executor = LocalCommandExecutor(value)
+            terminal = Terminal(value)
+            subprojects.forEach { it.output = value }
+        }
+    var executor: CommandExecutor = LocalCommandExecutor(output)
+    var terminal = Terminal(output)
 
     val buildFile: File = workDir.resolve("paddle.yaml")
     val yaml: MutableMap<String, Any> = buildFile.readText().let { YAML.parse(it) }
-
-    internal val projectByName by lazy {
-        val projectProvider = ProjectProvider.getInstance(rootDir)
-        rootDir.walkTopDown()
-            .filter { it.isPaddle }
-            .map { projectProvider.getOrCreate(workDir = it.parentFile) }
-            .associateBy { it.descriptor.name }
-    }
 
     init {
         extensions.register(Plugins.Extension.key, Plugins.Extension.create(this))

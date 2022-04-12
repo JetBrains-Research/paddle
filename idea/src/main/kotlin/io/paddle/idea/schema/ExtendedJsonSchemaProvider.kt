@@ -14,6 +14,7 @@ class ExtendedJsonSchemaProvider(resource: String, presentable: String, filesToA
         val baseJsonSchema = super.getSchemaFile()
         if (baseJsonSchema != null) {
             val jsonSchemaBuilder = JsonSchemaBuilder(VfsUtil.loadText(baseJsonSchema))
+            // FIXME: injection is broken now, it's a wrong to do that
             PaddleProject.currentProject?.jsonSchema?.extensions?.forEach {
                 it.applyTo(jsonSchemaBuilder)
             }

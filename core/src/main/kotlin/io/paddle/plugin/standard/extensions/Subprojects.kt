@@ -1,6 +1,7 @@
 package io.paddle.plugin.standard.extensions
 
 import io.paddle.project.Project
+import io.paddle.project.provider
 import io.paddle.tasks.Task
 import io.paddle.utils.ext.Extendable
 
@@ -19,10 +20,10 @@ class Subprojects(private val subprojects: List<Project>) : Iterable<Project> {
             val subprojects = ArrayList<Project>()
 
             for (name in names) {
-                project.projectByName[name]?.let {
+                project.provider.findBy(name)?.let {
                     subprojects.add(it)
                     it.parents.add(project)
-                } ?: throw SubprojectsInitializationException("Subproject :$name was not found for project :${project.descriptor.name}}")
+                } ?: throw SubprojectsInitializationException("Subproject :$name was not found for project :${project.descriptor.name}")
             }
 
             return Subprojects(subprojects)

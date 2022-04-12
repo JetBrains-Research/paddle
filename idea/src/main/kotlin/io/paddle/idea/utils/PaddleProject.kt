@@ -8,7 +8,7 @@ import java.io.File
 object PaddleProject {
     var currentProject: Project? = null
 
-    fun load(file: File, workDir: File, output: TextOutput = TextOutput.Console): Project {
+    fun load(workDir: File, output: TextOutput = TextOutput.Console): Project {
         return ProjectProvider.getInstance(workDir).initializeProject(output).also { currentProject = it }
     }
 }
