@@ -15,7 +15,7 @@ import io.paddle.plugin.standard.extensions.descriptor
 import kotlin.io.path.absolutePathString
 
 object PaddlePythonSdkUtil {
-    fun configurePythonSdk(module: Module, paddleProject: io.paddle.project.Project) {
+    fun configurePythonSdk(module: Module, paddleProject: io.paddle.project.PaddleProject) {
         val existingSdks = PyConfigurableInterpreterList.getInstance(null).model.sdks
 
         var foundExistingSdk = false

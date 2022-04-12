@@ -3,7 +3,7 @@ package io.paddle.plugin.python.tasks.lint
 import io.paddle.plugin.python.extensions.*
 import io.paddle.plugin.standard.extensions.roots
 import io.paddle.plugin.standard.tasks.clean
-import io.paddle.project.Project
+import io.paddle.project.PaddleProject
 import io.paddle.tasks.Task
 import io.paddle.tasks.incremental.IncrementalTask
 import io.paddle.utils.hash.Hashable
@@ -11,7 +11,7 @@ import io.paddle.utils.hash.hashable
 import io.paddle.utils.tasks.TaskDefaultGroups
 import java.io.File
 
-class MyPyTask(project: Project) : IncrementalTask(project) {
+class MyPyTask(project: PaddleProject) : IncrementalTask(project) {
     override val id: String = "mypy"
 
     override val group: String = TaskDefaultGroups.LINT

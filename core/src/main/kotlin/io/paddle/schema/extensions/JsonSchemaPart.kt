@@ -1,6 +1,6 @@
 package io.paddle.schema.extensions
 
-import io.paddle.project.Project
+import io.paddle.project.PaddleProject
 import io.paddle.utils.jar.JarUtils
 import java.io.File
 
@@ -13,7 +13,7 @@ class JsonSchemaPartFromString(override val content: String, destination: String
 class JsonSchemaPartFromResource(
     resourceName: String,
     destination: String,
-    enclosingExtensionObject: Project.Extension<out BaseJsonSchemaExtension>,
+    enclosingExtensionObject: PaddleProject.Extension<out BaseJsonSchemaExtension>,
     default: String = ""
 ) : JsonSchemaPart(destination) {
     override val content by JarUtils.ResourceContentDelegate(

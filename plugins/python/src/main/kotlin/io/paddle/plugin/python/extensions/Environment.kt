@@ -5,7 +5,7 @@ import io.paddle.plugin.python.dependencies.GlobalCacheRepository
 import io.paddle.plugin.python.dependencies.VenvDir
 import io.paddle.plugin.python.dependencies.packages.PyPackage
 import io.paddle.plugin.python.dependencies.resolvers.PipResolver
-import io.paddle.project.Project
+import io.paddle.project.PaddleProject
 import io.paddle.terminal.Terminal
 import io.paddle.utils.config.ConfigurationView
 import io.paddle.utils.ext.Extendable
@@ -16,18 +16,18 @@ import java.nio.file.Path
 import kotlin.io.path.absolutePathString
 
 
-val Project.environment: Environment
+val PaddleProject.environment: Environment
     get() = extensions.get(Environment.Extension.key)!!
 
-class Environment(val project: Project, val venv: VenvDir) : Hashable {
+class Environment(val project: PaddleProject, val venv: VenvDir) : Hashable {
 
     val interpreterPath: Path
         get() = venv.getInterpreterPath(project)
 
-    object Extension : Project.Extension<Environment> {
+    object Extension : PaddleProject.Extension<Environment> {
         override val key: Extendable.Key<Environment> = Extendable.Key()
 
-        override fun create(project: Project): Environment {
+        override fun create(project: PaddleProject): Environment {
             val config = object : ConfigurationView("environment", project.config) {
                 val venv by string("path", default = ".venv")
             }

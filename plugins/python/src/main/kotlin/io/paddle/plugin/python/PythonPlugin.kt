@@ -11,19 +11,19 @@ import io.paddle.plugin.python.tasks.resolve.*
 import io.paddle.plugin.python.tasks.test.PyTestTask
 import io.paddle.plugin.standard.extensions.plugins
 import io.paddle.plugin.standard.tasks.CleanTask
-import io.paddle.project.Project
+import io.paddle.project.PaddleProject
 import io.paddle.tasks.Task
 
-val Project.hasPython: Boolean
+val PaddleProject.hasPython: Boolean
     get() = PythonPlugin in this.plugins.enabled
 
 object PythonPlugin : Plugin {
     override val id: String = "python"
 
-    override fun configure(project: Project) {
+    override fun configure(project: PaddleProject) {
     }
 
-    override fun tasks(project: Project): List<Task> {
+    override fun tasks(project: PaddleProject): List<Task> {
         return listOf(
             CleanTask(project),
             VenvTask(project),
@@ -41,13 +41,13 @@ object PythonPlugin : Plugin {
     }
 
     @Suppress("UNCHECKED_CAST")
-    override fun extensions(project: Project): List<Project.Extension<Any>> {
+    override fun extensions(project: PaddleProject): List<PaddleProject.Extension<Any>> {
         return listOf(
             Requirements.Extension,
             Repositories.Extension,
             Environment.Extension,
             Interpreter.Extension,
             JsonSchema.Extension
-        ) as List<Project.Extension<Any>>
+        ) as List<PaddleProject.Extension<Any>>
     }
 }

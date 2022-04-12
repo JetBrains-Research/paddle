@@ -6,7 +6,7 @@ import io.paddle.plugin.python.dependencies.packages.PyPackage
 import io.paddle.plugin.python.extensions.interpreter
 import io.paddle.plugin.python.utils.RegexCache
 import io.paddle.plugin.python.utils.jsonParser
-import io.paddle.project.Project
+import io.paddle.project.PaddleProject
 import io.paddle.tasks.Task
 import kotlinx.serialization.decodeFromString
 import java.io.File
@@ -38,7 +38,7 @@ class VenvDir(private val directory: File) : File(directory.path) {
     val pyPackages: List<PyPackage>
         get() = pyPackageFiles.map { jsonParser.decodeFromString(it.readText()) }
 
-    fun getInterpreterPath(project: Project): Path {
+    fun getInterpreterPath(project: PaddleProject): Path {
         return bin.resolve(project.interpreter.resolved.version.executableName).toPath()
     }
 

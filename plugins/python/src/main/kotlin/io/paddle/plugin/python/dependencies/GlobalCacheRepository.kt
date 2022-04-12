@@ -4,7 +4,7 @@ import io.paddle.plugin.python.PyLocations
 import io.paddle.plugin.python.dependencies.packages.*
 import io.paddle.plugin.python.utils.deepResolve
 import io.paddle.plugin.python.utils.exists
-import io.paddle.project.Project
+import io.paddle.project.PaddleProject
 import io.paddle.tasks.Task
 import java.io.File
 import java.nio.file.*
@@ -46,12 +46,12 @@ object GlobalCacheRepository {
             pkg.version
         )
 
-    fun findPackage(pkg: PyPackage, project: Project): CachedPyPackage {
+    fun findPackage(pkg: PyPackage, project: PaddleProject): CachedPyPackage {
         return cachedPackages.find { it.pkg == pkg && it.srcPath.exists() }
             ?: installToCache(pkg, project)
     }
 
-    private fun installToCache(pkg: PyPackage, project: Project): CachedPyPackage {
+    private fun installToCache(pkg: PyPackage, project: PaddleProject): CachedPyPackage {
         val tempVenvManager = TempVenvManager.getInstance(project)
         return tempVenvManager.install(pkg).expose(
             onSuccess = {
@@ -63,7 +63,7 @@ object GlobalCacheRepository {
         )
     }
 
-    private fun copyPackageRecursivelyFromTempVenv(pkg: PyPackage, project: Project): CachedPyPackage {
+    private fun copyPackageRecursivelyFromTempVenv(pkg: PyPackage, project: PaddleProject): CachedPyPackage {
         val tmpVenvManager = TempVenvManager.getInstance(project)
         val targetPathToCache = getPathToCachedPackage(pkg)
 

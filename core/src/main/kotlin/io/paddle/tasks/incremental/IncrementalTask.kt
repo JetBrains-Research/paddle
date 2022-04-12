@@ -1,6 +1,6 @@
 package io.paddle.tasks.incremental
 
-import io.paddle.project.Project
+import io.paddle.project.PaddleProject
 import io.paddle.tasks.Task
 import io.paddle.terminal.CommandOutput
 import io.paddle.utils.hash.Hashable
@@ -11,7 +11,7 @@ import io.paddle.utils.hash.hashable
  *
  * Note, that to make use of incremental caching you should define [inputs] and [outputs]]
  */
-abstract class IncrementalTask(project: Project) : Task(project) {
+abstract class IncrementalTask(project: PaddleProject) : Task(project) {
     /** Input of the task that should be used during incrementallity check */
     open val inputs: List<Hashable> = emptyList()
 

@@ -3,12 +3,12 @@ package io.paddle
 import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.parameters.arguments.argument
 import io.paddle.plugin.standard.extensions.subprojects
-import io.paddle.project.Project
-import io.paddle.project.ProjectProvider
+import io.paddle.project.PaddleProject
+import io.paddle.project.PaddleProjectProvider
 import io.paddle.tasks.Task
 import java.io.File
 
-class Paddle(private val project: Project) : CliktCommand() {
+class Paddle(private val project: PaddleProject) : CliktCommand() {
     private val taskRoute by argument(
         "task",
         "Use full name of the task to run it (e.g., ':subproject:runTask') " +
@@ -37,6 +37,6 @@ class Paddle(private val project: Project) : CliktCommand() {
 }
 
 fun main(args: Array<String>) {
-    val project = ProjectProvider.getInstance(rootDir = File(".")).initializeProject()
+    val project = PaddleProjectProvider.getInstance(rootDir = File(".")).initializeProject()
     Paddle(project).main(args)
 }

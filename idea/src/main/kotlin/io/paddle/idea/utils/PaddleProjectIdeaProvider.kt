@@ -1,15 +1,15 @@
 package io.paddle.idea.utils
 
-import io.paddle.project.Project
-import io.paddle.project.ProjectProvider
+import io.paddle.project.PaddleProject
+import io.paddle.project.PaddleProjectProvider
 import io.paddle.terminal.TextOutput
 import java.io.File
 
 @Deprecated("Replaced with DI via ProjectProvider")
 object PaddleProjectIdeaProvider {
-    var currentProject: Project? = null
+    var currentProject: PaddleProject? = null
 
-    fun load(workDir: File, output: TextOutput = TextOutput.Console): Project {
-        return ProjectProvider.getInstance(workDir).initializeProject(output).also { currentProject = it }
+    fun load(workDir: File, output: TextOutput = TextOutput.Console): PaddleProject {
+        return PaddleProjectProvider.getInstance(workDir).initializeProject(output).also { currentProject = it }
     }
 }

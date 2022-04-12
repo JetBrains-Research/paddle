@@ -7,7 +7,7 @@ import io.paddle.plugin.python.dependencies.repositories.PyPackageRepository
 import io.paddle.plugin.python.extensions.interpreter
 import io.paddle.plugin.python.extensions.repositories
 import io.paddle.plugin.python.utils.*
-import io.paddle.project.Project
+import io.paddle.project.PaddleProject
 import io.paddle.tasks.Task
 import io.paddle.utils.hash.hashable
 import kotlinx.coroutines.runBlocking
@@ -18,7 +18,7 @@ import kotlinx.serialization.builtins.serializer
 object PyDistributionsResolver {
     // See https://www.python.org/dev/peps/pep-0425/#id1
     // https://docs.python.org/3/distutils/apiref.html#distutils.util.get_platform
-    suspend fun resolve(name: PyPackageName, version: PyPackageVersion, repository: PyPackageRepository, project: Project): PyPackageUrl? =
+    suspend fun resolve(name: PyPackageName, version: PyPackageVersion, repository: PyPackageRepository, project: PaddleProject): PyPackageUrl? =
         cached(
             storage = PyLocations.distResolverCachePath.toFile(),
             serializer = MapSerializer(String.serializer(), String.serializer())
@@ -86,7 +86,7 @@ object PyDistributionsResolver {
             return@cached distributionUrl
         }
 
-    suspend fun resolve(name: PyPackageName, version: PyPackageVersion, project: Project): Pair<PyPackageUrl, PyPackageRepository> {
+    suspend fun resolve(name: PyPackageName, version: PyPackageVersion, project: PaddleProject): Pair<PyPackageUrl, PyPackageRepository> {
         val repos = project.repositories.resolved
         val primaryUrl = resolve(name, version, repos.primarySource, project)
         if (primaryUrl != null)

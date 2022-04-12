@@ -1,13 +1,13 @@
 package io.paddle.plugin.python.tasks.exec
 
 import io.paddle.plugin.python.extensions.environment
-import io.paddle.project.Project
+import io.paddle.project.PaddleProject
 import io.paddle.tasks.Task
 import io.paddle.utils.tasks.TaskDefaultGroups
 
-class RunTask(name: String, private val entrypoint: String, private val arguments: List<String>, project: Project) : Task(project) {
+class RunTask(name: String, private val entrypoint: String, private val arguments: List<String>, project: PaddleProject) : Task(project) {
     companion object {
-        fun from(project: Project): List<RunTask> {
+        fun from(project: PaddleProject): List<RunTask> {
             val configurations = project.config.get<List<Map<String, Any>>?>("tasks.run") ?: return emptyList()
             val tasks = ArrayList<RunTask>()
             for (configuration in configurations) {

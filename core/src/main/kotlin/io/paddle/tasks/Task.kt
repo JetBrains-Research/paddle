@@ -1,11 +1,11 @@
 package io.paddle.tasks
 
 import io.paddle.plugin.standard.extensions.route
-import io.paddle.project.Project
+import io.paddle.project.PaddleProject
 import io.paddle.terminal.CommandOutput
 import io.paddle.utils.tasks.TaskDefaultGroups
 
-abstract class Task(val project: Project) {
+abstract class Task(val project: PaddleProject) {
     /**
      * Identifier of the task in the project.
      *

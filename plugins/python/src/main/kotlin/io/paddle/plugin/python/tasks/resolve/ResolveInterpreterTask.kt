@@ -5,12 +5,12 @@ import io.paddle.plugin.python.hasPython
 import io.paddle.plugin.python.tasks.PythonPluginTaskGroups
 import io.paddle.plugin.standard.extensions.route
 import io.paddle.plugin.standard.extensions.subprojects
-import io.paddle.project.Project
+import io.paddle.project.PaddleProject
 import io.paddle.tasks.Task
 import io.paddle.tasks.incremental.IncrementalTask
 import kotlin.system.measureTimeMillis
 
-class ResolveInterpreterTask(project: Project) : IncrementalTask(project) {
+class ResolveInterpreterTask(project: PaddleProject) : IncrementalTask(project) {
     override val id: String = "resolveInterpreter"
 
     override val group: String = PythonPluginTaskGroups.RESOLVE

@@ -3,7 +3,7 @@ package io.paddle.plugin.python.tasks.env
 import io.paddle.plugin.python.extensions.*
 import io.paddle.plugin.standard.extensions.subprojects
 import io.paddle.plugin.standard.tasks.clean
-import io.paddle.project.Project
+import io.paddle.project.PaddleProject
 import io.paddle.tasks.Task
 import io.paddle.tasks.incremental.IncrementalTask
 import io.paddle.utils.hash.Hashable
@@ -11,7 +11,7 @@ import io.paddle.utils.hash.hashable
 import io.paddle.utils.tasks.TaskDefaultGroups
 import kotlin.system.measureTimeMillis
 
-class VenvTask(project: Project) : IncrementalTask(project) {
+class VenvTask(project: PaddleProject) : IncrementalTask(project) {
     override val id: String = "venv"
 
     override val group: String = TaskDefaultGroups.BUILD

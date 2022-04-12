@@ -6,7 +6,7 @@ import com.github.fracpete.rsync4j.Ssh
 import io.paddle.execution.CommandExecutor
 import io.paddle.execution.ExecutionResult
 import io.paddle.plugin.ssh.output.RemoteOutputOwner
-import io.paddle.project.Project
+import io.paddle.project.PaddleProject
 import io.paddle.terminal.Terminal
 import io.paddle.terminal.TextOutput
 import io.paddle.utils.ext.Extendable
@@ -16,10 +16,10 @@ class SshCommandExecutor(
     private val host: String, private val user: String,
     remoteDir: String, output: TextOutput
 ) : CommandExecutor(OutputConfiguration(output)) {
-    object Extension : Project.Extension<SshCommandExecutor> {
+    object Extension : PaddleProject.Extension<SshCommandExecutor> {
         override val key: Extendable.Key<SshCommandExecutor> = Extendable.Key()
 
-        override fun create(project: Project): SshCommandExecutor {
+        override fun create(project: PaddleProject): SshCommandExecutor {
             val host: String? = project.config.get("executor.host")
             val user: String? = project.config.get("executor.user")
             val dir: String? = project.config.get("executor.directory")

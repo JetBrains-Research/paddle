@@ -7,30 +7,30 @@ import io.paddle.utils.hash.FileHashable
 import io.paddle.utils.isPaddle
 import java.io.File
 
-val Project.provider: ProjectProvider
-    get() = ProjectProvider.getInstance(this.rootDir)
+val PaddleProject.provider: PaddleProjectProvider
+    get() = PaddleProjectProvider.getInstance(this.rootDir)
 
-class ProjectProvider private constructor(private val rootDir: File) {
+class PaddleProjectProvider private constructor(private val rootDir: File) {
     companion object {
-        private val instances = HashMap<String, ProjectProvider>()
+        private val instances = HashMap<String, PaddleProjectProvider>()
 
         /**
          * Root directory structure could change because of some refactoring, so we need to verify that it remains the same via [FileHashable].
          */
-        fun getInstance(rootDir: File): ProjectProvider {
-            return instances.getOrPut(FileHashable(rootDir).hash()) { ProjectProvider(rootDir) }
+        fun getInstance(rootDir: File): PaddleProjectProvider {
+            return instances.getOrPut(FileHashable(rootDir).hash()) { PaddleProjectProvider(rootDir) }
         }
     }
 
-    private val projectByWorkDir = HashMap<String, Project>()
-    private val projectByName = HashMap<String, Project>()
+    private val projectByWorkDir = HashMap<String, PaddleProject>()
+    private val projectByName = HashMap<String, PaddleProject>()
 
     /**
-     * This method creates and initializes [Project] and all its subprojects.
+     * This method creates and initializes [PaddleProject] and all its subprojects.
      */
-    fun initializeProject(output: TextOutput = TextOutput.Console): Project {
+    fun initializeProject(output: TextOutput = TextOutput.Console): PaddleProject {
         val rootBuildFile = rootDir.resolve("paddle.yaml").takeIf { it.exists() }
-            ?: throw Project.ProjectInitializationException("Root project does not have paddle.yaml file")
+            ?: throw PaddleProject.ProjectInitializationException("Root project does not have paddle.yaml file")
 
         val rootProject = getOrCreate(workDir = rootBuildFile.parentFile, output = output)
 
@@ -49,25 +49,25 @@ class ProjectProvider private constructor(private val rootDir: File) {
     }
 
     /**
-     * This method only creates [Project]. If the project was already create, it uses internal [projectByWorkDir].
+     * This method only creates [PaddleProject]. If the project was already create, it uses internal [projectByWorkDir].
      */
     private fun getOrCreate(
         workDir: File = File("."),
         output: TextOutput = TextOutput.Console
-    ): Project {
+    ): PaddleProject {
         return projectByWorkDir.getOrPut(workDir.canonicalPath) {
-            Project(config = Configuration.from(workDir.resolve("paddle.yaml")), workDir, rootDir, output).also {
+            PaddleProject(config = Configuration.from(workDir.resolve("paddle.yaml")), workDir, rootDir, output).also {
                 it.register(it.plugins.enabled)
             }
         }
     }
 
-    val rootProject: Project?
+    val rootProject: PaddleProject?
         get() = projectByWorkDir[rootDir.canonicalPath]
 
-    fun findBy(workDir: File): Project? = projectByWorkDir[workDir.canonicalPath]
+    fun findBy(workDir: File): PaddleProject? = projectByWorkDir[workDir.canonicalPath]
 
-    fun findBy(name: String): Project? = projectByName[name]
+    fun findBy(name: String): PaddleProject? = projectByName[name]
 
     fun hasProjectsIn(dir: File): Boolean = projectByWorkDir.keys.any { it.startsWith(dir.canonicalPath) }
 }

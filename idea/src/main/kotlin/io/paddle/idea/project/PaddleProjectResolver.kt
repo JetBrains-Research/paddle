@@ -11,8 +11,8 @@ import io.paddle.idea.settings.PaddleExecutionSettings
 import io.paddle.plugin.python.extensions.environment
 import io.paddle.plugin.python.hasPython
 import io.paddle.plugin.standard.extensions.*
-import io.paddle.project.Project
-import io.paddle.project.ProjectProvider
+import io.paddle.project.PaddleProject
+import io.paddle.project.PaddleProjectProvider
 import java.io.File
 
 class PaddleProjectResolver : ExternalSystemProjectResolver<PaddleExecutionSettings> {
@@ -24,7 +24,7 @@ class PaddleProjectResolver : ExternalSystemProjectResolver<PaddleExecutionSetti
         listener: ExternalSystemTaskNotificationListener
     ): DataNode<ProjectData> {
         val pathToProject = File(projectPath).parentFile
-        val projectProvider = ProjectProvider.getInstance(rootDir = pathToProject)
+        val projectProvider = PaddleProjectProvider.getInstance(rootDir = pathToProject)
         val project = projectProvider.initializeProject() // first initialization
 
         val projectData = ProjectData(
@@ -52,9 +52,9 @@ class PaddleProjectResolver : ExternalSystemProjectResolver<PaddleExecutionSetti
     private fun createModuleNodes(
         workDir: File,
         moduleNode: DataNode<ModuleData>,
-        projectProvider: ProjectProvider
-    ): Map<Project, DataNode<ModuleData>> {
-        val moduleByProject = hashMapOf<Project, DataNode<ModuleData>>()
+        projectProvider: PaddleProjectProvider
+    ): Map<PaddleProject, DataNode<ModuleData>> {
+        val moduleByProject = hashMapOf<PaddleProject, DataNode<ModuleData>>()
         workDir.listFiles()?.filter { it.isDirectory }?.forEach { dir ->
             val childModuleNode: DataNode<ModuleData>
             if (dir.resolve("paddle.yaml").exists()) {
@@ -85,7 +85,7 @@ class PaddleProjectResolver : ExternalSystemProjectResolver<PaddleExecutionSetti
         return moduleByProject
     }
 
-    private fun createModuleDependencies(project: Project, moduleByProject: Map<Project, DataNode<ModuleData>>) {
+    private fun createModuleDependencies(project: PaddleProject, moduleByProject: Map<PaddleProject, DataNode<ModuleData>>) {
         for (subproject in project.subprojects) {
             val ownerNode = moduleByProject[project]
                 ?: throw IllegalStateException("Can't find corresponding module for owner paddle project :${project.descriptor.name}")
@@ -96,7 +96,7 @@ class PaddleProjectResolver : ExternalSystemProjectResolver<PaddleExecutionSetti
         }
     }
 
-    private fun Project.getModuleData(): ModuleData {
+    private fun PaddleProject.getModuleData(): ModuleData {
         return ModuleData(
             this.id,
             PaddleManager.ID,
@@ -108,7 +108,7 @@ class PaddleProjectResolver : ExternalSystemProjectResolver<PaddleExecutionSetti
     }
 
 
-    private fun DataNode<ModuleData>.attachTasks(project: Project) {
+    private fun DataNode<ModuleData>.attachTasks(project: PaddleProject) {
         for (task in project.tasks.all()) {
             val data = TaskData(PaddleManager.ID, task.id, project.workDir.canonicalPath, null).also {
                 it.group = task.group
@@ -117,7 +117,7 @@ class PaddleProjectResolver : ExternalSystemProjectResolver<PaddleExecutionSetti
         }
     }
 
-    private fun DataNode<ModuleData>.attachContentRoots(project: Project) {
+    private fun DataNode<ModuleData>.attachContentRoots(project: PaddleProject) {
         val rootData = ContentRootData(PaddleManager.ID, project.workDir.canonicalPath)
         for (src in project.roots.sources) {
             rootData.storePath(ExternalSystemSourceType.SOURCE, src.canonicalPath)

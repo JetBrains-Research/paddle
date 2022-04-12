@@ -2,12 +2,12 @@ package io.paddle.plugin.python.tasks.migrate
 
 import io.paddle.plugin.python.dependencies.migration.RequirementsTxt
 import io.paddle.plugin.python.tasks.PythonPluginTaskGroups
-import io.paddle.project.Project
+import io.paddle.project.PaddleProject
 import io.paddle.tasks.incremental.IncrementalTask
 import io.paddle.utils.hash.*
 import kotlin.system.measureTimeMillis
 
-class ParseRequirementsTxtTask(project: Project) : IncrementalTask(project) {
+class ParseRequirementsTxtTask(project: PaddleProject) : IncrementalTask(project) {
     override val id: String = "parseRequirementsTxt"
 
     override val group: String = PythonPluginTaskGroups.MIGRATE

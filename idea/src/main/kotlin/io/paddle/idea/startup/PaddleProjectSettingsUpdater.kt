@@ -13,7 +13,7 @@ import io.paddle.idea.PaddleManager
 import io.paddle.idea.sdk.PaddlePythonSdkUtil
 import io.paddle.plugin.python.extensions.environment
 import io.paddle.plugin.python.hasPython
-import io.paddle.project.ProjectProvider
+import io.paddle.project.PaddleProjectProvider
 import java.io.File
 
 class PaddleProjectSettingsUpdater : ExternalSystemSettingsListenerEx {
@@ -29,7 +29,7 @@ class PaddleProjectSettingsUpdater : ExternalSystemSettingsListenerEx {
         connection.subscribe(ProjectDataImportListener.TOPIC, ProjectDataImportListener {
             val rootDir = project.basePath?.let { File(it) } ?: return@ProjectDataImportListener
 
-            val projectProvider = ProjectProvider.getInstance(rootDir)
+            val projectProvider = PaddleProjectProvider.getInstance(rootDir)
             if (!projectProvider.hasProjectsIn(rootDir)) {
                 projectProvider.initializeProject()
             }

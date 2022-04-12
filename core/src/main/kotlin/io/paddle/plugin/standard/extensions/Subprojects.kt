@@ -1,23 +1,23 @@
 package io.paddle.plugin.standard.extensions
 
-import io.paddle.project.Project
+import io.paddle.project.PaddleProject
 import io.paddle.project.provider
 import io.paddle.tasks.Task
 import io.paddle.utils.ext.Extendable
 
-val Project.route: List<String>
+val PaddleProject.route: List<String>
     get() = ((this.parents.maxByOrNull { it.route.size }?.route ?: emptyList()) + this.descriptor.name)
 
-val Project.subprojects: Subprojects
+val PaddleProject.subprojects: Subprojects
     get() = this.extensions.get(Subprojects.Extension.key)!!
 
-class Subprojects(private val subprojects: List<Project>) : Iterable<Project> {
-    object Extension : Project.Extension<Subprojects> {
+class Subprojects(private val subprojects: List<PaddleProject>) : Iterable<PaddleProject> {
+    object Extension : PaddleProject.Extension<Subprojects> {
         override val key: Extendable.Key<Subprojects> = Extendable.Key()
 
-        override fun create(project: Project): Subprojects {
+        override fun create(project: PaddleProject): Subprojects {
             val names = project.config.get<List<String>>("subprojects") ?: return Subprojects(emptyList())
-            val subprojects = ArrayList<Project>()
+            val subprojects = ArrayList<PaddleProject>()
 
             for (name in names) {
                 project.provider.findBy(name)?.let {
@@ -30,7 +30,7 @@ class Subprojects(private val subprojects: List<Project>) : Iterable<Project> {
         }
     }
 
-    fun getByName(name: String): Project? {
+    fun getByName(name: String): PaddleProject? {
         return subprojects.find { it.descriptor.name == name }
     }
 
@@ -40,5 +40,5 @@ class Subprojects(private val subprojects: List<Project>) : Iterable<Project> {
 
     class SubprojectsInitializationException(reason: String) : Exception(reason)
 
-    override fun iterator(): Iterator<Project> = subprojects.iterator()
+    override fun iterator(): Iterator<PaddleProject> = subprojects.iterator()
 }

@@ -14,17 +14,17 @@ import io.paddle.utils.hash.StringHashable
 import io.paddle.utils.yaml.YAML
 import java.io.File
 
-class Project internal constructor(val config: Configuration, val workDir: File, val rootDir: File, output: TextOutput) {
+class PaddleProject internal constructor(val config: Configuration, val workDir: File, val rootDir: File, output: TextOutput) {
     interface Extension<V : Any> {
         val key: Extendable.Key<V>
 
-        fun create(project: Project): V
+        fun create(project: PaddleProject): V
     }
 
     val id: String = "project_" + StringHashable(workDir.canonicalPath).hash()
     val tasks = Tasks()
     val extensions = Extendable()
-    val parents = ArrayList<Project>()
+    val parents = ArrayList<PaddleProject>()
 
     var output: TextOutput = output
         set(value) {
@@ -79,7 +79,7 @@ class Project internal constructor(val config: Configuration, val workDir: File,
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (javaClass != other?.javaClass) return false
-        other as Project
+        other as PaddleProject
         if (id != other.id) return false
         return true
     }

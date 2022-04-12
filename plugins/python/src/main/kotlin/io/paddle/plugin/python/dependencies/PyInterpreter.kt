@@ -8,7 +8,7 @@ import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 import io.paddle.plugin.python.PyLocations
 import io.paddle.plugin.python.utils.*
-import io.paddle.project.Project
+import io.paddle.project.PaddleProject
 import io.paddle.tasks.Task
 import kotlinx.coroutines.runBlocking
 import org.codehaus.plexus.archiver.tar.TarGZipUnArchiver
@@ -27,13 +27,13 @@ class PyInterpreter(val path: Path, val version: Version) {
         private const val PYTHON_DISTRIBUTIONS_BASE_URL = "http://www.python.org/ftp/python/"
         private const val LOCAL_PYTHON_DIR_NAME = ".localpython"
 
-        fun find(userDefinedVersion: Version, project: Project): PyInterpreter {
+        fun find(userDefinedVersion: Version, project: PaddleProject): PyInterpreter {
             return findCachedInstallation(userDefinedVersion, project)
                 ?: findLocalInstallation(userDefinedVersion, project)
                 ?: downloadAndInstall(userDefinedVersion, project)
         }
 
-        private fun findCachedInstallation(userDefinedVersion: Version, project: Project): PyInterpreter? {
+        private fun findCachedInstallation(userDefinedVersion: Version, project: PaddleProject): PyInterpreter? {
             val interpreterDir = PyLocations.interpretersDir.toFile().listFiles()
                 ?.filter { it.isDirectory && Version(it.name).matches(userDefinedVersion) }
                 ?.maxByOrNull { Version(it.name) }
@@ -48,7 +48,7 @@ class PyInterpreter(val path: Path, val version: Version) {
             }
         }
 
-        private fun findLocalInstallation(userDefinedVersion: Version, project: Project): PyInterpreter? {
+        private fun findLocalInstallation(userDefinedVersion: Version, project: PaddleProject): PyInterpreter? {
             if (Os.isFamily(Os.FAMILY_MAC) || Os.isFamily(Os.FAMILY_UNIX)) {
                 var bestCandidate: PyInterpreter? = null
                 System.getenv("PATH").split(":").forEach { path ->
@@ -87,7 +87,7 @@ class PyInterpreter(val path: Path, val version: Version) {
         }
 
         // TODO: implement layers caching
-        private fun downloadAndInstall(userDefinedVersion: Version, project: Project): PyInterpreter {
+        private fun downloadAndInstall(userDefinedVersion: Version, project: PaddleProject): PyInterpreter {
             val matchedVersion = Version.availableVersions.filter { it.matches(userDefinedVersion) }.maxOrNull()
                 ?: throw Task.ActException("Can't find an appropriate version at $PYTHON_DISTRIBUTIONS_BASE_URL for version $userDefinedVersion")
 
@@ -170,7 +170,7 @@ class PyInterpreter(val path: Path, val version: Version) {
             return PyInterpreter(path, matchedVersion)
         }
 
-        private fun downloadArchive(url: String, target: File, project: Project) = runBlocking {
+        private fun downloadArchive(url: String, target: File, project: PaddleProject) = runBlocking {
             httpClient.get<HttpStatement>(url).execute { httpResponse ->
                 when {
                     httpResponse.status == HttpStatusCode.NotFound ->
