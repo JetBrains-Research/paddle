@@ -46,18 +46,18 @@ abstract class Task(val project: Project) {
      * Decorated version of [act]: prints current state to project's terminal.
      */
     protected open fun execute() {
-        val route = project.route + ":$id"
-        project.terminal.commands.stdout(CommandOutput.Command.Task(route, CommandOutput.Command.Task.Status.EXECUTE))
+        val taskRoute = ":" + project.route.joinToString(":") + ":$id"
+        project.terminal.commands.stdout(CommandOutput.Command.Task(taskRoute, CommandOutput.Command.Task.Status.EXECUTE))
 
         try {
             act()
         } catch (e: ActException) {
             e.message?.let { project.terminal.error(it) }
-            project.terminal.commands.stdout(CommandOutput.Command.Task(route, CommandOutput.Command.Task.Status.FAILED))
+            project.terminal.commands.stdout(CommandOutput.Command.Task(taskRoute, CommandOutput.Command.Task.Status.FAILED))
             throw e
         }
 
-        project.terminal.commands.stdout(CommandOutput.Command.Task(route, CommandOutput.Command.Task.Status.DONE))
+        project.terminal.commands.stdout(CommandOutput.Command.Task(taskRoute, CommandOutput.Command.Task.Status.DONE))
     }
 
     /**

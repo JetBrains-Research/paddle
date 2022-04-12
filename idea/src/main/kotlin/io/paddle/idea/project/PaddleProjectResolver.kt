@@ -13,6 +13,7 @@ import io.paddle.plugin.python.extensions.environment
 import io.paddle.plugin.python.hasPython
 import io.paddle.plugin.standard.extensions.*
 import io.paddle.project.Project
+import io.paddle.project.ProjectProvider
 import java.io.File
 
 class PaddleProjectResolver : ExternalSystemProjectResolver<PaddleExecutionSettings> {
@@ -25,7 +26,7 @@ class PaddleProjectResolver : ExternalSystemProjectResolver<PaddleExecutionSetti
     ): DataNode<ProjectData> {
         val pathToProjectFile = File(projectPath)
         val pathToProject = pathToProjectFile.parentFile
-        val project = PaddleProject.load(pathToProjectFile, pathToProject) // fixme
+        val project = PaddleProject.load(pathToProjectFile, pathToProject) // fixme: add DI
 
         val projectData = ProjectData(
             PaddleManager.ID,
@@ -37,34 +38,76 @@ class PaddleProjectResolver : ExternalSystemProjectResolver<PaddleExecutionSetti
             it.version = project.descriptor.version
         }
 
-        val projectNode = DataNode(ProjectKeys.PROJECT, projectData, null).also {
-            traverseProjectModules(project, project.createModuleData(), it)
+        val projectNode = DataNode(ProjectKeys.PROJECT, projectData, null)
+        val rootModuleNode = projectNode.createChild(ProjectKeys.MODULE, project.getModuleData()).apply {
+            attachTasks(project)
+            attachContentRoots(project)
+        }
+        val projectProvider = ProjectProvider.getInstance(rootDir = pathToProject)
+        createModuleNodes(project.workDir, rootModuleNode, projectProvider).also {
+            createModuleDependencies(project, it + (project to rootModuleNode))
         }
 
         return projectNode
     }
 
-    private fun traverseProjectModules(project: Project, data: ModuleData, parentDataNode: DataNode<*>) {
-        val moduleDataNode = parentDataNode.createChild(ProjectKeys.MODULE, data).also {
-            it.attachTasks(project)
-            it.attachContentRoots(project)
+    private fun createModuleNodes(
+        workDir: File,
+        moduleNode: DataNode<ModuleData>,
+        projectProvider: ProjectProvider
+    ): Map<Project, DataNode<ModuleData>> {
+        val moduleByProject = hashMapOf<Project, DataNode<ModuleData>>()
+        workDir.listFiles()?.filter { it.isDirectory }?.forEach { dir ->
+            val childModuleNode: DataNode<ModuleData>
+            if (dir.resolve("paddle.yaml").exists()) {
+                // Directory is a paddle project
+                val subproject = projectProvider.findBy(dir) ?: throw IllegalStateException("Projects were not initialized completely.")
+                childModuleNode = moduleNode.createChild(ProjectKeys.MODULE, subproject.getModuleData()).also {
+                    it.attachTasks(subproject)
+                    it.attachContentRoots(subproject)
+                    moduleByProject[subproject] = it
+                }
+                moduleByProject.putAll(createModuleNodes(dir, childModuleNode, projectProvider))
+            } else if (projectProvider.hasProjectsIn(dir)) {
+                // Directory contains paddle projects
+                childModuleNode = moduleNode.createChild(
+                    ProjectKeys.MODULE,
+                    ModuleData(
+                        dir.canonicalPath,
+                        PaddleManager.ID,
+                        ModuleTypeManager.getInstance().defaultModuleType.id,
+                        dir.name,
+                        dir.canonicalPath,
+                        dir.canonicalPath
+                    )
+                )
+                moduleByProject.putAll(createModuleNodes(dir, childModuleNode, projectProvider))
+            }
         }
+        return moduleByProject
+    }
+
+    private fun createModuleDependencies(project: Project, moduleByProject: Map<Project, DataNode<ModuleData>>) {
         for (subproject in project.subprojects) {
-            val submoduleData = subproject.createModuleData()
-            val moduleDependencyData = ModuleDependencyData(data, submoduleData)
-            moduleDataNode.createChild(ProjectKeys.MODULE_DEPENDENCY, moduleDependencyData)
-            traverseProjectModules(subproject, submoduleData, moduleDataNode)
+            val ownerNode = moduleByProject[project]
+                ?: throw IllegalStateException("Can't find corresponding module for owner paddle project :${project.descriptor.name}")
+            val depNode = moduleByProject[subproject]
+                ?: throw IllegalStateException("Can't find corresponding module for dependent paddle project :${subproject.descriptor.name}")
+            ownerNode.createChild(ProjectKeys.MODULE_DEPENDENCY, ModuleDependencyData(ownerNode.data, depNode.data))
+            createModuleDependencies(subproject, moduleByProject)
         }
     }
 
-    private fun Project.createModuleData() = ModuleData(
-        id,
-        PaddleManager.ID,
-        ModuleTypeManager.getInstance().defaultModuleType.id,
-        descriptor.name,
-        workDir.canonicalPath,
-        buildFile.canonicalPath
-    )
+    private fun Project.getModuleData(): ModuleData {
+        return ModuleData(
+            this.id,
+            PaddleManager.ID,
+            ModuleTypeManager.getInstance().defaultModuleType.id,
+            this.descriptor.name,
+            this.workDir.canonicalPath,
+            this.buildFile.canonicalPath
+        )
+    }
 
 
     private fun DataNode<ModuleData>.attachTasks(project: Project) {

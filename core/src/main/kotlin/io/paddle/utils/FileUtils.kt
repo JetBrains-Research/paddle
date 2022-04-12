@@ -13,3 +13,6 @@ fun File.deleteRecursivelyWithoutSymlinks() {
 }
 
 fun Path.exists(): Boolean = Files.exists(this)
+
+val File.isPaddle: Boolean
+    get() = exists() && name == "paddle.yaml"

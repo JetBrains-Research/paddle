@@ -28,15 +28,16 @@ class ResolveInterpreterTask(project: Project) : IncrementalTask(project) {
     }
 
     private fun checkInterpreterCompatibility() {
-        project.parent ?: return
-        if (project.parent?.hasPython == false) {
+        if (!project.parents.all { it.hasPython }) {
             return
         }
-        if (project.parent!!.interpreter.pythonVersion != project.interpreter.pythonVersion) {
-            throw ActException(
-                "${project.parent!!.interpreter.pythonVersion.fullName} from ${project.parent!!.route} " +
-                    "is not compatible with ${project.interpreter.pythonVersion.fullName} from ${project.route}"
-            )
+        for (parent in project.parents) {
+            if (parent.interpreter.pythonVersion != project.interpreter.pythonVersion) {
+                throw ActException(
+                    "${parent.interpreter.pythonVersion.fullName} from ${":" + parent.route.joinToString(":")} " +
+                        "is not compatible with ${project.interpreter.pythonVersion.fullName} from ${":" + project.route.joinToString(":")}"
+                )
+            }
         }
     }
 }

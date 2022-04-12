@@ -2,12 +2,10 @@ package io.paddle
 
 import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.parameters.arguments.argument
-import io.paddle.plugin.standard.extensions.plugins
 import io.paddle.plugin.standard.extensions.subprojects
 import io.paddle.project.Project
+import io.paddle.project.ProjectProvider
 import io.paddle.tasks.Task
-import io.paddle.terminal.Terminal
-import io.paddle.terminal.TextOutput
 import java.io.File
 
 class Paddle(private val project: Project) : CliktCommand() {
@@ -39,14 +37,6 @@ class Paddle(private val project: Project) : CliktCommand() {
 }
 
 fun main(args: Array<String>) {
-    val file = File("paddle.yaml")
-    if (!file.exists()) {
-        Terminal(TextOutput.Console).stderr("Can't find paddle.yaml in root")
-        return
-    }
-    val project = Project.load(file).also {
-        it.register(it.plugins.enabled)
-    }
-
+    val project = ProjectProvider.getInstance(rootDir = File(".")).initializeProject()
     Paddle(project).main(args)
 }
