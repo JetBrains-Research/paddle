@@ -20,7 +20,7 @@ class PluginsVenvDir(directory: File) : VenvDir(directory) {
 
 class PyPluginsEnvironment(project: Project, venv: PluginsVenvDir) : AbstractEnvironment(project, venv) {
 
-    private val tempVenvManager: AbstractTempVenvManager = PluginsTempVenvManager.create(project)
+    private val tempVenvManager: AbstractTempVenvManager by lazy { PluginsTempVenvManager.create(project) }
 
     override val initInterpreterPath: Path
         get() = project.pyPluginsInterpreter.resolved.path

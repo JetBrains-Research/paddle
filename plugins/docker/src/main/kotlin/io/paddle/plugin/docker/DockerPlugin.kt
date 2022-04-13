@@ -7,7 +7,7 @@ import io.paddle.specification.tree.CompositeSpecTreeNode
 import io.paddle.specification.tree.StringSpecTreeNode
 import io.paddle.tasks.Task
 import io.paddle.terminal.Terminal
-import io.paddle.utils.config.ConfigurationView
+import io.paddle.utils.config.PluginsConfig
 
 object DockerPlugin : Plugin {
     private fun isDockerExecutorSelectedIn(project: Project): Boolean {
@@ -15,13 +15,13 @@ object DockerPlugin : Plugin {
     }
 
     override fun configure(project: Project) {
-        val plugins = object : ConfigurationView("plugins", project.config) {
-            val enabled by list<String>("enabled", emptyList())
+        val plugins = object : PluginsConfig(project) {
+            val embedded by plugins<String>("embedded")
         }
         val executors = object : ConfigSpecView("executor", project.configSpec) {
             val available by string("type")
         }
-        if (plugins.enabled.contains("docker")) {
+        if (plugins.embedded.contains("docker")) {
             executors.available.validValues = executors.available.validValues ?: mutableListOf()
             executors.available.validValues!!.add("docker")
         }

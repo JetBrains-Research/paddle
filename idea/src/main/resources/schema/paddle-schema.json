@@ -98,7 +98,12 @@
               "description": "Plugins which includes in Paddle's distribution",
               "type": "array",
               "items": {
-                "type": "string"
+                "type": "string",
+                "enum": [
+                  "python",
+                  "docker",
+                  "ssh"
+                ]
               }
             },
             "local": {

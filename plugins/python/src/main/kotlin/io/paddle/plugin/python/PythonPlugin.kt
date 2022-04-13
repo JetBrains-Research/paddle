@@ -13,14 +13,14 @@ import io.paddle.plugin.standard.tasks.CleanTask
 import io.paddle.project.Project
 import io.paddle.specification.tree.*
 import io.paddle.tasks.Task
-import io.paddle.utils.config.ConfigurationView
+import io.paddle.utils.config.PluginsConfig
 
 object PythonPlugin : Plugin {
     override fun configure(project: Project) {
-        val plugins = object : ConfigurationView("plugins", project.config) {
-            val enabled by list<String>("enabled")
+        val plugins = object : PluginsConfig(project) {
+            val embedded by plugins<String>("embedded")
         }
-        if (plugins.enabled.contains("python")) {
+        if (plugins.embedded.contains("python")) {
             project.configSpec.root.children["environment"] =
                 CompositeSpecTreeNode(
                     description = "Environment that should be used by Paddle for Python build process",

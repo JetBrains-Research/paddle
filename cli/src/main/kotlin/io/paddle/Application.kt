@@ -2,7 +2,7 @@ package io.paddle
 
 import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.parameters.arguments.argument
-import io.paddle.plugin.standard.extensions.plugins
+import io.paddle.plugin.plugins
 import io.paddle.project.Project
 import io.paddle.tasks.Task
 import io.paddle.terminal.Terminal
@@ -28,12 +28,6 @@ fun main(args: Array<String>) {
         return
     }
     val project = Project.load(file, "/schema/paddle-schema.json")
-//    GrpcServer(
-//        port = 50051,
-//        service = ProjectsDataProviderService().apply {
-//            register(project)
-//        }).start()
-
     project.register(project.plugins.enabled)
 
     Paddle(project).main(args)

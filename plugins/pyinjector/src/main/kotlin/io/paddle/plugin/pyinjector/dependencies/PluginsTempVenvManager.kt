@@ -7,6 +7,7 @@ import io.paddle.plugin.python.dependencies.AbstractTempVenvManager
 import io.paddle.plugin.python.dependencies.resolvers.PipResolver
 import io.paddle.project.Project
 import io.paddle.terminal.Terminal
+import java.nio.file.Path
 import kotlin.io.path.absolutePathString
 
 class PluginsTempVenvManager(venvDir: PluginsVenvDir, project: Project) : AbstractTempVenvManager(venvDir, project) {

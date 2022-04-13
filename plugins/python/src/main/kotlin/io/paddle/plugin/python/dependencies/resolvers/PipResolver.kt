@@ -39,6 +39,10 @@ object PipResolver {
             .filter { it.repo == null || it.repo == PyPackageRepository.PYPI_REPOSITORY.name }
             .map { it.name + (it.version?.let { v -> "==$v" } ?: "") }
 
+        if (generalRequirements.isEmpty()) {
+            return emptySet()
+        }
+
         val pipResolveArgs = listOf("-m", "pip", "resolve") + generalRequirements + repositories.asPipArgs
 
         val output = ArrayList<String>()

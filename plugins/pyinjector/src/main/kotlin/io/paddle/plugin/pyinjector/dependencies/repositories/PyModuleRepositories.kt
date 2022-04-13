@@ -5,9 +5,27 @@ import io.paddle.plugin.pyinjector.dependencies.PyModuleName
 import io.paddle.plugin.pyinjector.extensions.PyPluginsRepositories
 import io.paddle.plugin.pyinjector.utils.Metafile
 import io.paddle.utils.exists
+import org.apache.commons.collections4.Trie
+import org.apache.commons.collections4.trie.PatriciaTrie
 import java.nio.file.Path
 
 class PyModuleRepositories(private val storage: Map<PyModuleRepoName, PyModuleRepository>) {
+
+    private val index: Trie<PyModuleName, List<PyModuleRepository>>
+
+    init {
+        val pluginsToRepos: HashMap<PyModuleName, MutableList<PyModuleRepository>> = hashMapOf()
+        storage.values.forEach { repo ->
+            repo.availableModulesNames.forEach { moduleName ->
+                pluginsToRepos[moduleName]?.add(repo) ?: run {
+                    pluginsToRepos[moduleName] = mutableListOf(repo)
+                }
+            }
+        }
+        // https://commons.apache.org/proper/commons-collections/apidocs/org/apache/commons/collections4/trie/PatriciaTrie.html
+        index = PatriciaTrie(pluginsToRepos)
+    }
+
     companion object {
         private const val metafileName = "paddle-plugins.yaml"
 
@@ -33,13 +51,12 @@ class PyModuleRepositories(private val storage: Map<PyModuleRepoName, PyModuleRe
             val (withPaths, withNames) = descriptions.partition {
                 pathToRepo.resolve(it.filenameOrPath).exists()
             }
-            val storage = withPaths.associateByTo(
-                hashMapOf(), { it.name },
-                { PyModule(it.name, pathToRepo.resolve(it.filenameOrPath).toAbsolutePath()) }
-            )
+            val storage = withPaths.associateTo(hashMapOf()) {
+                it.name to PyModule(it.name, pathToRepo.resolve(it.filenameOrPath).toAbsolutePath())
+            }
             val withFilenamesToResolve = withNames.associateByTo(hashMapOf(), PyModule.Description::filenameOrPath)
             pathToRepo.toFile().walkTopDown().forEach {
-                if (it.isFile) {
+                if (it.isFile && it.extension == "py") {
                     (withFilenamesToResolve.remove(it.nameWithoutExtension) ?: withFilenamesToResolve.remove(it.name))?.apply {
                         storage[name] = PyModule(name, it.toPath().toAbsolutePath())
                     }
@@ -63,7 +80,7 @@ class PyModuleRepositories(private val storage: Map<PyModuleRepoName, PyModuleRe
 
     operator fun get(repoName: PyModuleRepoName, moduleName: PyModuleName): PyModule? = storage[repoName]?.get(moduleName)
 
-    fun findAvailablePluginsBy(prefix: String): Map<PyModuleName, PyModuleRepository> {
-        TODO("implement")
+    fun findAvailablePluginsBy(prefix: String): Map<PyModuleName, List<PyModuleRepository>> {
+        return index.prefixMap(prefix)
     }
 }

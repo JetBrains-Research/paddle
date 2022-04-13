@@ -29,30 +29,32 @@ requirements:
     repository: pypi
 
 plugins:
-  - repositories:
-#      - name: base
-#        url: https://some.ru
-#
-#      - name: other
-#        dir: /home/some_dir/
+  repositories:
+    #      - name: base
+    #        url: https://some.ru
+    #
+    - name: py_local
+      dir: ./plugins
 
-      - name: java
-        jar: "./plugins/test-plugin-0.1.0.jar"
+  #      - name: java
+  #        jar: "./plugins/test-plugin-0.1.0.jar"
 
-  - enabled:
-      - embedded:
-        - python
-        - docker
-        - ssh
+  enabled:
+    embedded:
+      - python
+      - docker
+      - ssh
 
-      - local:
-        - name: example-test
-          repository: java
+    local:
+#      - name: py-local-plugin-first
+#        repository: py_local
+#        - name: example-test
+#          repository: java
 
 #        - name: greeting
 #          repository: other
 
-#      - py:
+#      py:
 #        - name: greeting
 #          version: 0.0.1
 #          repository: base

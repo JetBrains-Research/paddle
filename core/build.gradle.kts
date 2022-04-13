@@ -14,6 +14,8 @@ sourceSets {
 dependencies {
     api(project(":stub"))
 
+    api("org.apache.commons", "commons-collections4", "4.4")
+
     implementation("org.codehaus.plexus", "plexus-utils", "3.3.0")
     implementation("commons-codec", "commons-codec", "1.15")
 

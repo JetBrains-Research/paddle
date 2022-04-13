@@ -51,6 +51,9 @@
 
         <completion.contributor language="yaml"
                                 implementationClass="io.paddle.idea.completion.PyPackageVersionCompletionContributor"/>
+
+        <completion.contributor language="yaml"
+                                implementationClass="io.paddle.idea.completion.PaddlePluginsConfigCompletionContributor"/>
     </extensions>
 
     <extensions defaultExtensionNs="JavaScript.JsonSchema">

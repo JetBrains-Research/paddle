@@ -6,6 +6,10 @@ import java.nio.file.Path
 
 typealias PyModuleRepoName = String
 
-class PyModuleRepository(val name: PyModuleRepoName, val absolutePathTo: Path, private val modules /* TODO: add effective data structure to get all by names*/: Map<PyModuleName, PyModule>) {
+class PyModuleRepository(val name: PyModuleRepoName, val absolutePathTo: Path, private val modules: Map<PyModuleName, PyModule>) {
+    val availableModulesNames: Set<PyModuleName>
+        get() = modules.keys
+
     operator fun get(moduleName: PyModuleName): PyModule? = modules[moduleName]
+
 }

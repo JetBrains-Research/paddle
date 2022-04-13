@@ -12,6 +12,9 @@ abstract class AbstractJVMBasedPluginsRepository {
         parseConfigFile()
     }
 
+    val availablePluginsNames: Set<String>
+        get() = pluginsIdsToClassnames.keys
+
     private fun parseConfigFile(): Map<String, String> {
         val pluginsConfig = Configuration.from(ResourceUtils.getResourceFileBy(classLoader, configPath)!!)
         val configView = object : Configuration() {
@@ -24,10 +27,6 @@ abstract class AbstractJVMBasedPluginsRepository {
         return hashMapOf<String, String>().also {
             configView.idsAndClasses.forEach { plugin -> it[plugin["id"]!!] = plugin["class"]!! }
         }
-    }
-
-    fun namesOfAvailablePlugins(): Set<String> {
-        return pluginsIdsToClassnames.keys
     }
 
     fun plugin(name: String): Plugin? {
