@@ -52,7 +52,7 @@ object PaddlePythonSdkUtil {
         }
     }
 
-    fun pythonBasePathEquals(path1: String, path2: String): Boolean {
+    private fun pythonBasePathEquals(path1: String, path2: String): Boolean {
         if (path1 == path2 || path1.startsWith(path2) || path2.startsWith(path1)) return true
         // TODO: check Python installation's version via CLI
         return false

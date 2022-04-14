@@ -5,7 +5,7 @@ import io.paddle.project.PaddleProjectProvider
 import io.paddle.terminal.TextOutput
 import java.io.File
 
-@Deprecated("Replaced with DI via ProjectProvider")
+@Deprecated("Replaced with [io.paddle.project.PaddleProjectProvider]")
 object PaddleProjectIdeaProvider {
     var currentProject: PaddleProject? = null
 

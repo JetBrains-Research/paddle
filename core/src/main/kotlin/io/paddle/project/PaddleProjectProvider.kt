@@ -4,6 +4,7 @@ import io.paddle.plugin.standard.extensions.*
 import io.paddle.terminal.TextOutput
 import io.paddle.utils.config.Configuration
 import io.paddle.utils.hash.FileHashable
+import io.paddle.utils.hash.lightHashable
 import io.paddle.utils.isPaddle
 import java.io.File
 
@@ -18,12 +19,21 @@ class PaddleProjectProvider private constructor(private val rootDir: File) {
          * Root directory structure could change because of some refactoring, so we need to verify that it remains the same via [FileHashable].
          */
         fun getInstance(rootDir: File): PaddleProjectProvider {
-            return instances.getOrPut(FileHashable(rootDir).hash()) { PaddleProjectProvider(rootDir) }
+            return instances.getOrPut(rootDir.lightHashable().hash()) { PaddleProjectProvider(rootDir) }
         }
     }
 
     private val projectByWorkDir = HashMap<String, PaddleProject>()
     private val projectByName = HashMap<String, PaddleProject>()
+
+    init {
+        projectByName.putAll(
+            rootDir.walkTopDown()
+                .filter { it.isPaddle }
+                .map { getOrCreate(workDir = it.parentFile) }
+                .associateBy { it.descriptor.name }
+        )
+    }
 
     /**
      * This method creates and initializes [PaddleProject] and all its subprojects.
@@ -34,12 +44,7 @@ class PaddleProjectProvider private constructor(private val rootDir: File) {
 
         val rootProject = getOrCreate(workDir = rootBuildFile.parentFile, output = output)
 
-        projectByName.putAll(
-            rootDir.walkTopDown()
-                .filter { it.isPaddle }
-                .map { getOrCreate(workDir = it.parentFile, output = output) }
-                .associateBy { it.descriptor.name }
-        )
+
 
         for (project in projectByName.values) {
             project.extensions.register(Subprojects.Extension.key, Subprojects.Extension.create(project))
@@ -52,7 +57,7 @@ class PaddleProjectProvider private constructor(private val rootDir: File) {
      * This method only creates [PaddleProject]. If the project was already create, it uses internal [projectByWorkDir].
      */
     private fun getOrCreate(
-        workDir: File = File("."),
+        workDir: File,
         output: TextOutput = TextOutput.Console
     ): PaddleProject {
         return projectByWorkDir.getOrPut(workDir.canonicalPath) {

@@ -5,6 +5,8 @@ import io.paddle.plugin.python.dependencies.GlobalCacheRepository
 import io.paddle.plugin.python.dependencies.VenvDir
 import io.paddle.plugin.python.dependencies.packages.PyPackage
 import io.paddle.plugin.python.dependencies.resolvers.PipResolver
+import io.paddle.plugin.standard.extensions.roots
+import io.paddle.plugin.standard.extensions.subprojects
 import io.paddle.project.PaddleProject
 import io.paddle.terminal.Terminal
 import io.paddle.utils.config.ConfigurationView
@@ -24,6 +26,12 @@ class Environment(val project: PaddleProject, val venv: VenvDir) : Hashable {
     val interpreterPath: Path
         get() = venv.getInterpreterPath(project)
 
+    val pythonPath: String
+        get() {
+            val paths = listOf(project.workDir.parentFile.canonicalPath) + project.subprojects.map { it.environment.pythonPath }
+            return paths.joinToString(System.getProperty("path.separator"))
+        }
+
     object Extension : PaddleProject.Extension<Environment> {
         override val key: Extendable.Key<Environment> = Extendable.Key()
 
@@ -37,6 +45,15 @@ class Environment(val project: PaddleProject, val venv: VenvDir) : Hashable {
     }
 
     fun initialize(): ExecutionResult {
+        // Create __init__.py for project work directory
+        project.workDir.resolve("__init__.py").takeUnless { it.exists() }?.createNewFile()
+
+        // Create __init__.py files for all source roots
+        for (root in project.roots.sources) {
+            root.resolve("__init__.py").takeUnless { it.exists() }?.createNewFile()
+        }
+
+        // Create virtualenv and install pip-resolver package (used in PipResolver.kt)
         return project.executor.execute(
             project.interpreter.resolved.path.toString(),
             listOf("-m", "venv", venv.absolutePath),
@@ -57,7 +74,8 @@ class Environment(val project: PaddleProject, val venv: VenvDir) : Hashable {
             interpreterPath.absolutePathString(),
             listOf("-m", module, *arguments.toTypedArray()),
             project.workDir,
-            project.terminal
+            project.terminal,
+            hashMapOf("PYTHONPATH" to project.environment.pythonPath)
         )
     }
 
@@ -66,7 +84,8 @@ class Environment(val project: PaddleProject, val venv: VenvDir) : Hashable {
             interpreterPath.absolutePathString(),
             listOf(file, *arguments.toTypedArray()),
             project.workDir,
-            project.terminal
+            project.terminal,
+            hashMapOf("PYTHONPATH" to project.environment.pythonPath)
         )
     }
 

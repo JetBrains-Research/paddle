@@ -46,27 +46,37 @@ fun String.hashable() = StringHashable(this)
 
 fun Boolean.hashable() = StringHashable(this.toString())
 
-class FileHashable(private val file: File) : Hashable {
+open class FileHashable(private val file: File, private val hashingFunction: (File) -> String = ::checksumHash) : Hashable {
+    companion object HashingFunctions{
+        fun checksumHash(file: File): String {
+            val ad32 = Adler32().apply { update(file.readBytes()) }
+            val updatedAt = Files.readAttributes(file.toPath(), BasicFileAttributes::class.java).lastModifiedTime()
+            return ad32.value.toString() + file.canonicalPath + updatedAt
+        }
+
+        fun attributesHash(file: File): String {
+            val updatedAt = Files.readAttributes(file.toPath(), BasicFileAttributes::class.java).lastModifiedTime()
+            return file.canonicalPath + updatedAt
+        }
+    }
+
     override fun hash(): String {
         if (!file.exists()) return StringHashable("empty_file").hash()
         if (file.isDirectory) return hashFolder()
-        if (file.isFile) return hashFile()
+        if (file.isFile) return hashingFunction(file)
         error("Unexpected type of hashable file")
     }
 
-    private fun hashFile(): String {
-        val ad32 = Adler32().apply { update(file.readBytes()) }
-        val updatedAt = Files.readAttributes(file.toPath(), BasicFileAttributes::class.java).lastModifiedTime()
-        return ad32.value.toString() + file.canonicalPath + updatedAt
-    }
-
     private fun hashFolder(): String {
-        val path = StringHashable(file.absolutePath)
-        val files = file.walkTopDown().asSequence().filter { it.isFile }.map { FileHashable(it) }
-        return AggregatedHashable(listOf(path) + files).hash()
+        val files = file.walkTopDown().asSequence().filter { it.isFile }.map { hashingFunction(it) }
+        return StringHashable(file.canonicalPath + files.joinToString("|")).hash()
     }
 }
 
 fun File.hashable(): Hashable {
     return FileHashable(this)
+}
+
+fun File.lightHashable(): Hashable {
+    return FileHashable(this, FileHashable.HashingFunctions::attributesHash)
 }

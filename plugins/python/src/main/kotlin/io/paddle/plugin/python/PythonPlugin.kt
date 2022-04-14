@@ -2,13 +2,14 @@ package io.paddle.plugin.python
 
 import io.paddle.plugin.Plugin
 import io.paddle.plugin.python.extensions.*
-import io.paddle.plugin.python.tasks.env.*
-import io.paddle.plugin.python.tasks.exec.RunTask
+import io.paddle.plugin.python.tasks.install.*
 import io.paddle.plugin.python.tasks.lint.MyPyTask
 import io.paddle.plugin.python.tasks.lint.PyLintTask
 import io.paddle.plugin.python.tasks.migrate.ParseRequirementsTxtTask
 import io.paddle.plugin.python.tasks.resolve.*
+import io.paddle.plugin.python.tasks.run.RunTask
 import io.paddle.plugin.python.tasks.test.PyTestTask
+import io.paddle.plugin.python.tasks.venv.VenvTask
 import io.paddle.plugin.standard.extensions.plugins
 import io.paddle.plugin.standard.tasks.CleanTask
 import io.paddle.project.PaddleProject
