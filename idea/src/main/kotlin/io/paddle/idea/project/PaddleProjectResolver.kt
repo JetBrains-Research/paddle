@@ -11,8 +11,8 @@ import io.paddle.idea.settings.PaddleExecutionSettings
 import io.paddle.plugin.python.extensions.environment
 import io.paddle.plugin.python.hasPython
 import io.paddle.plugin.standard.extensions.*
+import io.paddle.project.PaddleDaemon
 import io.paddle.project.PaddleProject
-import io.paddle.project.PaddleProjectProvider
 import java.io.File
 
 class PaddleProjectResolver : ExternalSystemProjectResolver<PaddleExecutionSettings> {
@@ -23,15 +23,16 @@ class PaddleProjectResolver : ExternalSystemProjectResolver<PaddleExecutionSetti
         settings: PaddleExecutionSettings?,
         listener: ExternalSystemTaskNotificationListener
     ): DataNode<ProjectData> {
-        val pathToProject = File(projectPath).parentFile
-        val projectProvider = PaddleProjectProvider.getInstance(rootDir = pathToProject)
-        val project = projectProvider.initializeProject() // first initialization
+        val rootDir = File(projectPath).parentFile
+        val daemon = PaddleDaemon.getInstance(rootDir)
+        val project = daemon.getProjectByWorkDir(rootDir)
+            ?: throw IllegalStateException("Failed to initialize Paddle project from ${rootDir.canonicalPath}") // first initialization
 
         val projectData = ProjectData(
             PaddleManager.ID,
             project.descriptor.name,
-            pathToProject.canonicalPath,
-            pathToProject.canonicalPath
+            rootDir.canonicalPath,
+            rootDir.canonicalPath
         ).also {
             it.group = project.descriptor.name
             it.version = project.descriptor.version
@@ -42,7 +43,7 @@ class PaddleProjectResolver : ExternalSystemProjectResolver<PaddleExecutionSetti
             attachTasks(project)
             attachContentRoots(project)
         }
-        createModuleNodes(project.workDir, rootModuleNode, projectProvider).also {
+        createModuleNodes(project.workDir, rootModuleNode, daemon).also {
             createModuleDependencies(project, it + (project to rootModuleNode))
         }
 
@@ -52,21 +53,21 @@ class PaddleProjectResolver : ExternalSystemProjectResolver<PaddleExecutionSetti
     private fun createModuleNodes(
         workDir: File,
         moduleNode: DataNode<ModuleData>,
-        projectProvider: PaddleProjectProvider
+        daemon: PaddleDaemon
     ): Map<PaddleProject, DataNode<ModuleData>> {
         val moduleByProject = hashMapOf<PaddleProject, DataNode<ModuleData>>()
         workDir.listFiles()?.filter { it.isDirectory }?.forEach { dir ->
             val childModuleNode: DataNode<ModuleData>
             if (dir.resolve("paddle.yaml").exists()) {
                 // Directory is a paddle project
-                val subproject = projectProvider.findBy(dir) ?: throw IllegalStateException("Projects were not initialized completely.")
+                val subproject = daemon.getProjectByWorkDir(dir) ?: throw IllegalStateException("Projects were not initialized completely.")
                 childModuleNode = moduleNode.createChild(ProjectKeys.MODULE, subproject.getModuleData()).also {
                     it.attachTasks(subproject)
                     it.attachContentRoots(subproject)
                     moduleByProject[subproject] = it
                 }
-                moduleByProject.putAll(createModuleNodes(dir, childModuleNode, projectProvider))
-            } else if (projectProvider.hasProjectsIn(dir)) {
+                moduleByProject.putAll(createModuleNodes(dir, childModuleNode, daemon))
+            } else if (daemon.hasProjectsIn(dir)) {
                 // Directory contains paddle projects
                 childModuleNode = moduleNode.createChild(
                     ProjectKeys.MODULE,
@@ -79,7 +80,7 @@ class PaddleProjectResolver : ExternalSystemProjectResolver<PaddleExecutionSetti
                         dir.canonicalPath
                     )
                 )
-                moduleByProject.putAll(createModuleNodes(dir, childModuleNode, projectProvider))
+                moduleByProject.putAll(createModuleNodes(dir, childModuleNode, daemon))
             }
         }
         return moduleByProject

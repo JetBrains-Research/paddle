@@ -3,8 +3,8 @@ package io.paddle
 import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.parameters.arguments.argument
 import io.paddle.plugin.standard.extensions.subprojects
+import io.paddle.project.PaddleDaemon
 import io.paddle.project.PaddleProject
-import io.paddle.project.PaddleProjectProvider
 import io.paddle.tasks.Task
 import java.io.File
 
@@ -37,6 +37,8 @@ class Paddle(private val project: PaddleProject) : CliktCommand() {
 }
 
 fun main(args: Array<String>) {
-    val project = PaddleProjectProvider.getInstance(rootDir = File(".")).initializeProject()
+    val workDir = File(".")
+    val project = PaddleDaemon.getInstance(rootDir = workDir).getProjectByWorkDir(workDir)
+        ?: throw IllegalStateException("Internal error: could not load project from ${workDir.canonicalPath}")
     Paddle(project).main(args)
 }

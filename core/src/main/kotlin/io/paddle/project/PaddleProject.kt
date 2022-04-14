@@ -14,7 +14,7 @@ import io.paddle.utils.hash.StringHashable
 import io.paddle.utils.yaml.YAML
 import java.io.File
 
-class PaddleProject internal constructor(val config: Configuration, val workDir: File, val rootDir: File, output: TextOutput) {
+class PaddleProject internal constructor(val config: Configuration, val workDir: File, val rootDir: File, output: TextOutput = TextOutput.Console) {
     interface Extension<V : Any> {
         val key: Extendable.Key<V>
 

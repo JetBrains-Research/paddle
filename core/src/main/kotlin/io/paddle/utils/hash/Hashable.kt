@@ -46,20 +46,7 @@ fun String.hashable() = StringHashable(this)
 
 fun Boolean.hashable() = StringHashable(this.toString())
 
-open class FileHashable(private val file: File, private val hashingFunction: (File) -> String = ::checksumHash) : Hashable {
-    companion object HashingFunctions{
-        fun checksumHash(file: File): String {
-            val ad32 = Adler32().apply { update(file.readBytes()) }
-            val updatedAt = Files.readAttributes(file.toPath(), BasicFileAttributes::class.java).lastModifiedTime()
-            return ad32.value.toString() + file.canonicalPath + updatedAt
-        }
-
-        fun attributesHash(file: File): String {
-            val updatedAt = Files.readAttributes(file.toPath(), BasicFileAttributes::class.java).lastModifiedTime()
-            return file.canonicalPath + updatedAt
-        }
-    }
-
+open class FileHashable(private val file: File, private val hashingFunction: (File) -> String = File::checksumHash) : Hashable {
     override fun hash(): String {
         if (!file.exists()) return StringHashable("empty_file").hash()
         if (file.isDirectory) return hashFolder()
@@ -67,9 +54,16 @@ open class FileHashable(private val file: File, private val hashingFunction: (Fi
         error("Unexpected type of hashable file")
     }
 
-    private fun hashFolder(): String {
+    open protected fun hashFolder(): String {
         val files = file.walkTopDown().asSequence().filter { it.isFile }.map { hashingFunction(it) }
         return StringHashable(file.canonicalPath + files.joinToString("|")).hash()
+    }
+}
+
+class LightFileHashable(private val file: File) : FileHashable(file, File::attributesHash) {
+    override fun hashFolder(): String {
+        if (file.isVenv()) return StringHashable(file.canonicalPath).hash()
+        return super.hashFolder()
     }
 }
 
@@ -78,5 +72,23 @@ fun File.hashable(): Hashable {
 }
 
 fun File.lightHashable(): Hashable {
-    return FileHashable(this, FileHashable.HashingFunctions::attributesHash)
+    return LightFileHashable(this)
+}
+
+fun File.checksumHash(): String {
+    val ad32 = Adler32().apply { update(readBytes()) }
+    val updatedAt = Files.readAttributes(toPath(), BasicFileAttributes::class.java).lastModifiedTime()
+    return ad32.value.toString() + canonicalPath + updatedAt
+}
+
+fun File.attributesHash(): String {
+    val updatedAt = Files.readAttributes(toPath(), BasicFileAttributes::class.java).lastModifiedTime()
+    return canonicalPath + updatedAt
+}
+
+fun File.isVenv(): Boolean {
+    return resolve("bin").exists()
+        && resolve("lib").exists()
+        && resolve("include").exists()
+        && resolve("pyvenv.cfg").exists()
 }
