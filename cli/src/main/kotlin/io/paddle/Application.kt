@@ -37,7 +37,7 @@ class Paddle(private val project: PaddleProject) : CliktCommand() {
 }
 
 fun main(args: Array<String>) {
-    val workDir = File(".")
+    val workDir = File(".").canonicalFile
     val project = PaddleDaemon.getInstance(rootDir = workDir).getProjectByWorkDir(workDir)
         ?: throw IllegalStateException("Internal error: could not load project from ${workDir.canonicalPath}")
     Paddle(project).main(args)
