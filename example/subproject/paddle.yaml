@@ -3,13 +3,11 @@ descriptor:
   version: 0.1.0
 
 subprojects:
-  - subsubproject
+  - dependency
 
 roots:
   sources:
-    - src/main
-  tests:
-    - src/test
+    - src
 
 plugins:
   enabled:
@@ -22,3 +20,8 @@ requirements:
 environment:
   path: .venv
   python: 3.9
+
+tasks:
+  run:
+    - entrypoint: src/main.py
+      id: main

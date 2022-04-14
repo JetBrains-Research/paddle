@@ -1,4 +1,8 @@
+import sys
+
 if __name__ == '__main__':
+    f = Foo()
+    print(sys.path)
     print("Hello world!")
 
 

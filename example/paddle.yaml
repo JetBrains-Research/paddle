@@ -4,7 +4,7 @@ descriptor:
 
 subprojects:
   - subproject
-  - subsubproject
+  - dependency
 
 roots:
   sources:
@@ -48,7 +48,7 @@ plugins:
 
 tasks:
   run:
-    - entrypoint: src/main/main.py
+    - entrypoint: src/main/app.py
       id: main
 
 #executor:

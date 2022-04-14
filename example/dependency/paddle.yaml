@@ -1,10 +1,14 @@
 descriptor:
-  name: subsubproject
+  name: dependency
   version: 0.1.0
 
 plugins:
   enabled:
     - python
+
+roots:
+  sources:
+    - src
 
 environment:
   path: .venv
