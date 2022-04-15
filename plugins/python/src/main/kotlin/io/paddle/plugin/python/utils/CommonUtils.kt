@@ -5,6 +5,7 @@ import java.io.File
 import java.net.URL
 import java.nio.file.Files
 import java.nio.file.Path
+import java.util.*
 
 
 typealias PyPackageName = String
@@ -77,4 +78,13 @@ fun File.resolveRelative(other: String): File {
 
     val suffix = parts.subList(up, parts.size).joinToString(File.separator)
     return cur.resolve(suffix)
+}
+
+val camelRegex = "(?<=[a-zA-Z])[A-Z]".toRegex()
+val snakeRegex = "_[a-zA-Z]".toRegex()
+
+fun String.camelToSnakeCase(): String {
+    return camelRegex.replace(this) {
+        "_${it.value}"
+    }.lowercase(Locale.getDefault())
 }

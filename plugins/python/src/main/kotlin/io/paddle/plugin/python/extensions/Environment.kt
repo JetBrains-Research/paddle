@@ -45,12 +45,6 @@ class Environment(val project: PaddleProject, val venv: VenvDir) : Hashable {
     }
 
     fun initialize(): ExecutionResult {
-        // Create __init__.py files for all source roots
-//        for (root in project.roots.sources) {
-//            root.resolve("__init__.py").takeUnless { it.exists() }?.createNewFile()
-//        }
-
-        // Create virtualenv and install pip-resolver package (used in PipResolver.kt)
         return project.executor.execute(
             project.interpreter.resolved.path.toString(),
             listOf("-m", "venv", venv.absolutePath),
