@@ -3,6 +3,7 @@ package io.paddle.plugin.standard
 import io.paddle.plugin.Plugin
 import io.paddle.plugin.standard.extensions.Descriptor
 import io.paddle.plugin.standard.extensions.Roots
+import io.paddle.plugin.standard.tasks.CleanAllTask
 import io.paddle.plugin.standard.tasks.CleanTask
 import io.paddle.project.PaddleProject
 import io.paddle.tasks.Task
@@ -15,7 +16,8 @@ object StandardPlugin: Plugin {
 
     override fun tasks(project: PaddleProject): List<Task> {
         return listOf(
-            CleanTask(project)
+            CleanTask(project),
+            CleanAllTask(project)
         )
     }
 

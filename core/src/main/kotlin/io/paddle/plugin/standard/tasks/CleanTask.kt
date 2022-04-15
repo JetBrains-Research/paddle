@@ -7,7 +7,7 @@ import io.paddle.utils.deleteRecursivelyWithoutSymlinks
 import io.paddle.utils.tasks.TaskDefaultGroups
 import java.io.File
 
-class CleanTask(project: PaddleProject) : Task(project) {
+open class CleanTask(project: PaddleProject) : Task(project) {
     var locations = ArrayList<File>()
 
     override val id: String = "clean"
