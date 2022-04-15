@@ -28,7 +28,7 @@ class Environment(val project: PaddleProject, val venv: VenvDir) : Hashable {
 
     val pythonPath: String
         get() {
-            val paths = listOf(project.workDir.parentFile.canonicalPath) + project.subprojects.map { it.environment.pythonPath }
+            val paths = project.roots.sources.map { it.canonicalPath } + project.subprojects.map { it.environment.pythonPath }
             return paths.joinToString(System.getProperty("path.separator"))
         }
 
@@ -45,13 +45,10 @@ class Environment(val project: PaddleProject, val venv: VenvDir) : Hashable {
     }
 
     fun initialize(): ExecutionResult {
-        // Create __init__.py for project work directory
-        project.workDir.resolve("__init__.py").takeUnless { it.exists() }?.createNewFile()
-
         // Create __init__.py files for all source roots
-        for (root in project.roots.sources) {
-            root.resolve("__init__.py").takeUnless { it.exists() }?.createNewFile()
-        }
+//        for (root in project.roots.sources) {
+//            root.resolve("__init__.py").takeUnless { it.exists() }?.createNewFile()
+//        }
 
         // Create virtualenv and install pip-resolver package (used in PipResolver.kt)
         return project.executor.execute(

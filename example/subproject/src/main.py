@@ -1,5 +1,5 @@
 import sys
-from dependency.src.kernel import app
+from kernel import app
 
 from util import some_func
 
