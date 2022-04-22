@@ -18,6 +18,7 @@ object PyInjectorPlugin : Plugin {
         }
 
         val repoTypes = configSpec.repos.items
+        // TODO: remove this and add to inspections
         repoTypes.validValues = repoTypes.validValues ?: mutableListOf()
         repoTypes.validValues!!.add(
             CompositeSpecTreeNode(

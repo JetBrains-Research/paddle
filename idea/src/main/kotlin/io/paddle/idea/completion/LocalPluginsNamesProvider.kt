@@ -18,7 +18,7 @@ interface ProjectProvider {
         return PaddleProject.load(file, File(projectPath))
     }
 }
-
+// TODO: check why is not working
 class LocalPluginsNamesProvider : ProjectProvider, CompletionProvider<CompletionParameters>() {
     override fun addCompletions(parameters: CompletionParameters, context: ProcessingContext, result: CompletionResultSet) {
         val prefix = parameters.position.text.trim().removeSuffix(CompletionUtilCore.DUMMY_IDENTIFIER_TRIMMED)

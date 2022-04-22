@@ -33,7 +33,7 @@ dependencies {
     implementation("com.google.protobuf:protobuf-java:3.19.0")
     implementation("io.grpc:grpc-netty-shaded:1.44.0")
 
-    compileOnly("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.2")
 }
 
 tasks.test {
