@@ -1,4 +1,4 @@
-package io.paddle.plugin.pyinjector.interop.grpc
+package io.paddle.interop
 
 object PyPluginsServer {
     /*

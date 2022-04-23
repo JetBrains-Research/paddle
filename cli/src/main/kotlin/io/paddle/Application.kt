@@ -2,6 +2,9 @@ package io.paddle
 
 import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.parameters.arguments.argument
+import io.grpc.ManagedChannel
+import io.grpc.ManagedChannelBuilder
+import io.paddle.interop.*
 import io.paddle.plugin.plugins
 import io.paddle.project.Project
 import io.paddle.tasks.Task
@@ -27,8 +30,21 @@ fun main(args: Array<String>) {
         Terminal(TextOutput.Console).stderr("Can't find paddle.yaml in root")
         return
     }
-    val project = Project.load(file, "/schema/paddle-schema.json")
+
+    // TODO: start python plugins server
+
+    val port = 50052
+    val channel: ManagedChannel = ManagedChannelBuilder
+        .forAddress("localhost", port)
+        .usePlaintext()
+        .build()
+
+    val project = Project.load(file, "/schema/paddle-schema.json", channel)
     project.register(project.plugins.enabled)
 
+    val server = GrpcServer(0, PaddleApiProviderService(listOf(project)))
+    server.start()
     Paddle(project).main(args)
+    server.stop()
+    channel.shutdownNow()
 }

@@ -5,57 +5,89 @@ option java_multiple_files = true;
 import "google/protobuf/empty.proto";
 package io.paddle.plugin.interop;
 
-// Paddle's plugins service definition.
+/**
+ * Paddle's plugins service definition.
+ */
 service Plugins {
-  /**
-  Requests info about all available plugins provided by a service.
-  Note: using stream because of potential large list of info.
-   */
-  rpc GetPluginsInfo (google.protobuf.Empty) returns (stream PluginsInfo) {}
 
   /**
-  Executes configure of specified project with specified plugin.
+   * Initializes project stub on Python Plugins Server.
    */
-  rpc Configure (ConfigureRequest) returns (google.protobuf.Empty) {}
+  rpc InitializeProjectStub (InitializeProjectRequest) returns (google.protobuf.Empty) {}
 
   /**
-  Requests info about all tasks of specified plugin.
+   * Exports plugins from specified local python modules into Python Plugins Server.
    */
-  rpc GetTasks (GetTasksRequest) returns (GetTasksResponse) {}
+  rpc ExportPyModulePlugins (ExportPyModulePluginsRequest) returns (google.protobuf.Empty) {}
 
-  // todo: before this should implement mechanism of cross-plugin extensions communication
-  //  rpc GetExtensions (GetExtensionsRequest) returns () {}
+  /**
+   * Exports plugins from specified python packages into Python Plugins Server.
+   */
+  rpc ExportPyPackagePlugins (ExportPyPackagePluginsRequest) returns (google.protobuf.Empty) {}
 
-  //  rpc Initialize (TaskProcessRequest) returns (google.protobuf.Empty) {}
+  /**
+   * Executes configure of specified project with specified plugin.
+   */
+  rpc Configure (ProcessPluginRequest) returns (google.protobuf.Empty) {}
 
-  rpc Run (TaskProcessRequest) returns (google.protobuf.Empty) {}
+  /**
+   * Requests info about all tasks of specified plugin.
+   */
+  rpc Tasks (ProcessPluginRequest) returns (GetTasksResponse) {}
+
+  /**
+   * Initializes specified task with respect to specified project.
+   */
+  rpc Initialize (ProcessTaskRequest) returns (google.protobuf.Empty) {}
+
+  /**
+   * Runs specified task with respect to specified project.
+   */
+  rpc Run (ProcessTaskRequest) returns (google.protobuf.Empty) {}
 }
 
-// The response message containing the batch of info about plugins.
-message PluginsInfo {
-  repeated string id = 1;
-}
-
-message ConfigureRequest {
+message InitializeProjectRequest {
   string projectId = 1;
-  string pluginId = 2;
+  string workingDir = 2;
+  string pluginsSitePackages = 3;
 }
 
-message GetTasksRequest {
-  string pluginId = 1;
+message ExportPyModulePluginsRequest {
+  string projectId = 1;
+  repeated PyModulePluginInfo plugins = 2;
+}
+
+message PyModulePluginInfo {
+  string pluginName = 1;
+  string absoluteModulePath = 2;
+}
+
+message ExportPyPackagePluginsRequest {
+  string projectId = 1;
+  repeated PyPackagePluginInfo plugins = 2;
+}
+
+message PyPackagePluginInfo {
+  string pluginName = 1;
+  string pluginVersion = 2;
+}
+
+message ProcessPluginRequest {
+  string projectId = 1;
+  string pluginName = 2;
 }
 
 message GetTasksResponse {
-  repeated TaskInfo taskInfoList = 1;
+  repeated TaskInfo tasksInfo = 1;
 }
 
 message TaskInfo {
   string id = 1;
   string group = 2;
-  repeated TaskInfo deps = 3;
+  repeated string depsIds = 3;
 }
 
-message TaskProcessRequest {
-  string pluginId = 1;
+message ProcessTaskRequest {
+  string projectId = 1;
   string taskId = 2;
 }

@@ -20,7 +20,7 @@ class GrpcServer(private val port: Int, service: BindableService) {
         )
     }
 
-    private fun stop() {
+    fun stop() {
         server.shutdown()
     }
 

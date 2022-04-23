@@ -29,8 +29,7 @@ class PyPluginsEnvironment(project: Project, venv: PluginsVenvDir) : AbstractEnv
         override val key: Extendable.Key<PyPluginsEnvironment> = Extendable.Key()
 
         override fun create(project: Project): PyPluginsEnvironment {
-            val pluginsVenv = ".venv_plugins"
-            return PyPluginsEnvironment(project, PluginsVenvDir(File(project.workDir, pluginsVenv)))
+            return PyPluginsEnvironment(project, PluginsVenvDir(File(project.workDir, ".venv_plugins")))
         }
     }
 

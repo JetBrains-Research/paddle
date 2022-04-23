@@ -1,5 +1,6 @@
 package io.paddle.project
 
+import io.grpc.Channel
 import io.paddle.execution.CommandExecutor
 import io.paddle.execution.local.LocalCommandExecutor
 import io.paddle.plugin.*
@@ -14,7 +15,8 @@ import java.io.File
 
 class Project(
     val config: Configuration, val configSpec: SpecializedConfigSpec<*, *>,
-    val workDir: File = File("."), val output: TextOutput = TextOutput.Console
+    val workDir: File = File("."), val output: TextOutput = TextOutput.Console,
+    val channel: Channel
 ) {
     interface Extension<V : Any> {
         val key: Extendable.Key<V>
@@ -63,8 +65,12 @@ class Project(
     }
 
     companion object {
-        fun load(configFile: File, configSpecResourceUrl: String): Project {
-            return Project(config = Configuration.from(configFile), configSpec = SpecializedConfigSpec.fromResource(configSpecResourceUrl))
+        fun load(configFile: File, configSpecResourceUrl: String, channel: Channel): Project {
+            return Project(
+                config = Configuration.from(configFile),
+                configSpec = SpecializedConfigSpec.fromResource(configSpecResourceUrl),
+                channel = channel
+            )
         }
     }
 }

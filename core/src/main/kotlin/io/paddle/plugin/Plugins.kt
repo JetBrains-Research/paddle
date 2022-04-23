@@ -10,7 +10,7 @@ import io.paddle.utils.ext.Extendable
 val Project.plugins: Plugins
     get() = extensions.get(Plugins.Extension.key)!!
 
-class Plugins(private val _enabled: MutableList<Plugin>) {
+class Plugins(private val project: Project, private val _enabled: MutableList<Plugin>) {
     val enabled: List<Plugin>
         get() = _enabled
 
@@ -33,17 +33,17 @@ class Plugins(private val _enabled: MutableList<Plugin>) {
                 } ?: throw IllegalArgumentException("Cannot find jar plugin with name `${it.name}` inside repository `${it.repoName}`")
             }
 
-            return Plugins(enabled)
+            return Plugins(project, enabled)
         }
     }
 
-    fun enableAndRegister(project: Project, plugin: Plugin) {
+    fun enableAndRegister(plugin: Plugin) {
         enable(plugin)
         project.register(plugin)
     }
 
-    fun enableAndRegister(project: Project, plugins: Collection<Plugin>) {
-        plugins.forEach { enableAndRegister(project, it) }
+    fun enableAndRegister(plugins: Collection<Plugin>) {
+        plugins.forEach { enableAndRegister(it) }
     }
 
 
@@ -58,7 +58,7 @@ class Plugins(private val _enabled: MutableList<Plugin>) {
     }
 }
 
-typealias LocalPluginName = String
+typealias PluginName = String
 typealias LocalPluginsRepoName = String
 
 class LocalPluginsDescriptors(val forJarPlugins: List<Descriptor>, val others: List<Descriptor>) {
@@ -84,5 +84,5 @@ class LocalPluginsDescriptors(val forJarPlugins: List<Descriptor>, val others: L
         }
     }
 
-    data class Descriptor(val name: LocalPluginName, val repoName: LocalPluginsRepoName)
+    data class Descriptor(val name: PluginName, val repoName: LocalPluginsRepoName)
 }

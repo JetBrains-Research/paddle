@@ -5,10 +5,12 @@ option java_multiple_files = true;
 import "google/protobuf/empty.proto";
 package io.paddle.plugin.interop;
 
-// Paddle's project service definition.
+/**
+ * Paddle's project API service definition.
+ */
 service Project {
   /**
-  Prints message in terminal associated with specified project.
+   * Prints message to the terminal associated with specified project.
    */
   rpc PrintMessage (PrintRequest) returns (google.protobuf.Empty) {}
 
@@ -17,6 +19,15 @@ service Project {
 message PrintRequest {
   string projectId = 1;
   string message = 2;
-  bool isErr = 3;
-  string color = 4;
+
+  enum Type {
+    DEBUG = 0;
+    INFO = 1;
+    WARN = 2;
+    ERROR = 3;
+    OUT = 4;
+    ERR = 5;
+  }
+
+  Type type = 3;
 }

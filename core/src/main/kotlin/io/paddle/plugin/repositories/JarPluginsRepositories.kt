@@ -13,10 +13,10 @@ val Project.jarPluginsRepositories: JarPluginsRepositories
 
 class JarPluginsRepositories(private val storage: Map<LocalPluginsRepoName, JarPluginsRepository>) {
 
-    private val index: Trie<LocalPluginName, List<JarPluginsRepository>>
+    private val index: Trie<PluginName, List<JarPluginsRepository>>
 
     init {
-        val pluginsToRepos: HashMap<LocalPluginName, MutableList<JarPluginsRepository>> = hashMapOf()
+        val pluginsToRepos: HashMap<PluginName, MutableList<JarPluginsRepository>> = hashMapOf()
         storage.values.forEach { repo ->
             repo.availablePluginsNames.forEach { pluginName ->
                 pluginsToRepos[pluginName]?.add(repo) ?: run {
@@ -52,11 +52,11 @@ class JarPluginsRepositories(private val storage: Map<LocalPluginsRepoName, JarP
 
     operator fun get(repoName: LocalPluginsRepoName): JarPluginsRepository? = storage[repoName]
 
-    operator fun get(repoName: LocalPluginsRepoName, pluginName: LocalPluginName): Plugin? = storage[repoName]?.plugin(pluginName)
+    operator fun get(repoName: LocalPluginsRepoName, pluginName: PluginName): Plugin? = storage[repoName]?.plugin(pluginName)
 
     fun contains(repoName: LocalPluginsRepoName): Boolean = storage.containsKey(repoName)
 
-    fun findAvailablePluginsBy(prefix: String): Map<LocalPluginName, List<JarPluginsRepository>> {
+    fun findAvailablePluginsBy(prefix: String): Map<PluginName, List<JarPluginsRepository>> {
         return index.prefixMap(prefix)
     }
 }

@@ -3,9 +3,7 @@ package io.paddle.plugin.pyinjector
 import io.paddle.plugin.Plugin
 import io.paddle.plugin.plugins
 import io.paddle.plugin.pyinjector.extensions.*
-import io.paddle.plugin.pyinjector.interop.PyModulePlugin
-import io.paddle.plugin.pyinjector.interop.PyPackagePlugin
-import io.paddle.plugin.pyinjector.interop.grpc.PyPluginsClient
+import io.paddle.plugin.pyinjector.interop.PyPlugin
 import io.paddle.project.Project
 import io.paddle.specification.ConfigSpecView
 import io.paddle.specification.tree.*
@@ -46,9 +44,10 @@ object PyInjectorPlugin : Plugin {
         )
 
         val pyPluginsData = project.extensions.get(PyPluginsData.Extension.key) ?: return
-        project.plugins.enableAndRegister(project, pyPluginsData.pyPackages.map { PyPackagePlugin(it, PyPluginsClient) })
-        project.plugins.enableAndRegister(project, pyPluginsData.pyModules.map { PyModulePlugin(it, PyPluginsClient) })
-        // TODO: startup all necessary services
+
+        project.pyPluginsClient.initializeProject()
+        project.pyPluginsClient.exportPlugins()
+        project.plugins.enableAndRegister(pyPluginsData.pyPackages.map { PyPlugin(it.name) } + pyPluginsData.pyModules.map { PyPlugin(it.name) })
     }
 
     override fun tasks(project: Project): List<Task> = emptyList()
@@ -60,6 +59,7 @@ object PyInjectorPlugin : Plugin {
             PyPluginsEnvironment.Extension,
             PyPluginsRepositories.Extension,
             PyPluginsData.Extension,
+            PyPluginsClient.Extension
         ) as List<Project.Extension<Any>>
     }
 }
