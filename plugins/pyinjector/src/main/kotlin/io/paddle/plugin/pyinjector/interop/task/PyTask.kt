@@ -5,10 +5,7 @@ import io.paddle.project.Project
 import io.paddle.tasks.Task
 import kotlinx.coroutines.runBlocking
 
-class PyRemoteTask(
-    override val id: String, override val group: String,
-    project: Project, private val dependenciesNames: List<String>
-) : Task(project) {
+class PyTask(override val id: String, override val group: String, project: Project, private val dependenciesNames: List<String>) : Task(project) {
 
     override val dependencies: List<Task>
         get() = dependenciesNames.map { project.tasks.getOrFail(it) }

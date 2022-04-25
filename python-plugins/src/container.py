@@ -1,83 +1,94 @@
 #!/usr/bin/env python3
 import importlib
-import os
 import sys
-from typing import Dict, List
+from dataclasses import dataclass
+from pathlib import Path
+from typing import List, Iterable
 
-from src.client import PaddleClientConfiguration, GrpcStubPaddleProject, PaddleClient
+from grpc.aio import Channel
+
+from src.client import AsyncPaddleApiClient, AsyncPaddleProjectAPIImpl
 from src.paddle_api import PaddlePlugin, PaddleTask
 
 
+@dataclass
+class PyPackageInfo:
+    name: str
+    version: str
+
+
+@dataclass
+class PyModuleInfo:
+    name: str
+    repo_dir: str
+    relative_path: str
+
+
+@dataclass
+class VersionedPyPlugin:
+    plugin: PaddlePlugin
+    version: str = None
+
+
 class PaddlePluginsProvider:
-    def __init__(self, plugins_dir: str) -> None:
-        self.__plugins_dir = plugins_dir
-        self.__plugins = dict()
+    def __init__(self, plugins_site_packages_path: Path) -> None:
+        self.__plugins_packages_path = plugins_site_packages_path
+        self.__plugins = None
+        sys.path.append(str(plugins_site_packages_path))
 
-        # todo: replace dynamically modifying sys.path with using lib/site-package inside plugins dir
-        for dir_name in os.listdir(plugins_dir):
-            dir_path = os.path.join(plugins_dir, dir_name)
-            if os.path.isdir(dir_path):
-                sys.path.append(dir_path)
+    def import_plugins_from_site_packages(self, packages_info: Iterable[PyPackageInfo]) -> None:
+        updated_plugins = dict()
+        if not self.__plugins:
+            self.__plugins = updated_plugins
+        for package in packages_info:
+            versioned_plugin = self.__plugins.get(package.name, None)
+            if not versioned_plugin or versioned_plugin.version != package.version:
+                module = importlib.import_module(name="main", package=package.name)
+                plugin = getattr(module, "plugin")
+                if not plugin:
+                    raise KeyError(f"cannot find plugin: {package.name}")
+                versioned_plugin = VersionedPyPlugin(plugin, package.version)
+            updated_plugins[package.name] = versioned_plugin
+        self.__plugins = updated_plugins
 
-    @property
-    def plugins(self) -> Dict[str, PaddlePlugin]:
-        return self.__plugins
-
-    def __getitem__(self, plugin_id: str) -> PaddlePlugin:
-        return self.get(plugin_id)
-
-    def get(self, plugin_id: str) -> PaddlePlugin:
-        plugin = self.plugins.get(plugin_id, None)
-        if not plugin:
-            mod = importlib.import_module(plugin_id)
+    def import_plugins_from_module(self, modules_info: Iterable[PyModuleInfo]) -> None:
+        for module in modules_info:
+            if module.repo_dir not in sys.path:
+                sys.path.append(module.repo_dir)
+            mod = importlib.import_module(name=module.name, package=module.relative_path)
             plugin = getattr(mod, "plugin")
-            self.plugins[plugin_id] = plugin
+            if not plugin:
+                raise KeyError(f"cannot find plugin: {module.name}")
+            self.__plugins[module.name] = VersionedPyPlugin(plugin)
 
-        if not plugin:
-            raise KeyError(f"cannot find plugin: {plugin_id}")
-
-        return plugin
-
-    def invalidate_cache(self):
-        self.__plugins = dict()
+    def __getitem__(self, plugin_name: str) -> PaddlePlugin:
+        return self.__plugins[plugin_name].plugin
 
 
-class PluginsContainer:
-    def __init__(self, working_dir: str, config: PaddleClientConfiguration) -> None:
-        self.__paddle_client = None
-        self.__plugins_provider = None
-        self.__projects = dict()
-        self.__paddle_client_config = config
-        self.__plugins_dir = f"{working_dir}/plugins"
-        self.__started = False
+class PaddleProjectContainer:
+    def __init__(self, project_id: str, working_dir: str, plugins_dir: str, channel_to_paddle: Channel) -> None:
+        self.__project = AsyncPaddleProjectAPIImpl(project_id, working_dir, AsyncPaddleApiClient(grpc_channel=channel_to_paddle))
+        self.__plugins_provider = PaddlePluginsProvider(Path(working_dir).resolve().joinpath(plugins_dir))
+        self.__tasks = dict()
 
-    def __assert_started(self) -> None:
-        if not self.__started:
-            raise RuntimeError("plugins container not started yet")
+    def import_package_plugins(self, plugins: Iterable[PyPackageInfo]) -> None:
+        self.__plugins_provider.import_plugins_from_site_packages(plugins)
 
-    def get_tasks(self, plugin_id: str) -> List[PaddleTask]:
-        self.__assert_started()
-        plugin = self.__plugins_provider[plugin_id]
-        return list(plugin.tasks.values())
+    def import_module_plugins(self, plugins: Iterable[PyModuleInfo]) -> None:
+        self.__plugins_provider.import_plugins_from_module(plugins)
 
-    def execute_act(self, project_id: str, plugin_id: str, task_id: str) -> None:
-        self.__assert_started()
-        project = self.__projects.get(project_id, None)
-        if not project:
-            project = GrpcStubPaddleProject(project_id, self.__paddle_client)
-            self.__projects[project_id] = project
-        plugin = self.__plugins_provider[plugin_id]
-        plugin.task(task_id).act(project=project)
+    async def configure_plugin(self, plugin_name: str) -> None:
+        await self.__plugins_provider[plugin_name].configure(self.__project)
 
-    def start(self) -> None:
-        if self.__started:
-            raise RuntimeError("plugins container already started")
-        self.__paddle_client = PaddleClient(configuration=self.__paddle_client_config)
-        self.__plugins_provider = PaddlePluginsProvider(self.__plugins_dir)
-        self.__started = True
+    async def plugin_tasks(self, plugin_name: str) -> List[PaddleTask]:
+        tasks = await self.__plugins_provider[plugin_name].tasks(self.__project)
+        for task in tasks:
+            self.__tasks[task.identifier] = task
+        return tasks
 
-    def stop(self) -> None:
-        self.__assert_started()
-        self.__paddle_client.stop()
-        self.__plugins_provider.invalidate_cache()
-        self.__started = False
+    def task(self, task_id: str) -> PaddleTask:
+        return self.__tasks[task_id]
+
+    def reload(self) -> None:
+        self.__project.reload_config()
+        self.__tasks = None

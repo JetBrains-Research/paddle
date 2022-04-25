@@ -3,9 +3,8 @@ package io.paddle.plugin.pyinjector.interop
 import io.paddle.plugin.Plugin
 import io.paddle.plugin.PluginName
 import io.paddle.plugin.pyinjector.extensions.pyPluginsClient
-import io.paddle.plugin.pyinjector.interop.task.PyRemoteTask
+import io.paddle.plugin.pyinjector.interop.task.PyTask
 import io.paddle.project.Project
-import io.paddle.tasks.Task
 import kotlinx.coroutines.runBlocking
 
 class PyPlugin(private val pluginName: PluginName) : Plugin {
@@ -14,9 +13,9 @@ class PyPlugin(private val pluginName: PluginName) : Plugin {
         project.pyPluginsClient.configure(pluginName)
     }
 
-    override fun tasks(project: Project): List<Task> = runBlocking {
+    override fun tasks(project: Project): List<PyTask> = runBlocking {
         project.pyPluginsClient.tasks(pluginName).map {
-            PyRemoteTask(it.id, it.group, project, it.depsIdsList)
+            PyTask(it.id, it.group, project, it.depsIdsList)
         }
     }
 

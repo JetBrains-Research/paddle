@@ -13,14 +13,15 @@ import java.io.File
 
 object PaddleProject {
     // TODO: remove to PaddleDaemon
+    private val paddleApiService = PaddleApiProviderService()
+    private val server = GrpcServer(0, paddleApiService).also { it.start() }
+
+    // todo start PaddlePyPS
+
     private val channel: ManagedChannel = ManagedChannelBuilder
         .forAddress("localhost",50052)
         .usePlaintext()
         .build()
-
-    private val paddleApiService = PaddleApiProviderService()
-
-    private val server = GrpcServer(0, paddleApiService).also { it.start() }
 
     init {
         Runtime.getRuntime().addShutdownHook(
@@ -28,6 +29,7 @@ object PaddleProject {
                 println("*** shutting down gRPC server since JVM is shutting down")
                 server.stop()
                 channel.shutdownNow()
+                // terminate paddle pyPS process
                 println("*** server shut down")
             }
         )

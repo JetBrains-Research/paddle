@@ -16,14 +16,14 @@ service Plugins {
   rpc InitializeProjectStub (InitializeProjectRequest) returns (google.protobuf.Empty) {}
 
   /**
-   * Exports plugins from specified local python modules into Python Plugins Server.
+   * Imports plugins from specified local python modules into Python Plugins Server.
    */
-  rpc ExportPyModulePlugins (ExportPyModulePluginsRequest) returns (google.protobuf.Empty) {}
+  rpc ImportPyModulePlugins (ImportPyModulePluginsRequest) returns (google.protobuf.Empty) {}
 
   /**
-   * Exports plugins from specified python packages into Python Plugins Server.
+   * Imports plugins from specified python packages into Python Plugins Server.
    */
-  rpc ExportPyPackagePlugins (ExportPyPackagePluginsRequest) returns (google.protobuf.Empty) {}
+  rpc ImportPyPackagePlugins (ImportPyPackagePluginsRequest) returns (google.protobuf.Empty) {}
 
   /**
    * Executes configure of specified project with specified plugin.
@@ -41,9 +41,9 @@ service Plugins {
   rpc Initialize (ProcessTaskRequest) returns (google.protobuf.Empty) {}
 
   /**
-   * Runs specified task with respect to specified project.
+   * Executes action of specified task with respect to specified project.
    */
-  rpc Run (ProcessTaskRequest) returns (google.protobuf.Empty) {}
+  rpc Act (ProcessTaskRequest) returns (google.protobuf.Empty) {}
 }
 
 message InitializeProjectRequest {
@@ -52,17 +52,18 @@ message InitializeProjectRequest {
   string pluginsSitePackages = 3;
 }
 
-message ExportPyModulePluginsRequest {
+message ImportPyModulePluginsRequest {
   string projectId = 1;
   repeated PyModulePluginInfo plugins = 2;
 }
 
 message PyModulePluginInfo {
   string pluginName = 1;
-  string absoluteModulePath = 2;
+  string absoluteRepoDir = 2;
+  string relativePathToModule = 3;
 }
 
-message ExportPyPackagePluginsRequest {
+message ImportPyPackagePluginsRequest {
   string projectId = 1;
   repeated PyPackagePluginInfo plugins = 2;
 }

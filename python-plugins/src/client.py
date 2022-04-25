@@ -1,42 +1,32 @@
 #!/usr/bin/env python3
 
-from dataclasses import dataclass
-
-import grpc
-
 import project_pb2 as project_api
 import project_pb2_grpc as project_servicer
-from src.paddle_api import AbstractPaddleProject
+from src.paddle_api import MessageType, ExtendedAsyncPaddleProjectAPI
 
 
-@dataclass
-class PaddleClientConfiguration:
-    url: str = "localhost"
-    port: int = 50051
+class AsyncPaddleApiClient:
+    def __init__(self, grpc_channel) -> None:
+        self.stub = project_servicer.ProjectStub(grpc_channel)
 
-    @property
-    def address(self):
-        return f"{self.url}:{self.port}"
-
-
-class PaddleClient:
-    def __init__(self, configuration: PaddleClientConfiguration) -> None:
-        self.channel = grpc.insecure_channel(configuration.address)
-        self.stub = project_servicer.ProjectStub(self.channel)
-
-    def print_message(self, project_id: str, message: str, is_err: bool, color: str) -> None:
-        self.stub.PrintMessage(project_api.PrintRequest(
-            projectId=project_id, message=message, isErr=is_err, color=color)
+    async def print_message(self, project_id: str, message: str, type_name: str) -> None:
+        await self.stub.PrintMessage(project_api.PrintRequest(
+            projectId=project_id, message=message, type=project_api.PrintRequest.Type.Value(type_name))
         )
 
-    def close(self) -> None:
-        self.channel.stop()
 
-
-class GrpcStubPaddleProject(AbstractPaddleProject):
-    def __init__(self, project_id: str, grpc_client: PaddleClient):
+class AsyncPaddleProjectAPIImpl(ExtendedAsyncPaddleProjectAPI):
+    def __init__(self, project_id: str, working_dir: str, grpc_client: AsyncPaddleApiClient):
         self.__project_id = project_id
+        self.__working_dir = working_dir
         self.__paddle_client = grpc_client
+        self.__paddle_config = None
 
-    def print_message(self, message: str, is_err: bool, color: str):
-        self.__paddle_client.print_message(self.__project_id, message, is_err, color)
+    async def print_message(self, message: str, message_type: MessageType):
+        await self.__paddle_client.print_message(self.__project_id, message, message_type.name)
+
+    async def config_spec(self):
+        pass
+
+    def reload_config(self):
+        pass

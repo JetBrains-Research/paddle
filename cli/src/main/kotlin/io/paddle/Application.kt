@@ -31,7 +31,18 @@ fun main(args: Array<String>) {
         return
     }
 
-    // TODO: start python plugins server
+    /*
+    Services execution sequence:
+    1. Paddle Projects API gRPC Server.
+    2. Paddle PyPS.
+    3. Client to Paddle PyPS for Paddle.
+     */
+
+    val service = PaddleApiProviderService()
+    val server = GrpcServer(50051, service)
+    server.start()
+    val paddleApiPort = server.port
+    // TODO: start python plugins server with client to paddle Api port
 
     val port = 50052
     val channel: ManagedChannel = ManagedChannelBuilder
@@ -41,10 +52,10 @@ fun main(args: Array<String>) {
 
     val project = Project.load(file, "/schema/paddle-schema.json", channel)
     project.register(project.plugins.enabled)
+    service.register(project)
 
-    val server = GrpcServer(0, PaddleApiProviderService(listOf(project)))
-    server.start()
     Paddle(project).main(args)
+
     server.stop()
     channel.shutdownNow()
 }
