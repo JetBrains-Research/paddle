@@ -13,18 +13,6 @@ class ResolveRepositoriesTask(project: PaddleProject) : IncrementalTask(project)
 
     override val group: String = PythonPluginTaskGroups.RESOLVE
 
-//    // Inputs: current configuration in the paddle.yaml for repositories descriptors (e.g., url + name + default + secondary)
-//    override val inputs: List<Hashable> = listOf(project.repositories)
-//
-//    // Outputs: checksums for file indexes of the repositories which are specified in the current project
-//    override val outputs: List<Hashable>
-//        get() {
-//            val descriptors = project.repositories.descriptors.map { PyPackageRepository(it) }
-//            return PyLocations.indexDir.listDirectoryEntries()
-//                .filter { descriptors.any { desc -> desc.cacheFileName == it.name } }
-//                .map { it.toFile().hashable() }
-//        }
-
     override val dependencies: List<Task>
         get() = project.subprojects.getAllTasksById(this.id)
 

@@ -16,8 +16,8 @@ class PyTestTask(project: PaddleProject) : IncrementalTask(project) {
 
     override val group: String = TaskDefaultGroups.TEST
 
-    override val inputs: List<Hashable> =
-        project.roots.sources.map { it.hashable() } + project.roots.tests.map { it.hashable() } +
+    override val inputs: List<Hashable>
+        get() = project.roots.sources.map { it.hashable() } + project.roots.tests.map { it.hashable() } +
             listOf(project.requirements, project.environment.venv.hashable())
 
     override val dependencies: List<Task>
@@ -27,7 +27,7 @@ class PyTestTask(project: PaddleProject) : IncrementalTask(project) {
         project.requirements.descriptors.add(
             Requirements.Descriptor(
                 name = "pytest",
-                version = project.config.get<String>("tasks.tests.pytest.version") ?: "6.2.5",
+                version = project.config.get<String>("tasks.tests.pytest.version") ?: "7.1.2",
                 repo = Repositories.Descriptor.PYPI.name
             )
         )

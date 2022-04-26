@@ -25,7 +25,7 @@ object PyPackageRepositoryIndexer {
         } catch (exception: Throwable) {
             throw Task.ActException(
                 "Failed to update index of available packages for PyPI repository " +
-                    "${repository.name}: ${repository.urlSimple.getSecure()}"
+                    "${repository.name}: ${repository.urlSimple.getSecure()} (${exception.message})"
             )
         }
     }
@@ -57,7 +57,7 @@ object PyPackageRepositoryIndexer {
         } catch (exception: Throwable) {
             throw Task.ActException(
                 "Failed to resolve distribution ${distributionInfo.distributionFilename} in " +
-                    "${repository.urlSimple.getSecure()} due to network issues."
+                    "${repository.urlSimple.getSecure()}: ${exception.message}."
             )
         }
     }

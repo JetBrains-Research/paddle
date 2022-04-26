@@ -12,8 +12,10 @@ class ParseRequirementsTxtTask(project: PaddleProject) : IncrementalTask(project
 
     override val group: String = PythonPluginTaskGroups.MIGRATE
 
-    override val inputs: List<Hashable> = listOf(RequirementsTxt(project).file?.hashable() ?: EmptyHashable())
-    override val outputs: List<Hashable> = listOf(project.buildFile.hashable())
+    override val inputs: List<Hashable>
+        get() = listOf(RequirementsTxt(project).file?.hashable() ?: EmptyHashable())
+    override val outputs: List<Hashable>
+        get() = listOf(project.buildFile.hashable())
 
     override fun act() {
         project.terminal.info("Parsing requirements.txt file...")

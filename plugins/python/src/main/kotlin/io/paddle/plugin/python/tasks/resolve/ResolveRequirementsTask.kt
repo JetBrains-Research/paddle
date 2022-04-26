@@ -13,13 +13,6 @@ class ResolveRequirementsTask(project: PaddleProject) : IncrementalTask(project)
 
     override val group: String = PythonPluginTaskGroups.RESOLVE
 
-//    override val inputs: List<Hashable> = listOf(project.requirements, project.repositories, project.interpreter)
-//    override val outputs: List<Hashable> =
-//        if (project.environment.venv.exists())
-//            project.environment.venv.pyPackageFiles.map { it.hashable() }
-//        else
-//            emptyList()
-
     override val dependencies: List<Task>
         get() = listOf(
             project.tasks.getOrFail("resolveRepositories"),

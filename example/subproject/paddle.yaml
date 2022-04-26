@@ -8,6 +8,8 @@ subprojects:
 roots:
   sources:
     - src
+  tests:
+    - test
 
 plugins:
   enabled:

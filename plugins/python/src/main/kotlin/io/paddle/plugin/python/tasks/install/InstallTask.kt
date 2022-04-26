@@ -8,7 +8,7 @@ import io.paddle.project.PaddleProject
 import io.paddle.tasks.Task
 import io.paddle.tasks.incremental.IncrementalTask
 import io.paddle.utils.hash.Hashable
-import io.paddle.utils.hash.hashable
+import io.paddle.utils.hash.lightHashable
 import kotlin.system.measureTimeMillis
 
 class InstallTask(project: PaddleProject) : IncrementalTask(project) {
@@ -16,8 +16,10 @@ class InstallTask(project: PaddleProject) : IncrementalTask(project) {
 
     override val group: String = PythonPluginTaskGroups.INSTALL
 
-    override val inputs: List<Hashable> = listOf(project.repositories, project.requirements)
-    override val outputs: List<Hashable> = listOf(project.environment.venv.hashable())
+    override val inputs: List<Hashable>
+        get() = listOf(project.repositories, project.requirements)
+    override val outputs: List<Hashable>
+        get() = listOf(project.environment.venv.lightHashable())
 
     override val dependencies: List<Task>
         get() = listOf(

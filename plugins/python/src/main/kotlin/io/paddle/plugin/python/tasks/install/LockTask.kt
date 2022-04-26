@@ -19,8 +19,10 @@ class LockTask(project: PaddleProject) : IncrementalTask(project) {
 
     override val group: String = PythonPluginTaskGroups.INSTALL
 
-    override val inputs: List<Hashable> = listOf(project.repositories, project.requirements)
-    override val outputs: List<Hashable> = listOf(project.workDir.resolve(PyLockFile.FILENAME).hashable())
+    override val inputs: List<Hashable>
+        get() = listOf(project.repositories, project.requirements)
+    override val outputs: List<Hashable>
+        get() = listOf(project.workDir.resolve(PyLockFile.FILENAME).hashable())
 
     override val dependencies: List<Task>
         get() = listOf(project.tasks.getOrFail("install")) + project.subprojects.getAllTasksById(this.id)

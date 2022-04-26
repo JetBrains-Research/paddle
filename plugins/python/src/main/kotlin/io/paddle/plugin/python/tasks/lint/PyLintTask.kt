@@ -16,7 +16,8 @@ class PyLintTask(project: PaddleProject) : IncrementalTask(project) {
 
     override val group: String = TaskDefaultGroups.LINT
 
-    override val inputs: List<Hashable> = project.roots.sources.map { it.hashable() }
+    override val inputs: List<Hashable>
+        get() = project.roots.sources.map { it.hashable() }
 
     override val dependencies: List<Task>
         get() = listOf(project.tasks.getOrFail("install"))

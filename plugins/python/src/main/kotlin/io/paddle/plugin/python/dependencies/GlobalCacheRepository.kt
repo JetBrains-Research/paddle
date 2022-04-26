@@ -7,6 +7,7 @@ import io.paddle.plugin.python.utils.exists
 import io.paddle.project.PaddleProject
 import io.paddle.tasks.Task
 import java.io.File
+import java.io.FileFilter
 import java.nio.file.*
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
@@ -31,9 +32,9 @@ object GlobalCacheRepository {
     fun updateCache() {
         cachedPackages.clear()
         PyLocations.packagesDir.toFile().listFiles()?.forEach { repoDir ->
-            repoDir.listFiles()?.forEach { packageDir ->
-                packageDir.listFiles()?.forEach { srcPath ->
-                    cachedPackages.add(CachedPyPackage.load(srcPath.toPath()))
+            repoDir.listFiles(FileFilter { it.isDirectory })?.forEach { packageDir ->
+                packageDir.listFiles(FileFilter { it.isDirectory })?.forEach { versionDir ->
+                    cachedPackages.add(CachedPyPackage.load(versionDir.toPath()))
                 }
             }
         }

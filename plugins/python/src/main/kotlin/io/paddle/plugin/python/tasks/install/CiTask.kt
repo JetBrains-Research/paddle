@@ -28,7 +28,8 @@ class CiTask(project: PaddleProject) : IncrementalTask(project) {
                 emptyList()
             }
         }
-    override val outputs: List<Hashable> = listOf(project.environment.venv.hashable())
+    override val outputs: List<Hashable>
+        get() = listOf(project.environment.venv.hashable())
 
     override val dependencies: List<Task>
         get() = listOf(project.tasks.getOrFail("venv")) + project.subprojects.getAllTasksById(this.id)

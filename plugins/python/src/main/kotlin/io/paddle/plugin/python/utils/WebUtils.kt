@@ -90,6 +90,14 @@ fun PyPackagesRepositoryUrl.removeSimple(): String {
     return this.removeSuffix("/").removeSuffix("/simple")
 }
 
+fun PyPackagesRepositoryUrl.getHost(): String {
+    return if (contains("@")) {
+        substringAfter("@").substringBefore("/")
+    } else {
+        substringAfter("://").substringBefore("/")
+    }
+}
+
 fun PyUrl.getSecure(): String {
     val (protocol, uriWithToken) = split("://")
     val uri = uriWithToken.substringAfter("@")
