@@ -25,4 +25,6 @@ class ConfigurationYAML(private val config: Map<String, Any>) : Configuration() 
 
         return current[name] as? T?
     }
+
+    fun toMutableMap() = config.toMutableMap()
 }

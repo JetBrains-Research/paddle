@@ -1,8 +1,9 @@
-package io.paddle.plugin.python.dependencies.migration
+package io.paddle.plugin.migration
 
 import io.paddle.plugin.python.dependencies.packages.PyPackageMetadata
 import io.paddle.plugin.python.utils.*
 import io.paddle.project.PaddleProject
+import io.paddle.utils.config.ConfigurationYAML
 import org.yaml.snakeyaml.DumperOptions
 import org.yaml.snakeyaml.Yaml
 import java.io.File
@@ -12,32 +13,33 @@ import java.io.FileWriter
 class RequirementsTxt(val project: PaddleProject) {
     val file: File? = project.workDir.resolve("requirements.txt").takeIf { it.exists() }
 
-    fun createDefaultPaddleYAML(config: MutableMap<String, Any>) {
-        val descriptor = (config.getOrPut("descriptor") { LinkedHashMap<String, String>() } as MutableMap<String, String>)
-        descriptor.putIfAbsent("name", project.workDir.absoluteFile.parentFile.name)
-        descriptor.putIfAbsent("version", "0.1.0")
+    fun updateDefaultBuildFile(config: ConfigurationYAML) {
+//        val descriptor = (config.getOrPut("descriptor") { LinkedHashMap<String, String>() } as MutableMap<String, String>)
+//        descriptor.putIfAbsent("name", project.workDir.absoluteFile.parentFile.name)
+//        descriptor.putIfAbsent("version", "0.1.0")
 
-        val roots = (config.getOrPut("roots") { LinkedHashMap<String, ArrayList<String>>() } as MutableMap<String, MutableList<String>>)
+        val map = config.toMutableMap()
+
+        val roots = (map.getOrPut("roots") { LinkedHashMap<String, ArrayList<String>>() } as MutableMap<String, MutableList<String>>)
         roots.putIfAbsent("sources", arrayListOf("src/main"))
         roots.putIfAbsent("tests", arrayListOf("src/tests"))
 
-        val env = (config.getOrPut("environment") { LinkedHashMap<String, Any>() } as MutableMap<String, Any>)
+        val env = (map.getOrPut("environment") { LinkedHashMap<String, Any>() } as MutableMap<String, Any>)
         env.putIfAbsent("path", ".venv")
         env.putIfAbsent("python", 3.8)
 
-        parseRequirementsTxt(config)
+        parseRequirementsTxt(map)
 
-        // We don't need it since the plugin should have been included already to run this task
-        // val plugins = (config.getOrPut("plugins") { LinkedHashMap<String, ArrayList<String>>() } as MutableMap<String, MutableList<String>>)
-        // plugins.putIfAbsent("enabled", arrayListOf("python"))
+        val plugins = (map.getOrPut("plugins") { LinkedHashMap<String, ArrayList<String>>() } as MutableMap<String, MutableList<String>>)
+        plugins.putIfAbsent("enabled", arrayListOf("python", "migration"))
 
         val writer = FileWriter(project.buildFile.path)
         val options = DumperOptions()
         options.defaultFlowStyle = DumperOptions.FlowStyle.BLOCK
-        Yaml(options).dump(config, writer)
+        Yaml(options).dump(map, writer)
     }
 
-    private fun parseRequirementsTxt(config: MutableMap<String, Any>): MutableMap<String, Any> {
+    private fun parseRequirementsTxt(config: MutableMap<String, Any>) {
         file?.readLines()?.forEach { line ->
             when {
                 line.startsWith("--extra-index-url") -> parseRepoUrl(line, config, isExtra = true)
@@ -56,7 +58,6 @@ class RequirementsTxt(val project: PaddleProject) {
                 }
             }
         }
-        return config
     }
 
     private fun parseRepoUrl(line: String, config: MutableMap<String, Any>, isExtra: Boolean) {

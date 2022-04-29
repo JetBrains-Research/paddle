@@ -62,7 +62,7 @@ class PaddleProjectResolver : ExternalSystemProjectResolver<PaddleExecutionSetti
             if (dir.resolve("paddle.yaml").exists()) {
                 // Directory is a paddle project
                 val subproject = provider.getProject(dir)
-                    ?: throw IllegalStateException("Could not find project within ${dir.canonicalPath}")
+                    ?: throw IllegalStateException("Could not find project in ${dir.canonicalPath}")
                 childModuleNode = moduleNode.createChild(ProjectKeys.MODULE, subproject.getModuleData()).also {
                     it.attachTasks(subproject)
                     it.attachContentRoots(subproject)

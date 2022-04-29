@@ -5,3 +5,5 @@ plugins:
     class: io.paddle.plugin.python.PythonPlugin
   - id: ssh
     class: io.paddle.plugin.ssh.SshPlugin
+  - id: migration
+    class: io.paddle.plugin.migration.MigrationPlugin

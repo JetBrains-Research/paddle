@@ -13,7 +13,6 @@ import io.paddle.terminal.*
 import io.paddle.utils.config.Configuration
 import io.paddle.utils.ext.Extendable
 import io.paddle.utils.hash.StringHashable
-import io.paddle.utils.yaml.YAML
 import java.io.File
 
 class PaddleProject internal constructor(val buildFile: File, val rootDir: File) {
@@ -48,7 +47,6 @@ class PaddleProject internal constructor(val buildFile: File, val rootDir: File)
         }
     var executor: CommandExecutor = LocalCommandExecutor(output)
     var terminal = Terminal(output)
-    val yaml: MutableMap<String, Any> = buildFile.readText().let { YAML.parse(it) }
 
     fun load(index: PaddleProjectIndex) {
         subprojects = Subprojects.create(this, index)

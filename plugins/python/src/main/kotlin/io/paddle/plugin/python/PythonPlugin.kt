@@ -5,7 +5,6 @@ import io.paddle.plugin.python.extensions.*
 import io.paddle.plugin.python.tasks.install.*
 import io.paddle.plugin.python.tasks.lint.MyPyTask
 import io.paddle.plugin.python.tasks.lint.PyLintTask
-import io.paddle.plugin.python.tasks.migrate.ParseRequirementsTxtTask
 import io.paddle.plugin.python.tasks.resolve.*
 import io.paddle.plugin.python.tasks.run.RunTask
 import io.paddle.plugin.python.tasks.setup.BuildTask
@@ -36,7 +35,6 @@ object PythonPlugin : Plugin {
             MyPyTask(project),
             PyLintTask(project),
             PyTestTask(project),
-            ParseRequirementsTxtTask(project),
             BuildTask(project)
         ) + RunTask.from(project)
     }
