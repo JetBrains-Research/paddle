@@ -1,6 +1,5 @@
 package io.paddle.plugin.standard.tasks
 
-import io.paddle.plugin.standard.extensions.subprojects
 import io.paddle.project.PaddleProject
 import io.paddle.tasks.Task
 import io.paddle.utils.deleteRecursivelyWithoutSymlinks

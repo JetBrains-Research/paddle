@@ -1,30 +1,38 @@
-package io.paddle.plugin.standard.extensions
+package io.paddle.project.extensions
 
-import io.paddle.project.PaddleDaemon
 import io.paddle.project.PaddleProject
+import io.paddle.project.PaddleProjectIndex
 import io.paddle.tasks.Task
-import io.paddle.utils.ext.Extendable
+import io.paddle.utils.config.ConfigurationChain
+import io.paddle.utils.config.ConfigurationYAML
 
 val PaddleProject.route: List<String>
     get() = ((this.parents.maxByOrNull { it.route.size }?.route ?: emptyList()) + this.descriptor.name)
 
-val PaddleProject.subprojects: Subprojects
-    get() = this.extensions.get(Subprojects.Extension.key) ?: Subprojects(emptyList())
-
 class Subprojects(private val subprojects: List<PaddleProject>) : Iterable<PaddleProject> {
-    object Extension : PaddleProject.Extension<Subprojects> {
-        override val key: Extendable.Key<Subprojects> = Extendable.Key()
-
-        override fun create(project: PaddleProject): Subprojects {
+    companion object {
+        fun create(project: PaddleProject, index: PaddleProjectIndex): Subprojects {
             val names = project.config.get<List<String>>("subprojects") ?: return Subprojects(emptyList())
             val subprojects = ArrayList<PaddleProject>()
-            val daemon = PaddleDaemon.getInstance(project.rootDir)
 
+            // Load subprojects model using index
             for (name in names) {
-                daemon.getProjectByName(name)?.let {
+                index.getProjectByName(name)?.let {
                     subprojects.add(it)
                     it.parents.add(project)
                 } ?: throw SubprojectsInitializationException("Subproject :$name was not found for project :${project.descriptor.name}")
+            }
+
+            // Load additional configurations for subprojects from section [all] in the parental project
+            project.config.get<Map<String, Any>>("all")?.also {
+                val allConfig = ConfigurationYAML(it)
+
+                require(allConfig.get<Any?>("descriptor") == null) { "You can not specify the same [descriptor] for ALL projects at a time." }
+                require(allConfig.get<Any?>("subprojects") == null) { "You can not specify the same [subprojects] for ALL projects at a time." }
+
+                (subprojects + project).forEach { subproject ->
+                    subproject.config = ConfigurationChain(subproject.config, allConfig)
+                }
             }
 
             return Subprojects(subprojects)

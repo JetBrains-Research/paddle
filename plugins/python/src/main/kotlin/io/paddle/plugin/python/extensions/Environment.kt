@@ -6,7 +6,6 @@ import io.paddle.plugin.python.dependencies.VenvDir
 import io.paddle.plugin.python.dependencies.packages.PyPackage
 import io.paddle.plugin.python.dependencies.resolvers.PipResolver
 import io.paddle.plugin.standard.extensions.roots
-import io.paddle.plugin.standard.extensions.subprojects
 import io.paddle.project.PaddleProject
 import io.paddle.terminal.Terminal
 import io.paddle.utils.config.ConfigurationView

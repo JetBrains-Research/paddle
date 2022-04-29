@@ -2,7 +2,6 @@ package io.paddle.plugin.python.tasks.setup
 
 import io.paddle.plugin.python.extensions.buildEnvironment
 import io.paddle.plugin.standard.extensions.roots
-import io.paddle.plugin.standard.extensions.subprojects
 import io.paddle.plugin.standard.tasks.clean
 import io.paddle.project.PaddleProject
 import io.paddle.tasks.Task

@@ -1,6 +1,4 @@
-package io.paddle.project
-
-import io.paddle.tasks.Task
+package io.paddle.tasks
 
 class Tasks {
     private val tasks = HashMap<String, Task>()

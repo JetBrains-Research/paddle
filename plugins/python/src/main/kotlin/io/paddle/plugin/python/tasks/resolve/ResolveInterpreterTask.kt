@@ -3,9 +3,8 @@ package io.paddle.plugin.python.tasks.resolve
 import io.paddle.plugin.python.extensions.interpreter
 import io.paddle.plugin.python.hasPython
 import io.paddle.plugin.python.tasks.PythonPluginTaskGroups
-import io.paddle.plugin.standard.extensions.route
-import io.paddle.plugin.standard.extensions.subprojects
 import io.paddle.project.PaddleProject
+import io.paddle.project.extensions.route
 import io.paddle.tasks.Task
 import io.paddle.tasks.incremental.IncrementalTask
 import kotlin.system.measureTimeMillis

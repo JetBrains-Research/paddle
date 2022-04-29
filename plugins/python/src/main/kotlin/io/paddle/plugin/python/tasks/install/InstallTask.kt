@@ -3,7 +3,6 @@ package io.paddle.plugin.python.tasks.install
 import io.paddle.plugin.python.dependencies.GlobalCacheRepository
 import io.paddle.plugin.python.extensions.*
 import io.paddle.plugin.python.tasks.PythonPluginTaskGroups
-import io.paddle.plugin.standard.extensions.subprojects
 import io.paddle.project.PaddleProject
 import io.paddle.tasks.Task
 import io.paddle.tasks.incremental.IncrementalTask

@@ -20,7 +20,12 @@ class Interpreter(val project: PaddleProject, val pythonVersion: PyInterpreter.V
 
         override fun create(project: PaddleProject): Interpreter {
             val config = object : ConfigurationView("environment", project.config) {
-                val pythonVersion by version("python", default = "3.8")
+                // 3.8 is Double, but 3.8.1 is String
+                val pythonVersion: String = try {
+                    this.get<String>("python") ?: "3.8"
+                } catch (e: ClassCastException) {
+                    this.get<Double>("python")?.toString() ?: "3.8"
+                }
             }
 
             return Interpreter(project, PyInterpreter.Version(config.pythonVersion))

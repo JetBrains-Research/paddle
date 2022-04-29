@@ -4,9 +4,11 @@ import io.paddle.execution.CommandExecutor
 import io.paddle.execution.local.LocalCommandExecutor
 import io.paddle.plugin.Plugin
 import io.paddle.plugin.standard.extensions.Plugins
-import io.paddle.plugin.standard.extensions.subprojects
+import io.paddle.plugin.standard.extensions.plugins
+import io.paddle.project.extensions.Subprojects
 import io.paddle.schema.extensions.BaseJsonSchemaExtension
 import io.paddle.schema.extensions.JsonSchema
+import io.paddle.tasks.Tasks
 import io.paddle.terminal.*
 import io.paddle.utils.config.Configuration
 import io.paddle.utils.ext.Extendable
@@ -14,19 +16,30 @@ import io.paddle.utils.hash.StringHashable
 import io.paddle.utils.yaml.YAML
 import java.io.File
 
-class PaddleProject internal constructor(val config: Configuration, val workDir: File, val rootDir: File, output: TextOutput = TextOutput.Console) {
+class PaddleProject internal constructor(val buildFile: File, val rootDir: File) {
     interface Extension<V : Any> {
         val key: Extendable.Key<V>
 
         fun create(project: PaddleProject): V
     }
 
+    val workDir: File
+        get() = buildFile.parentFile
+    var config: Configuration = Configuration.from(buildFile)
+        internal set
+
     val id: String = "project_" + StringHashable(workDir.canonicalPath).hash()
+    var isLoaded: Boolean = false
+        private set
+
     val tasks = Tasks()
     val extensions = Extendable()
+
+    lateinit var subprojects: Subprojects
+        private set
     val parents = ArrayList<PaddleProject>()
 
-    var output: TextOutput = output
+    var output: TextOutput = TextOutput.Console
         set(value) {
             field = value
             executor = LocalCommandExecutor(value)
@@ -35,13 +48,14 @@ class PaddleProject internal constructor(val config: Configuration, val workDir:
         }
     var executor: CommandExecutor = LocalCommandExecutor(output)
     var terminal = Terminal(output)
-
-    val buildFile: File = workDir.resolve("paddle.yaml")
     val yaml: MutableMap<String, Any> = buildFile.readText().let { YAML.parse(it) }
 
-    init {
+    fun load(index: PaddleProjectIndex) {
+        subprojects = Subprojects.create(this, index)
         extensions.register(Plugins.Extension.key, Plugins.Extension.create(this))
         extensions.register(JsonSchema.Extension.key, JsonSchema.Extension.create(this))
+        register(plugins.enabled)
+        isLoaded = true
     }
 
     fun register(plugin: Plugin) {
@@ -83,7 +97,5 @@ class PaddleProject internal constructor(val config: Configuration, val workDir:
         if (id != other.id) return false
         return true
     }
-
-    class ProjectInitializationException(reason: String) : Exception(reason)
 }
 

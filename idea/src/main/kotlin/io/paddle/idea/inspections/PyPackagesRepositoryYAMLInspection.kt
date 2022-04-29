@@ -5,10 +5,11 @@ import com.intellij.psi.PsiElementVisitor
 import com.intellij.psi.util.PsiTreeUtil
 import org.jetbrains.yaml.psi.YAMLKeyValue
 import org.jetbrains.yaml.psi.YamlPsiElementVisitor
+import java.util.*
 
 class PyPackagesRepositoryYAMLInspection : LocalInspectionTool() {
-    private fun String.matchesFalsy() = this.toLowerCase() == "false" || this.toLowerCase() == "no"
-    private fun String.matchesTruthy() = this.toLowerCase() == "true" || this.toLowerCase() == "yes"
+    private fun String.matchesFalsy() = this.lowercase(Locale.getDefault()) == "false" || this.lowercase(Locale.getDefault()) == "no"
+    private fun String.matchesTruthy() = this.lowercase(Locale.getDefault()) == "true" || this.lowercase(Locale.getDefault()) == "yes"
 
     override fun buildVisitor(holder: ProblemsHolder, isOnTheFly: Boolean): PsiElementVisitor {
         return object : YamlPsiElementVisitor() {

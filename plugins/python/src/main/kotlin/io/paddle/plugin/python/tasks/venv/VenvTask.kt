@@ -2,7 +2,6 @@ package io.paddle.plugin.python.tasks.venv
 
 import io.paddle.plugin.python.extensions.*
 import io.paddle.plugin.python.tasks.PythonPluginTaskGroups
-import io.paddle.plugin.standard.extensions.subprojects
 import io.paddle.plugin.standard.tasks.clean
 import io.paddle.project.PaddleProject
 import io.paddle.tasks.Task

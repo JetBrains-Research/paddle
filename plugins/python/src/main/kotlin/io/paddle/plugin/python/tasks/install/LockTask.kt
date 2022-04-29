@@ -5,7 +5,6 @@ import io.paddle.plugin.python.dependencies.lock.PyPackageLocker
 import io.paddle.plugin.python.extensions.repositories
 import io.paddle.plugin.python.extensions.requirements
 import io.paddle.plugin.python.tasks.PythonPluginTaskGroups
-import io.paddle.plugin.standard.extensions.subprojects
 import io.paddle.project.PaddleProject
 import io.paddle.tasks.Task
 import io.paddle.tasks.incremental.IncrementalTask

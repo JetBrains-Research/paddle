@@ -13,7 +13,7 @@ import io.paddle.idea.PaddleManager
 import io.paddle.idea.sdk.PaddlePythonSdkUtil
 import io.paddle.plugin.python.extensions.environment
 import io.paddle.plugin.python.hasPython
-import io.paddle.project.PaddleDaemon
+import io.paddle.project.PaddleProjectProvider
 import java.io.File
 
 class PaddleProjectSettingsUpdater : ExternalSystemSettingsListenerEx {
@@ -25,17 +25,24 @@ class PaddleProjectSettingsUpdater : ExternalSystemSettingsListenerEx {
         if (ApplicationManager.getApplication().isUnitTestMode) return
         if (manager !is PaddleManager) return
 
+        // Schedule Python SDK configurer
         val connection = project.messageBus.connect(Disposer.newDisposable())
         connection.subscribe(ProjectDataImportListener.TOPIC, ProjectDataImportListener {
             val rootDir = project.basePath?.let { File(it) } ?: return@ProjectDataImportListener
-            val daemon = PaddleDaemon.getInstance(rootDir)
+            val provider = PaddleProjectProvider.getInstance(rootDir)
+            provider.sync()
 
             for (module in project.modules) {
-                val subproject = module.basePath?.let { daemon.getProjectByWorkDir(File(it)) } ?: continue
+                val subproject = module.basePath?.let { provider.getProject(File(it)) } ?: continue
                 if (subproject.hasPython && subproject.environment.venv.exists()) {
                     PaddlePythonSdkUtil.configurePythonSdk(module, subproject)
                 }
             }
         })
+
+        // Schedule Paddle file watcher to update global index
+//        val rootDir = project.basePath?.let { File(it) } ?: return
+//        val scheduler = PaddleWatchersScheduler.getInstance(rootDir)
+//        Thread { scheduler.schedule(rootDir) }.start()
     }
 }

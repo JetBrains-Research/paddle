@@ -2,9 +2,9 @@ package io.paddle.plugin.python.dependencies.setup
 
 import io.paddle.plugin.python.extensions.interpreter
 import io.paddle.plugin.python.utils.camelToSnakeCase
-import io.paddle.plugin.standard.extensions.descriptor
 import io.paddle.plugin.standard.extensions.roots
 import io.paddle.project.PaddleProject
+import io.paddle.project.extensions.descriptor
 import java.io.File
 
 data class SetupConfig(val project: PaddleProject) {

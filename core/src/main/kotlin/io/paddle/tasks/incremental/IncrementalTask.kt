@@ -1,7 +1,7 @@
 package io.paddle.tasks.incremental
 
-import io.paddle.plugin.standard.extensions.route
 import io.paddle.project.PaddleProject
+import io.paddle.project.extensions.route
 import io.paddle.tasks.Task
 import io.paddle.terminal.CommandOutput
 import io.paddle.utils.hash.Hashable

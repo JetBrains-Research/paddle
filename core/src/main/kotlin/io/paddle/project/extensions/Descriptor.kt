@@ -1,4 +1,4 @@
-package io.paddle.plugin.standard.extensions
+package io.paddle.project.extensions
 
 import io.paddle.project.PaddleProject
 import io.paddle.utils.config.ConfigurationView

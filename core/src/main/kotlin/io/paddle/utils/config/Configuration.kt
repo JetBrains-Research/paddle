@@ -18,18 +18,9 @@ abstract class Configuration {
     fun double(name: String, default: Double? = null) = ConfigurationDelegate(name, default)
     fun <T> list(name: String, default: List<T>? = null) = ConfigurationDelegate(name, default)
 
-    // 3.8 is Double, but 3.8.1 is String
-    fun version(name: String, default: String? = null) = ReadOnlyProperty<Configuration, String> { thisRef, _ ->
-        try {
-            (thisRef.get<String>(name) ?: default) as String
-        } catch (e: ClassCastException) {
-            thisRef.get<Double>(name).toString()
-        }
-    }
-
     abstract fun <T> get(key: String): T?
 
     companion object {
-        fun from(file: File) = ConfigurationYAML(file)
+        fun from(file: File) = ConfigurationYAML.from(file)
     }
 }

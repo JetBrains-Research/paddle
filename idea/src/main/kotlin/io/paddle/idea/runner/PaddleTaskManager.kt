@@ -8,7 +8,7 @@ import com.intellij.openapi.project.ProjectManager
 import io.paddle.idea.settings.PaddleExecutionSettings
 import io.paddle.idea.utils.IDEACommandOutput
 import io.paddle.idea.utils.containsPrefix
-import io.paddle.project.PaddleDaemon
+import io.paddle.project.PaddleProjectProvider
 import io.paddle.tasks.Task
 import java.io.File
 
@@ -31,7 +31,7 @@ class PaddleTaskManager : ExternalSystemTaskManager<PaddleExecutionSettings> {
                 return
             }
         val rootDir = project.basePath?.let { File(it) } ?: return
-        val paddleProject = PaddleDaemon.getInstance(rootDir).getProjectByWorkDir(workDir) ?: run {
+        val paddleProject = PaddleProjectProvider.getInstance(rootDir).getProject(workDir) ?: run {
             log.warn("Could not find corresponding paddle project for workDir ${workDir.canonicalPath}")
             return
         }

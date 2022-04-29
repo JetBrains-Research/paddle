@@ -1,7 +1,7 @@
 package io.paddle.plugin.standard
 
 import io.paddle.plugin.Plugin
-import io.paddle.plugin.standard.extensions.Descriptor
+import io.paddle.plugin.standard.extensions.Plugins
 import io.paddle.plugin.standard.extensions.Roots
 import io.paddle.plugin.standard.tasks.CleanAllTask
 import io.paddle.plugin.standard.tasks.CleanTask
@@ -25,7 +25,7 @@ object StandardPlugin: Plugin {
     override fun extensions(project: PaddleProject): List<PaddleProject.Extension<Any>> {
         return listOf(
             Roots.Extension,
-            Descriptor.Extension
+            Plugins.Extension
         ) as List<PaddleProject.Extension<Any>>
     }
 }

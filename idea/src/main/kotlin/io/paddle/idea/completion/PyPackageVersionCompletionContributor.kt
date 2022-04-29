@@ -5,7 +5,7 @@ import com.intellij.codeInsight.lookup.LookupElementBuilder
 import com.intellij.patterns.PlatformPatterns
 import com.intellij.util.ProcessingContext
 import io.paddle.plugin.python.extensions.repositories
-import io.paddle.project.PaddleDaemon
+import io.paddle.project.PaddleProjectProvider
 import org.jetbrains.yaml.psi.YAMLDocument
 import java.io.File
 
@@ -27,7 +27,7 @@ class PyPackageVersionCompletionContributor : CompletionContributor() {
 class PyPackageVersionCompletionProvider : CompletionProvider<CompletionParameters>() {
     override fun addCompletions(parameters: CompletionParameters, context: ProcessingContext, result: CompletionResultSet) {
         val rootDir = File(parameters.editor.project?.basePath!!)
-        val project = PaddleDaemon.getInstance(rootDir).getProjectByWorkDir(rootDir) ?: return
+        val project = PaddleProjectProvider.getInstance(rootDir).getProject(rootDir) ?: return
 
         val prefix = parameters.position.text.trim().removeSuffix(CompletionUtilCore.DUMMY_IDENTIFIER_TRIMMED)
         val packageName = parameters.originalPosition?.parent?.parent?.prevSibling?.prevSibling?.prevSibling?.lastChild?.text ?: return

@@ -10,9 +10,10 @@ import io.paddle.idea.PaddleManager
 import io.paddle.idea.settings.PaddleExecutionSettings
 import io.paddle.plugin.python.extensions.environment
 import io.paddle.plugin.python.hasPython
-import io.paddle.plugin.standard.extensions.*
-import io.paddle.project.PaddleDaemon
+import io.paddle.plugin.standard.extensions.roots
 import io.paddle.project.PaddleProject
+import io.paddle.project.PaddleProjectProvider
+import io.paddle.project.extensions.descriptor
 import java.io.File
 
 class PaddleProjectResolver : ExternalSystemProjectResolver<PaddleExecutionSettings> {
@@ -24,8 +25,8 @@ class PaddleProjectResolver : ExternalSystemProjectResolver<PaddleExecutionSetti
         listener: ExternalSystemTaskNotificationListener
     ): DataNode<ProjectData> {
         val rootDir = File(projectPath).parentFile
-        val daemon = PaddleDaemon.getInstance(rootDir)
-        val project = daemon.getProjectByWorkDir(rootDir)
+        val provider = PaddleProjectProvider.getInstance(rootDir).also { it.sync() }
+        val project = provider.getProject(rootDir)
             ?: throw IllegalStateException("Failed to initialize Paddle project from ${rootDir.canonicalPath}") // first initialization
 
         val projectData = ProjectData(
@@ -43,7 +44,7 @@ class PaddleProjectResolver : ExternalSystemProjectResolver<PaddleExecutionSetti
             attachTasks(project)
             attachContentRoots(project)
         }
-        createModuleNodes(project.workDir, rootModuleNode, daemon).also {
+        createModuleNodes(project.workDir, rootModuleNode, provider).also {
             createModuleDependencies(project, it + (project to rootModuleNode))
         }
 
@@ -53,21 +54,22 @@ class PaddleProjectResolver : ExternalSystemProjectResolver<PaddleExecutionSetti
     private fun createModuleNodes(
         workDir: File,
         moduleNode: DataNode<ModuleData>,
-        daemon: PaddleDaemon
+        provider: PaddleProjectProvider
     ): Map<PaddleProject, DataNode<ModuleData>> {
         val moduleByProject = hashMapOf<PaddleProject, DataNode<ModuleData>>()
         workDir.listFiles()?.filter { it.isDirectory }?.forEach { dir ->
             val childModuleNode: DataNode<ModuleData>
             if (dir.resolve("paddle.yaml").exists()) {
                 // Directory is a paddle project
-                val subproject = daemon.getProjectByWorkDir(dir) ?: throw IllegalStateException("Projects were not initialized completely.")
+                val subproject = provider.getProject(dir)
+                    ?: throw IllegalStateException("Could not find project within ${dir.canonicalPath}")
                 childModuleNode = moduleNode.createChild(ProjectKeys.MODULE, subproject.getModuleData()).also {
                     it.attachTasks(subproject)
                     it.attachContentRoots(subproject)
                     moduleByProject[subproject] = it
                 }
-                moduleByProject.putAll(createModuleNodes(dir, childModuleNode, daemon))
-            } else if (daemon.hasProjectsIn(dir)) {
+                moduleByProject.putAll(createModuleNodes(dir, childModuleNode, provider))
+            } else if (provider.hasProjectsIn(dir)) {
                 // Directory contains paddle projects
                 childModuleNode = moduleNode.createChild(
                     ProjectKeys.MODULE,
@@ -80,7 +82,7 @@ class PaddleProjectResolver : ExternalSystemProjectResolver<PaddleExecutionSetti
                         dir.canonicalPath
                     )
                 )
-                moduleByProject.putAll(createModuleNodes(dir, childModuleNode, daemon))
+                moduleByProject.putAll(createModuleNodes(dir, childModuleNode, provider))
             }
         }
         return moduleByProject
