@@ -66,11 +66,11 @@ class InstalledPackageInfoDir(val dir: File, val type: Type, val name: PyPackage
             Type.DIST -> {
                 dir.resolve("RECORD").readLines()
                     .map { it.split(",")[0] }
-                    .map { dir.parentFile.resolveRelative(it) }
+                    .mapNotNull { dir.parentFile.resolveRelative(it).takeIf { f -> f.exists() } }
             }
             Type.LEGACY -> {
                 dir.resolve("installed-files.txt").readLines()
-                    .map { dir.resolveRelative(it) }
+                    .mapNotNull { dir.resolveRelative(it).takeIf { f -> f.exists() } }
             }
         }
 

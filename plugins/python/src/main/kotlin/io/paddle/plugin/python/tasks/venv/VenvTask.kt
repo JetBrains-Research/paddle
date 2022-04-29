@@ -7,7 +7,7 @@ import io.paddle.project.PaddleProject
 import io.paddle.tasks.Task
 import io.paddle.tasks.incremental.IncrementalTask
 import io.paddle.utils.hash.Hashable
-import io.paddle.utils.hash.lightHashable
+import io.paddle.utils.hash.hashable
 import kotlin.system.measureTimeMillis
 
 class VenvTask(project: PaddleProject) : IncrementalTask(project) {
@@ -18,7 +18,7 @@ class VenvTask(project: PaddleProject) : IncrementalTask(project) {
     override val inputs: List<Hashable>
         get() = listOf(project.interpreter)
     override val outputs: List<Hashable>
-        get() = listOf(project.environment.venv.lightHashable())
+        get() = listOf(project.environment.venv.resolve("pyvenv.cfg").hashable())
 
     override val dependencies: List<Task>
         get() = listOf(project.tasks.getOrFail("resolveInterpreter")) + project.subprojects.getAllTasksById(this.id)

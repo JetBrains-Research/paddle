@@ -12,7 +12,7 @@ import java.nio.file.*
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.concurrent.schedule
-import kotlin.io.path.deleteExisting
+import kotlin.io.path.deleteIfExists
 import kotlin.io.path.name
 
 /**
@@ -110,18 +110,14 @@ object GlobalCacheRepository {
                 "BIN", "PYCACHE" -> {
                     src.listFiles()?.forEach { file ->
                         val link = venv.bin.resolve(file.name).also { it.mkdirs() }
-                        if (link.exists()) {
-                            link.delete()
-                        }
+                        link.toPath().deleteIfExists()
                         Files.createSymbolicLink(link.toPath(), file.toPath())
                     }
                 }
                 else -> {
-                    val link = venv.sitePackages.resolve(src.name).toPath()
-                    if (link.exists()) {
-                        link.deleteExisting()
-                    }
-                    Files.createSymbolicLink(link, src.toPath())
+                    val link = venv.sitePackages.resolve(src.name)
+                    link.toPath().deleteIfExists()
+                    Files.createSymbolicLink(link.toPath(), src.toPath())
                 }
             }
         }
