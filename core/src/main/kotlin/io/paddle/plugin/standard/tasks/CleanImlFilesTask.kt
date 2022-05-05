@@ -4,8 +4,8 @@ import io.paddle.project.PaddleProject
 import io.paddle.tasks.incremental.IncrementalTask
 import io.paddle.utils.tasks.TaskDefaultGroups
 
-class CleanModuleFilesTask(project: PaddleProject) : IncrementalTask(project) {
-    override val id = "cleanIntelliJModuleFiles"
+class CleanImlFilesTask(project: PaddleProject) : IncrementalTask(project) {
+    override val id = "cleanImlFiles"
 
     override val group = TaskDefaultGroups.BUILD
 

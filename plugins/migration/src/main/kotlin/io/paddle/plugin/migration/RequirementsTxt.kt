@@ -7,18 +7,21 @@ import io.paddle.utils.config.ConfigurationYAML
 import org.yaml.snakeyaml.DumperOptions
 import org.yaml.snakeyaml.Yaml
 import java.io.File
-import java.io.FileWriter
+import java.io.StringWriter
 
 @Suppress("UNCHECKED_CAST")
 class RequirementsTxt(val project: PaddleProject) {
     val file: File? = project.workDir.resolve("requirements.txt").takeIf { it.exists() }
 
     fun updateDefaultBuildFile(config: ConfigurationYAML) {
-//        val descriptor = (config.getOrPut("descriptor") { LinkedHashMap<String, String>() } as MutableMap<String, String>)
-//        descriptor.putIfAbsent("name", project.workDir.absoluteFile.parentFile.name)
-//        descriptor.putIfAbsent("version", "0.1.0")
-
         val map = config.toMutableMap()
+
+        val name = project.workDir.relativeTo(project.rootDir).path
+            .split(File.separator)
+            .joinToString("-")
+        val descriptor = (map.getOrPut("descriptor") { LinkedHashMap<String, String>() } as MutableMap<String, String>)
+        descriptor.putIfAbsent("name", name)
+        descriptor.putIfAbsent("version", "0.1.0")
 
         val roots = (map.getOrPut("roots") { LinkedHashMap<String, ArrayList<String>>() } as MutableMap<String, MutableList<String>>)
         roots.putIfAbsent("sources", arrayListOf("src/main"))
@@ -33,10 +36,22 @@ class RequirementsTxt(val project: PaddleProject) {
         val plugins = (map.getOrPut("plugins") { LinkedHashMap<String, ArrayList<String>>() } as MutableMap<String, MutableList<String>>)
         plugins.putIfAbsent("enabled", arrayListOf("python", "migration"))
 
-        val writer = FileWriter(project.buildFile.path)
-        val options = DumperOptions()
-        options.defaultFlowStyle = DumperOptions.FlowStyle.BLOCK
+        val options = DumperOptions().apply {
+            defaultFlowStyle = DumperOptions.FlowStyle.BLOCK
+        }
+        val writer = StringWriter()
         Yaml(options).dump(map, writer)
+
+        project.buildFile.writeText(
+            writer.toString().split('\n')
+                .mapIndexed { idx, str ->
+                    if (idx != 0 && str.isNotEmpty() && str.first() in 'a'..'z')
+                        "\n" + str
+                    else
+                        str
+                }
+                .joinToString("\n")
+        )
     }
 
     private fun parseRequirementsTxt(config: MutableMap<String, Any>) {
