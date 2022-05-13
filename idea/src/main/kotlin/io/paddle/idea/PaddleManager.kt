@@ -5,6 +5,7 @@ import com.intellij.icons.AllIcons
 import com.intellij.openapi.externalSystem.*
 import com.intellij.openapi.externalSystem.model.ProjectSystemId
 import com.intellij.openapi.externalSystem.service.project.ExternalSystemProjectResolver
+import com.intellij.openapi.externalSystem.service.project.autoimport.CachingExternalSystemAutoImportAware
 import com.intellij.openapi.externalSystem.task.ExternalSystemTaskManager
 import com.intellij.openapi.externalSystem.util.ExternalSystemConstants
 import com.intellij.openapi.fileChooser.FileChooserDescriptor
@@ -15,10 +16,12 @@ import com.intellij.openapi.util.registry.Registry
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.util.Function
 import icons.ExternalSystemIcons
+import io.paddle.idea.project.PaddleAutoImportAware
 import io.paddle.idea.project.PaddleProjectResolver
 import io.paddle.idea.runner.PaddleTaskManager
 import io.paddle.idea.settings.*
 import io.paddle.idea.utils.isPaddle
+import java.io.File
 import javax.swing.Icon
 
 class PaddleManager : ExternalSystemManager<
@@ -35,18 +38,20 @@ class PaddleManager : ExternalSystemManager<
     companion object {
         val ID: ProjectSystemId = ProjectSystemId("Paddle")
 
-        private val FILE_CHOOSER_DESCRIPTOR = object : FileChooserDescriptor(
-            true,
-            false,
-            false,
-            false,
-            false,
-            false
-        ) {
+        private val FILE_CHOOSER_DESCRIPTOR = object : FileChooserDescriptor(true, false, false, false, false, false) {
             override fun isFileSelectable(file: VirtualFile?) = super.isFileSelectable(file) && file != null && file.isPaddle
         }
     }
 
+    private val autoImportDelegate = CachingExternalSystemAutoImportAware(PaddleAutoImportAware())
+
+    override fun getAffectedExternalProjectPath(changedFileOrDirPath: String, project: Project): String? {
+        return autoImportDelegate.getAffectedExternalProjectPath(changedFileOrDirPath, project)
+    }
+
+    override fun getAffectedExternalProjectFiles(projectPath: String?, project: Project): MutableList<File> {
+        return autoImportDelegate.getAffectedExternalProjectFiles(projectPath, project)
+    }
 
     init {
         @Suppress("UnresolvedPluginConfigReference")
@@ -91,10 +96,6 @@ class PaddleManager : ExternalSystemManager<
     override fun getProjectIcon(): Icon = AllIcons.Nodes.IdeaProject
 
     override fun getTaskIcon(): Icon = ExternalSystemIcons.Task
-
-    override fun getAffectedExternalProjectPath(changedFileOrDirPath: String, project: Project): String? {
-        return null
-    }
 
     override fun getConfigurable(project: Project): Configurable {
         return PaddleConfigurable(project)

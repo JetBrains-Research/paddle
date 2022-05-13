@@ -24,10 +24,12 @@ class PaddleProjectResolver : ExternalSystemProjectResolver<PaddleExecutionSetti
         settings: PaddleExecutionSettings?,
         listener: ExternalSystemTaskNotificationListener
     ): DataNode<ProjectData> {
-        val rootDir = File(projectPath).parentFile
+        val rootDir = File(projectPath)
+
+        // First initialization
         val provider = PaddleProjectProvider.getInstance(rootDir).also { it.sync() }
         val project = provider.getProject(rootDir)
-            ?: throw IllegalStateException("Failed to initialize Paddle project from ${rootDir.canonicalPath}") // first initialization
+            ?: throw IllegalStateException("Failed to initialize Paddle project from ${rootDir.canonicalPath}")
 
         val projectData = ProjectData(
             PaddleManager.ID,

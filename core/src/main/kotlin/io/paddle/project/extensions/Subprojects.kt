@@ -11,7 +11,7 @@ val PaddleProject.route: List<String>
 
 class Subprojects(private val subprojects: List<PaddleProject>) : Iterable<PaddleProject> {
     companion object {
-        fun create(project: PaddleProject, index: PaddleProjectIndex): Subprojects {
+        internal fun create(project: PaddleProject, index: PaddleProjectIndex): Subprojects {
             val names = project.config.get<List<String>>("subprojects") ?: return Subprojects(emptyList())
             val subprojects = ArrayList<PaddleProject>()
 

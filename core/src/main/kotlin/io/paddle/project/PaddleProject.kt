@@ -48,7 +48,7 @@ class PaddleProject internal constructor(val buildFile: File, val rootDir: File)
     var executor: CommandExecutor = LocalCommandExecutor(output)
     var terminal = Terminal(output)
 
-    fun load(index: PaddleProjectIndex) {
+    internal fun load(index: PaddleProjectIndex) {
         subprojects = Subprojects.create(this, index)
         extensions.register(Plugins.Extension.key, Plugins.Extension.create(this))
         extensions.register(JsonSchema.Extension.key, JsonSchema.Extension.create(this))

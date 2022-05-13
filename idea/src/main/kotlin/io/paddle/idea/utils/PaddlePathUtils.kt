@@ -13,8 +13,7 @@ import java.nio.file.Path
  * @return whether this file is a `Paddle` build file.
  */
 internal val VirtualFile.isPaddle: Boolean
-    get() =
-        VfsUtil.virtualToIoFile(this).toPath().isPaddle
+    get() = VfsUtil.virtualToIoFile(this).toPath().isPaddle
 
 /**
  * @return whether this file exists and is a `Paddle` build file.

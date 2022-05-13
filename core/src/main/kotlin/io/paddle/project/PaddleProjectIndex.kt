@@ -7,7 +7,7 @@ import kotlinx.coroutines.*
 import java.io.File
 import java.util.concurrent.ConcurrentHashMap
 
-class PaddleProjectIndex(rootDir: File) {
+internal class PaddleProjectIndex(rootDir: File) {
     private lateinit var indexByName: ConcurrentHashMap<String, PaddleProject>
     private lateinit var indexByWorkdir: ConcurrentHashMap<File, PaddleProject>
     lateinit var dumbProjects: List<PaddleProject>
