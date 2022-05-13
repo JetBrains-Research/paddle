@@ -25,6 +25,7 @@
         <externalSystemUnlinkedProjectAware implementation="io.paddle.idea.project.PaddleUnlinkedProjectAware"/>
         <externalSystemManager implementation="io.paddle.idea.PaddleManager"/>
         <projectService serviceImplementation="io.paddle.idea.settings.PaddleSettings"/>
+        <externalIconProvider key="PADDLE" implementationClass="io.paddle.idea.ui.PaddleIconProvider"/>
 
         <!--suppress PluginXmlValidity -->
         <externalResolverIsSafe executesTrustedCodeOnly="true" systemId="Paddle"/>
