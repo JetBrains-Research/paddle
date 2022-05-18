@@ -2,12 +2,13 @@ package io.paddle.project
 
 import io.paddle.project.extensions.Descriptor
 import io.paddle.project.extensions.descriptor
+import io.paddle.terminal.TextOutput
 import io.paddle.utils.isPaddle
 import kotlinx.coroutines.*
 import java.io.File
 import java.util.concurrent.ConcurrentHashMap
 
-internal class PaddleProjectIndex(rootDir: File) {
+internal class PaddleProjectIndex(rootDir: File, val output: TextOutput) {
     private lateinit var indexByName: ConcurrentHashMap<String, PaddleProject>
     private lateinit var indexByWorkdir: ConcurrentHashMap<File, PaddleProject>
     lateinit var dumbProjects: List<PaddleProject>
@@ -22,12 +23,12 @@ internal class PaddleProjectIndex(rootDir: File) {
     }
 
     fun refresh(rootDir: File) {
-        dumbProjects = collectDumbProjects(rootDir)
-        indexByName = dumbProjects.associateBy { it.descriptor.name }.let { ConcurrentHashMap(it) }
+        dumbProjects = collectDumbProjects(rootDir, output)
+        indexByName = ConcurrentHashMap(dumbProjects.associateBy { it.descriptor.name })
         indexByWorkdir = ConcurrentHashMap(dumbProjects.associateBy { it.workDir })
     }
 
-    private fun collectDumbProjects(rootDir: File): List<PaddleProject> = runBlocking {
+    private fun collectDumbProjects(rootDir: File, output: TextOutput): List<PaddleProject> = runBlocking {
         var dumbProjects: List<PaddleProject>? = null
         for (attemptNum in 1..MAX_RETRY_COUNT) {
             try {
@@ -35,7 +36,7 @@ internal class PaddleProjectIndex(rootDir: File) {
                     .filter { it.isPaddle }
                     .map { buildFile ->
                         async {
-                            PaddleProject(buildFile, rootDir).apply {
+                            PaddleProject(buildFile, rootDir, output).apply {
                                 extensions.register(Descriptor.Extension.key, Descriptor.Extension.create(this))
                             }
                         }

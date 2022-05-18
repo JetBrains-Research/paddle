@@ -15,7 +15,8 @@ class ResolveRequirementsTask(project: PaddleProject) : IncrementalTask(project)
     override val dependencies: List<Task>
         get() = listOf(
             project.tasks.getOrFail("resolveRepositories"),
-            project.tasks.getOrFail("resolveInterpreter")
+            project.tasks.getOrFail("resolveInterpreter"),
+            project.tasks.getOrFail("venv"),
         ) + project.subprojects.getAllTasksById(this.id)
 
     override fun act() {

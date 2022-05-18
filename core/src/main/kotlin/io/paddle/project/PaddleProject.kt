@@ -15,7 +15,7 @@ import io.paddle.utils.ext.Extendable
 import io.paddle.utils.hash.StringHashable
 import java.io.File
 
-class PaddleProject internal constructor(val buildFile: File, val rootDir: File) {
+class PaddleProject internal constructor(val buildFile: File, val rootDir: File, output: TextOutput = TextOutput.Console) {
     interface Extension<V : Any> {
         val key: Extendable.Key<V>
 
@@ -38,7 +38,7 @@ class PaddleProject internal constructor(val buildFile: File, val rootDir: File)
         private set
     val parents = ArrayList<PaddleProject>()
 
-    var output: TextOutput = TextOutput.Console
+    var output: TextOutput = output
         set(value) {
             field = value
             executor = LocalCommandExecutor(value)

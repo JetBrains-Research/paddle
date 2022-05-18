@@ -8,6 +8,7 @@ import com.intellij.openapi.externalSystem.service.project.ExternalSystemProject
 import com.intellij.openapi.module.ModuleTypeManager
 import io.paddle.idea.PaddleManager
 import io.paddle.idea.settings.PaddleExecutionSettings
+import io.paddle.idea.utils.IDEACommandOutput
 import io.paddle.plugin.python.extensions.environment
 import io.paddle.plugin.python.hasPython
 import io.paddle.plugin.python.utils.deepResolve
@@ -28,7 +29,8 @@ class PaddleProjectResolver : ExternalSystemProjectResolver<PaddleExecutionSetti
         val rootDir = File(projectPath)
 
         // First initialization
-        val paddleProjectProvider = PaddleProjectProvider.getInstance(rootDir).also { it.sync() }
+        val output = IDEACommandOutput(id, listener)
+        val paddleProjectProvider = PaddleProjectProvider.getInstance(rootDir, output).also { it.sync() }
         val project = paddleProjectProvider.getProject(rootDir)
             ?: throw IllegalStateException("Failed to initialize Paddle project from ${rootDir.canonicalPath}")
 
