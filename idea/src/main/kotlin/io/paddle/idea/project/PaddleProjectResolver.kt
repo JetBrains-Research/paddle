@@ -10,6 +10,7 @@ import io.paddle.idea.PaddleManager
 import io.paddle.idea.settings.PaddleExecutionSettings
 import io.paddle.plugin.python.extensions.environment
 import io.paddle.plugin.python.hasPython
+import io.paddle.plugin.python.utils.deepResolve
 import io.paddle.plugin.standard.extensions.roots
 import io.paddle.project.PaddleProject
 import io.paddle.project.PaddleProjectProvider
@@ -27,35 +28,38 @@ class PaddleProjectResolver : ExternalSystemProjectResolver<PaddleExecutionSetti
         val rootDir = File(projectPath)
 
         // First initialization
-        val provider = PaddleProjectProvider.getInstance(rootDir).also { it.sync() }
-        val project = provider.getProject(rootDir)
+        val paddleProjectProvider = PaddleProjectProvider.getInstance(rootDir).also { it.sync() }
+        val project = paddleProjectProvider.getProject(rootDir)
             ?: throw IllegalStateException("Failed to initialize Paddle project from ${rootDir.canonicalPath}")
 
         val projectData = ProjectData(
-            PaddleManager.ID,
-            project.descriptor.name,
-            rootDir.canonicalPath,
-            rootDir.canonicalPath
+            /* owner = */ PaddleManager.ID,
+            /* externalName = */ project.descriptor.name,
+            /* ideProjectFileDirectoryPath = */ rootDir.canonicalPath,
+            /* linkedExternalProjectPath = */ rootDir.canonicalPath
         ).also {
             it.group = project.descriptor.name
             it.version = project.descriptor.version
         }
 
-        val projectNode = DataNode(ProjectKeys.PROJECT, projectData, null)
-        val rootModuleNode = projectNode.createChild(ProjectKeys.MODULE, project.getModuleData()).apply {
+        val projectDataNode = DataNode(ProjectKeys.PROJECT, projectData, null)
+        val rootModuleDataNode = projectDataNode.createChild(ProjectKeys.MODULE, project.getModuleData()).apply {
             attachTasks(project)
             attachContentRoots(project)
         }
-        createModuleNodes(project.workDir, rootModuleNode, provider).also {
-            createModuleDependencies(project, it + (project to rootModuleNode))
-        }
 
-        return projectNode
+        // Create IntelliJ modules for each Paddle subproject
+        val moduleByProject = createModuleNodes(project.workDir, rootModuleDataNode, paddleProjectProvider)
+
+        // Create dependencies between IntelliJ modules according to Paddle subprojects' dependencies
+        createModuleDependencies(project, moduleByProject + (project to rootModuleDataNode))
+
+        return projectDataNode
     }
 
     private fun createModuleNodes(
         workDir: File,
-        moduleNode: DataNode<ModuleData>,
+        moduleNode: DataNode<*>,
         provider: PaddleProjectProvider
     ): Map<PaddleProject, DataNode<ModuleData>> {
         val moduleByProject = hashMapOf<PaddleProject, DataNode<ModuleData>>()
@@ -102,18 +106,21 @@ class PaddleProjectResolver : ExternalSystemProjectResolver<PaddleExecutionSetti
     }
 
     private fun PaddleProject.getModuleData(): ModuleData {
+        val moduleFileDirectory = rootDir
+            .deepResolve(".idea", "modules", rootDir.name)
+            .resolve(workDir.toRelativeString(rootDir))
         return ModuleData(
-            this.id,
-            PaddleManager.ID,
-            ModuleTypeManager.getInstance().defaultModuleType.id,
-            this.descriptor.name,
-            this.workDir.canonicalPath,
-            this.buildFile.canonicalPath
+            /* id = */ id,
+            /* owner = */ PaddleManager.ID,
+            /* moduleTypeId = */ ModuleTypeManager.getInstance().defaultModuleType.id,
+            /* externalName = */ descriptor.name,
+            /* moduleFileDirectoryPath = */ moduleFileDirectory.canonicalPath,
+            /* externalConfigPath = */ workDir.canonicalPath
         )
     }
 
 
-    private fun DataNode<ModuleData>.attachTasks(project: PaddleProject) {
+    private fun DataNode<*>.attachTasks(project: PaddleProject) {
         for (task in project.tasks.all()) {
             val data = TaskData(PaddleManager.ID, task.id, project.workDir.canonicalPath, null).also {
                 it.group = task.group
@@ -122,7 +129,7 @@ class PaddleProjectResolver : ExternalSystemProjectResolver<PaddleExecutionSetti
         }
     }
 
-    private fun DataNode<ModuleData>.attachContentRoots(project: PaddleProject) {
+    private fun DataNode<*>.attachContentRoots(project: PaddleProject) {
         val rootData = ContentRootData(PaddleManager.ID, project.workDir.canonicalPath)
         for (src in project.roots.sources) {
             rootData.storePath(ExternalSystemSourceType.SOURCE, src.canonicalPath)
