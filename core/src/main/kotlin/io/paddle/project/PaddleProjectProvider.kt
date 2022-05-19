@@ -1,6 +1,5 @@
 package io.paddle.project
 
-import io.paddle.terminal.TextOutput
 import java.io.File
 
 /**
@@ -14,16 +13,16 @@ import java.io.File
  *      - There is a possibility to declare configurations for ALL subprojects at a time using `all` descriptor
  *  5. Register plugins (extensions & tasks) for each project in the [rootDir]
  */
-class PaddleProjectProvider private constructor(private val rootDir: File, val output: TextOutput) {
+class PaddleProjectProvider private constructor(private val rootDir: File) {
     companion object {
         private val providersCache = HashMap<File, PaddleProjectProvider>()
 
-        fun getInstance(rootDir: File, output: TextOutput = TextOutput.Console): PaddleProjectProvider {
-            return providersCache.getOrPut(rootDir) { PaddleProjectProvider(rootDir, output) }
+        fun getInstance(rootDir: File): PaddleProjectProvider {
+            return providersCache.getOrPut(rootDir) { PaddleProjectProvider(rootDir) }
         }
     }
 
-    private val index = PaddleProjectIndex(rootDir, output)
+    private val index = PaddleProjectIndex(rootDir)
 
     fun sync() {
         index.refresh(rootDir)

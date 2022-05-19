@@ -21,7 +21,6 @@ object PythonPlugin : Plugin {
     override val id: String = "python"
 
     override fun configure(project: PaddleProject) {
-        ResolveRequirementsTask(project).run()
     }
 
     override fun tasks(project: PaddleProject): List<Task> {

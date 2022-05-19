@@ -11,6 +11,7 @@ import io.paddle.idea.settings.PaddleExecutionSettings
 import io.paddle.idea.utils.IDEACommandOutput
 import io.paddle.plugin.python.extensions.environment
 import io.paddle.plugin.python.hasPython
+import io.paddle.plugin.python.tasks.resolve.ResolveRequirementsTask
 import io.paddle.plugin.python.utils.deepResolve
 import io.paddle.plugin.standard.extensions.roots
 import io.paddle.project.PaddleProject
@@ -28,11 +29,14 @@ class PaddleProjectResolver : ExternalSystemProjectResolver<PaddleExecutionSetti
     ): DataNode<ProjectData> {
         val rootDir = File(projectPath)
 
-        // First initialization
-        val output = IDEACommandOutput(id, listener)
-        val paddleProjectProvider = PaddleProjectProvider.getInstance(rootDir, output).also { it.sync() }
+        // First initialization of Paddle Project
+        val paddleProjectProvider = PaddleProjectProvider.getInstance(rootDir).also { it.sync() }
         val project = paddleProjectProvider.getProject(rootDir)
             ?: throw IllegalStateException("Failed to initialize Paddle project from ${rootDir.canonicalPath}")
+
+        // Resolve requirements, interpreter, repositories (== load model to RAM)
+        project.output = IDEACommandOutput(id, listener)
+        ResolveRequirementsTask(project).run()
 
         val projectData = ProjectData(
             /* owner = */ PaddleManager.ID,
