@@ -1,4 +1,4 @@
-package io.paddle.idea.runner.parser
+package io.paddle.idea.execution.parser
 
 import com.intellij.build.output.BuildOutputParser
 import com.intellij.openapi.externalSystem.model.ProjectSystemId

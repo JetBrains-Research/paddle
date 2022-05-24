@@ -3,7 +3,7 @@
     <name>Paddle</name>
     <vendor email="vdtankov@gmail.com">Vladislav Tankov</vendor>
 
-    <idea-version since-build="211.*" until-build="213.*"/>
+    <idea-version since-build="213.*" until-build="999.0"/>
 
     <description><![CDATA[
         <p>Integrates Paddle build system with IntelliJ-based IDEs</p>
@@ -20,39 +20,54 @@
     <depends>com.intellij.modules.python</depends>
 
     <extensions defaultExtensionNs="com.intellij">
-        <projectOpenProcessor implementation="io.paddle.idea.project.open.PaddleProjectOpenProcessor"/>
-        <externalSystemSettingsListener implementation="io.paddle.idea.startup.PaddleProjectSettingsUpdater"/>
-        <externalSystemUnlinkedProjectAware implementation="io.paddle.idea.project.PaddleUnlinkedProjectAware"/>
+        <!-- Paddle: main components  -->
         <externalSystemManager implementation="io.paddle.idea.PaddleManager"/>
+        <projectOpenProcessor implementation="io.paddle.idea.project.open.PaddleProjectOpenProcessor"/>
         <projectService serviceImplementation="io.paddle.idea.settings.PaddleSettings"/>
         <externalIconProvider key="Paddle" implementationClass="io.paddle.idea.ui.PaddleIconProvider"/>
+        <projectConfigurable groupId="build.tools" groupWeight="110" id="reference.settingsdialog.project.paddle"
+                             instance="io.paddle.idea.settings.PaddleConfigurable"
+                             displayName="Paddle"/>
+        <toolWindow id="Paddle" anchor="right" icon="AllIcons.Actions.Compile" factoryClass="io.paddle.idea.ui.PaddleToolWindowFactory"/>
 
         <!--suppress PluginXmlValidity -->
         <externalResolverIsSafe executesTrustedCodeOnly="true" systemId="Paddle"/>
 
 
-        <projectConfigurable groupId="build.tools" groupWeight="110" id="reference.settingsdialog.project.paddle"
-                             instance="io.paddle.idea.settings.PaddleConfigurable"
-                             displayName="Paddle"/>
+        <!-- Tasks Execution & Run Configuration  -->
+        <projectTaskRunner implementation="io.paddle.idea.execution.PaddleProjectTaskRunner" id="paddle" order="first"/>
+        <configurationType implementation="io.paddle.idea.execution.PaddleExternalTaskConfigurationType"/>
+        <externalSystemOutputParserProvider implementation="io.paddle.idea.execution.parser.PaddleParserProvider"/>
+        <externalSystemSettingsListener implementation="io.paddle.idea.startup.PaddleProjectSettingsUpdater"/>
+        <externalSystemUnlinkedProjectAware implementation="io.paddle.idea.project.PaddleUnlinkedProjectAware"/>
 
-        <toolWindow id="Paddle" anchor="right" icon="AllIcons.Actions.Compile" factoryClass="io.paddle.idea.ui.PaddleToolWindowFactory"/>
+        <externalSystem.runConfigurationEx implementation="io.paddle.idea.execution.PaddleRunConfigurationExtension"/>
+        <externalSystem.runConfigurationImporter implementation="io.paddle.idea.execution.PaddleRunConfigurationImporter"/>
 
-        <configurationType implementation="io.paddle.idea.runner.PaddleTaskConfigurationType"/>
+        <stepsBeforeRunProvider implementation="io.paddle.idea.execution.PaddleBeforeRunTaskProvider"/>
+        <runConfigurationProducer implementation="io.paddle.idea.execution.PaddleRuntimeConfigurationProducer"/>
 
-        <externalSystemOutputParserProvider implementation="io.paddle.idea.runner.parser.PaddleParserProvider"/>
+        <!-- Not implemented in PyCharm  -->
+        <runAnything.executionProvider implementation="io.paddle.idea.execution.runAnything.PaddleRunAnythingProvider" order="first"/>
 
+
+        <!-- Inspections  -->
         <localInspection language="yaml"
                          displayName="Wrong Paddle repositories configuration"
                          groupName="YAML"
                          enabledByDefault="true"
                          implementationClass="io.paddle.idea.inspections.PyPackagesRepositoryYAMLInspection"/>
 
+        <!-- Completion  -->
         <completion.contributor language="yaml"
                                 implementationClass="io.paddle.idea.completion.PyPackageNameCompletionContributor"/>
-
         <completion.contributor language="yaml"
                                 implementationClass="io.paddle.idea.completion.PyPackageVersionCompletionContributor"/>
     </extensions>
+
+    <actions>
+        <action id="Gradle.ExecuteTask" class="io.paddle.idea.execution.runAnything.PaddleExecuteTaskAction" icon="PythonPsiApiIcons.PythonFile"/>
+    </actions>
 
     <extensions defaultExtensionNs="JavaScript.JsonSchema">
         <ProviderFactory implementation="io.paddle.idea.schema.PaddleJsonSchemaProviderFactory"/>

@@ -1,5 +1,6 @@
 package io.paddle.project
 
+import io.paddle.project.extensions.descriptor
 import java.io.File
 
 /**
@@ -13,7 +14,7 @@ import java.io.File
  *      - There is a possibility to declare configurations for ALL subprojects at a time using `all` descriptor
  *  5. Register plugins (extensions & tasks) for each project in the [rootDir]
  */
-class PaddleProjectProvider private constructor(private val rootDir: File) {
+class PaddleProjectProvider private constructor(val rootDir: File) {
     companion object {
         private val providersCache = HashMap<File, PaddleProjectProvider>()
 
@@ -39,5 +40,23 @@ class PaddleProjectProvider private constructor(private val rootDir: File) {
 
     fun hasProjectsIn(dir: File): Boolean {
         return index.hasProjectsIn(dir)
+    }
+
+    /**
+     * Suppose you have a directory called "example" with Paddle project named "example-paddle",
+     * and also some Paddle projects within its subdirectory "plugins", which is not a Paddle project itself.
+     * So the relative path to the plugin "etc" would be "example/plugins/etc",
+     * but the route (in terms of Paddle) is ":example-paddle:plugins:etc".
+     */
+    fun getRouteToDir(dir: File): List<String> {
+        var currentDir = dir
+        val route = ArrayList<String>()
+        while (currentDir != rootDir) {
+            getProject(currentDir)
+                ?.let { route.add(it.descriptor.name) }
+                ?: route.add(currentDir.name)
+            currentDir = currentDir.parentFile
+        }
+        return route
     }
 }
