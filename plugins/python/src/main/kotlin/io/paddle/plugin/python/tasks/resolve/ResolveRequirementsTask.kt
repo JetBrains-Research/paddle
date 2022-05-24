@@ -5,7 +5,6 @@ import io.paddle.plugin.python.tasks.PythonPluginTaskGroups
 import io.paddle.project.PaddleProject
 import io.paddle.tasks.Task
 import io.paddle.tasks.incremental.IncrementalTask
-import kotlin.system.measureTimeMillis
 
 class ResolveRequirementsTask(project: PaddleProject) : IncrementalTask(project) {
     override val id: String = "resolveRequirements"
@@ -20,8 +19,6 @@ class ResolveRequirementsTask(project: PaddleProject) : IncrementalTask(project)
         ) + project.subprojects.getAllTasksById(this.id)
 
     override fun act() {
-        project.terminal.info("Resolving requirements...")
-        val duration = measureTimeMillis { project.requirements.resolved }
-        project.terminal.info("Finished: ${duration}ms")
+        project.requirements.resolved
     }
 }

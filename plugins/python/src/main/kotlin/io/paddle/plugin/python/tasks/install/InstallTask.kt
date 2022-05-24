@@ -21,10 +21,7 @@ class InstallTask(project: PaddleProject) : IncrementalTask(project) {
         get() = listOf(project.environment.venv.lightHashable())
 
     override val dependencies: List<Task>
-        get() = listOf(
-            project.tasks.getOrFail("venv"),
-            project.tasks.getOrFail("resolveRequirements"),
-        ) + project.subprojects.getAllTasksById(this.id)
+        get() = project.subprojects.getAllTasksById(this.id) // requirements should be already resolved at the moment
 
     override fun act() {
         project.terminal.info("Installing requirements...")

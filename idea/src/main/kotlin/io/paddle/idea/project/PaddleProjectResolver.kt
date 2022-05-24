@@ -3,7 +3,6 @@ package io.paddle.idea.project
 import com.intellij.openapi.externalSystem.model.DataNode
 import com.intellij.openapi.externalSystem.model.ProjectKeys
 import com.intellij.openapi.externalSystem.model.project.*
-import com.intellij.openapi.externalSystem.model.project.dependencies.*
 import com.intellij.openapi.externalSystem.model.task.*
 import com.intellij.openapi.externalSystem.service.project.ExternalSystemProjectResolver
 import com.intellij.openapi.module.ModuleTypeManager
@@ -53,7 +52,7 @@ class PaddleProjectResolver : ExternalSystemProjectResolver<PaddleExecutionSetti
 
         val projectDataNode = DataNode(ProjectKeys.PROJECT, projectData, null)
         val moduleByProject = createModuleNodes(projectDataNode, project.rootDir, paddleProjectProvider)
-        // createModuleDependencies(project, moduleByProject)
+        createModuleDependencies(project, moduleByProject)
 
         return projectDataNode
     }
@@ -94,48 +93,20 @@ class PaddleProjectResolver : ExternalSystemProjectResolver<PaddleExecutionSetti
         }
 
         moduleData?.setProperty("directoryToRunTask", currentWorkDir.canonicalPath)
-        currentWorkDir.listFiles(FileFilter { it.isDirectory }).forEach {
+        currentWorkDir.listFiles(FileFilter { it.isDirectory })?.forEach {
             moduleByProject.putAll(createModuleNodes(projectDataNode, it, provider))
         }
 
         return moduleByProject
     }
 
-    /**
-     * This is a temporary "stub" implementation to create project model.
-     */
     private fun createModuleDependencies(project: PaddleProject, moduleByProject: Map<PaddleProject, DataNode<ModuleData>>) {
-        var scopeNodeId = 0L
-        var projectDependencyNodeId = 0L
-
-        val ownerNode = moduleByProject[project]
-            ?: throw IllegalStateException("Can't find corresponding module for owner paddle project :${project.descriptor.name}")
-        var dependencies: MutableList<DependencyNode> = mutableListOf()
-
-        project.roots.sources.map { it.name }.forEach { name ->
-            ownerNode.createChild(ProjectKeys.DEPENDENCIES_GRAPH, ProjectDependencies {
-                listOf(
-                    ComponentDependenciesImpl(
-                        name,
-                        DependencyScopeNode(
-                            scopeNodeId++,
-                            "compileClasspath",
-                            "project ${project.descriptor.name} (compileClasspath)",
-                            "Compile-time Dependencies"
-                        ).also { dependencies = it.dependencies },
-                        DependencyScopeNode(
-                            scopeNodeId++,
-                            "runtimeClasspath",
-                            "project ${project.descriptor.name} (runtimeClasspath)",
-                            "Runtime Dependencies"
-                        )
-                    )
-                )
-            })
-        }
-
         for (subproject in project.subprojects) {
-            dependencies.add(ProjectDependencyNodeImpl(projectDependencyNodeId++, subproject.descriptor.name))
+            val ownerNode = moduleByProject[project]
+                ?: throw IllegalStateException("Can't find corresponding module for owner paddle project :${project.descriptor.name}")
+            val depNode = moduleByProject[subproject]
+                ?: throw IllegalStateException("Can't find corresponding module for dependent paddle project :${subproject.descriptor.name}")
+            ownerNode.createChild(ProjectKeys.MODULE_DEPENDENCY, ModuleDependencyData(ownerNode.data, depNode.data))
             createModuleDependencies(subproject, moduleByProject)
         }
     }
