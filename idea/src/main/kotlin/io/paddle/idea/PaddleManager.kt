@@ -71,7 +71,7 @@ class PaddleManager : ExternalSystemManager<
     }
 
     override fun getLocalSettingsProvider(): Function<Project, PaddleLocalSettings> {
-        return Function { PaddleLocalSettings(it) }
+        return Function<Project, PaddleLocalSettings> { project: Project -> project.getService(PaddleLocalSettings::class.java) }
     }
 
     override fun getExecutionSettingsProvider(): Function<Pair<Project, String>, PaddleExecutionSettings> {
