@@ -17,6 +17,7 @@ plugins:
 
 requirements:
   - name: aioredis
+    version: 2.0.0
 
 
 environment:
