@@ -1,4 +1,4 @@
-package io.paddle.idea.execution
+package io.paddle.idea.execution.beforeRun
 
 import com.intellij.execution.configurations.RunConfiguration
 import com.intellij.openapi.externalSystem.service.execution.ExternalSystemBeforeRunTask
