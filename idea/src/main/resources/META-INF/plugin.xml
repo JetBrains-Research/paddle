@@ -19,6 +19,16 @@
     <depends>com.intellij.modules.json</depends>
     <depends>com.intellij.modules.python</depends>
 
+    <extensionPoints>
+        <extensionPoint qualifiedName="io.paddle.idea.runProfileStateProvider"
+                        interface="io.paddle.idea.execution.providers.PaddleTaskRunProfileStateProvider"
+                        dynamic="true"/>
+    </extensionPoints>
+
+    <extensions defaultExtensionNs="io.paddle.idea">
+        <runProfileStateProvider implementation="io.paddle.idea.execution.providers.PythonScriptCommandLineStateProvider"/>
+    </extensions>
+
     <extensions defaultExtensionNs="com.intellij">
         <!-- Paddle: main components  -->
         <externalSystemManager implementation="io.paddle.idea.PaddleManager"/>
@@ -33,22 +43,32 @@
                              displayName="Paddle"/>
         <toolWindow id="Paddle" anchor="right" icon="AllIcons.Actions.Compile" factoryClass="io.paddle.idea.ui.PaddleToolWindowFactory"/>
 
+        <externalSystemSettingsListener implementation="io.paddle.idea.startup.PaddleProjectSettingsUpdater"/>
+        <externalSystemUnlinkedProjectAware implementation="io.paddle.idea.project.PaddleUnlinkedProjectAware"/>
+
         <!--suppress PluginXmlValidity -->
         <externalResolverIsSafe executesTrustedCodeOnly="true" systemId="Paddle"/>
 
 
-        <!-- Tasks Execution & Run Configuration  -->
-        <projectTaskRunner implementation="io.paddle.idea.execution.PaddleProjectTaskRunner" id="paddle" order="first"/>
-        <configurationType implementation="io.paddle.idea.execution.PaddleExternalTaskConfigurationType"/>
+        <!-- Tasks Execution & Run Configurations  -->
+        <configurationType implementation="io.paddle.idea.execution.PaddleTaskConfigurationType"/>
+        <runConfigurationProducer implementation="io.paddle.idea.execution.PaddleRuntimeConfigurationProducer"/>
+
         <externalSystemOutputParserProvider implementation="io.paddle.idea.execution.parser.PaddleParserProvider"/>
-        <externalSystemSettingsListener implementation="io.paddle.idea.startup.PaddleProjectSettingsUpdater"/>
-        <externalSystemUnlinkedProjectAware implementation="io.paddle.idea.project.PaddleUnlinkedProjectAware"/>
 
         <externalSystem.runConfigurationEx implementation="io.paddle.idea.execution.PaddleRunConfigurationExtension"/>
         <externalSystem.runConfigurationImporter implementation="io.paddle.idea.execution.PaddleRunConfigurationImporter"/>
 
-        <stepsBeforeRunProvider implementation="io.paddle.idea.execution.PaddleBeforeRunTaskProvider"/>
-        <runConfigurationProducer implementation="io.paddle.idea.execution.PaddleRuntimeConfigurationProducer"/>
+        <stepsBeforeRunProvider implementation="io.paddle.idea.execution.beforeRun.PaddleBeforeRunTaskProvider"/>
+        <externalSystem.beforeRunTaskImporter implementation="io.paddle.idea.execution.beforeRun.PaddleBeforeRunTaskImporter"/>
+
+        <!-- Run & Debug -->
+        <programRunner implementation="io.paddle.idea.execution.runners.PaddleTaskRunner"
+                       order="first"/>
+        <programRunner implementation="io.paddle.idea.execution.runners.PaddlePythonRunner"
+                       id="PaddlePythonRunner"/>
+        <programRunner implementation="io.paddle.idea.execution.runners.PaddlePythonDebugRunner"
+                       id="PaddlePythonDebugRunner" order="after PaddlePythonRunner"/>
 
         <!-- Not implemented in PyCharm  -->
         <runAnything.executionProvider implementation="io.paddle.idea.execution.runAnything.PaddleRunAnythingProvider" order="first"/>
