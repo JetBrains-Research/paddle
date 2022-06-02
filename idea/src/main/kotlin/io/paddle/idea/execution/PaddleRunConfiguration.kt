@@ -5,27 +5,23 @@ import com.intellij.execution.configurations.ConfigurationFactory
 import com.intellij.execution.configurations.RunProfileState
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.openapi.externalSystem.service.execution.ExternalSystemRunConfiguration
+import com.intellij.openapi.externalSystem.service.execution.ExternalSystemRunnableState
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.util.Key
+import com.intellij.openapi.wm.ToolWindowId
 import io.paddle.idea.PaddleManager
-import io.paddle.idea.execution.cmd.PaddleCommandLine
-import org.jdom.Element
+import io.paddle.idea.execution.cmdline.PaddleCommandLine
+import io.paddle.idea.execution.providers.*
+import io.paddle.plugin.python.tasks.run.RunTask
+import io.paddle.project.PaddleProjectProvider
+import java.io.File
 import java.util.*
 
-class PaddleRunConfiguration(project: Project?, factory: ConfigurationFactory?, name: String?) :
+class PaddleRunConfiguration(project: Project, factory: ConfigurationFactory, name: String) :
     ExternalSystemRunConfiguration(PaddleManager.ID, project, factory, name) {
 
     init {
         isDebugServerProcess = true
         isReattachDebugProcess = true
-    }
-
-    var isDebugAllEnabled = false
-
-    override fun getState(executor: Executor, env: ExecutionEnvironment): RunProfileState? {
-        putUserData<Boolean>(DEBUG_FLAG_KEY, java.lang.Boolean.valueOf(isDebugServerProcess()))
-        putUserData<Boolean>(DEBUG_ALL_KEY, java.lang.Boolean.valueOf(isDebugAllEnabled))
-        return super.getState(executor, env)
     }
 
     var rawCommandLine: String
@@ -46,29 +42,22 @@ class PaddleRunConfiguration(project: Project?, factory: ConfigurationFactory?, 
             settings.taskNames = value.tasksAndArguments.toList()
         }
 
-    override fun readExternal(element: Element) {
-        super.readExternal(element)
-        val child = element.getChild(DEBUG_FLAG_NAME)
-        if (child != null) {
-            isDebugServerProcess = java.lang.Boolean.valueOf(child.text)
-        }
-        val debugAll = element.getChild(DEBUG_ALL_NAME)
-        if (debugAll != null) {
-            isDebugAllEnabled = java.lang.Boolean.valueOf(debugAll.text)
-        }
-    }
+    override fun getState(executor: Executor, env: ExecutionEnvironment): RunProfileState? {
+        if (env.runProfile !is PaddleRunConfiguration) return null
 
-    override fun writeExternal(element: Element) {
-        super.writeExternal(element)
-        val debugAll = Element(DEBUG_ALL_NAME)
-        debugAll.text = isDebugAllEnabled.toString()
-        element.addContent(debugAll)
-    }
+        val runProfile = env.runProfile as PaddleRunConfiguration
+        val moduleDir = runProfile.settings.externalProjectPath?.let { File(it) } ?: return null
+        val rootDir = env.project.basePath?.let { File(it) } ?: return null
 
-    companion object {
-        const val DEBUG_FLAG_NAME = "PaddleScriptDebugEnabled"
-        const val DEBUG_ALL_NAME = "DebugAllEnabled"
-        val DEBUG_FLAG_KEY = Key.create<Boolean>("DEBUG_PADDLE_SCRIPT")
-        val DEBUG_ALL_KEY = Key.create<Boolean>("DEBUG_ALL_TASKS")
+        val taskName = (env.runProfile as PaddleRunConfiguration).settings.taskNames.first()
+
+        val paddleProject = PaddleProjectProvider.getInstance(rootDir).getProject(moduleDir)
+        val task = paddleProject?.tasks?.get(taskName) ?: return null
+        val ctx = PaddleTaskRunProfileStateContext(moduleDir, rootDir, env, this)
+
+        return when (task) {
+            is RunTask -> PaddleTaskRunProfileStateProvider.findInstance(PythonScriptCommandLineStateProvider::class.java)?.getState(task, ctx)
+            else -> ExternalSystemRunnableState(settings, project, ToolWindowId.DEBUG == executor.id, this, env)
+        }
     }
 }

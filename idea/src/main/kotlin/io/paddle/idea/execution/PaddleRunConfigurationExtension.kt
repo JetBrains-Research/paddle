@@ -5,7 +5,8 @@ import com.intellij.openapi.externalSystem.service.ui.project.path.ExternalSyste
 import com.intellij.openapi.externalSystem.service.ui.project.path.WorkingDirectoryField
 import com.intellij.openapi.project.Project
 import io.paddle.idea.PaddleManager
-import io.paddle.idea.execution.cmd.PaddleCommandLineInfo
+import io.paddle.idea.execution.beforeRun.PaddleBeforeRunTaskProvider
+import io.paddle.idea.execution.cmdline.PaddleCommandLineInfo
 
 class PaddleRunConfigurationExtension
     : ExternalSystemReifiedRunConfigurationExtension<PaddleRunConfiguration>(PaddleRunConfiguration::class.java) {

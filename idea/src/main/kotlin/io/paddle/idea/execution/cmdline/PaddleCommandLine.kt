@@ -1,4 +1,4 @@
-package io.paddle.idea.execution.cmd
+package io.paddle.idea.execution.cmdline
 
 import com.intellij.util.execution.ParametersListUtil
 

@@ -1,4 +1,4 @@
-package io.paddle.idea.execution.cmd
+package io.paddle.idea.execution.cmdline
 
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.externalSystem.service.ui.command.line.CommandLineInfo

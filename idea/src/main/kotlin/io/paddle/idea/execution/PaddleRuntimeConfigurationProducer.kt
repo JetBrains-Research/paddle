@@ -5,6 +5,6 @@ import com.intellij.openapi.externalSystem.service.execution.AbstractExternalSys
 
 class PaddleRuntimeConfigurationProducer : AbstractExternalSystemRunConfigurationProducer() {
     override fun getConfigurationFactory(): ConfigurationFactory {
-        return PaddleExternalTaskConfigurationType.getInstance().factory
+        return PaddleTaskConfigurationType.getInstance().factory
     }
 }
