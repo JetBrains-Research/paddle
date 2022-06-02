@@ -54,28 +54,27 @@ message InitializeProjectRequest {
 
 message ImportPyModulePluginsRequest {
   string projectId = 1;
-  repeated PyModulePluginInfo plugins = 2;
+  repeated PyModuleInfo modules = 2;
 }
 
-message PyModulePluginInfo {
-  string pluginName = 1;
-  string absoluteRepoDir = 2;
-  string relativePathToModule = 3;
+message PyModuleInfo {
+  string absoluteRepoDir = 1;
+  string relativeDirToModule = 2;
 }
 
 message ImportPyPackagePluginsRequest {
   string projectId = 1;
-  repeated PyPackagePluginInfo plugins = 2;
+  repeated PyPackageInfo packages = 2;
 }
 
-message PyPackagePluginInfo {
-  string pluginName = 1;
-  string pluginVersion = 2;
+message PyPackageInfo {
+  string packageName = 1;
+  string distributionUrl = 2;
 }
 
 message ProcessPluginRequest {
   string projectId = 1;
-  string pluginName = 2;
+  string pluginHash = 2;
 }
 
 message GetTasksResponse {

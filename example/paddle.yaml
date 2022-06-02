@@ -30,14 +30,13 @@ requirements:
 
 plugins:
   repositories:
+    - name: py-local
+      dir: ./plugins/py
+
     #      - name: base
     #        url: https://some.ru
-    #
-    - name: py_local
-      dir: ./plugins
-
-  #      - name: java
-  #        jar: "./plugins/test-plugin-0.1.0.jar"
+    #      - name: java
+    #        jar: "./plugins/test-plugin-0.1.0.jar"
 
   enabled:
     embedded:
@@ -46,13 +45,11 @@ plugins:
       - ssh
 
     local:
-#      - name: py-local-plugin-first
-#        repository: py_local
-#        - name: example-test
-#          repository: java
+      - name: greeting
+        repository: py-local
 
-#        - name: greeting
-#          repository: other
+      - name: descriptor-writer
+        repository: py-local
 
 #      py:
 #        - name: greeting
@@ -65,12 +62,41 @@ tasks:
     - entrypoint: src/main/main.py
       id: main
 
+# description writer plugin's configuration block
+desc-writer:
+  dir-name: desc-dir
+  file-name: desc-file
+
+#  remoter:
+#    - script: digit_classifier.py
+#      requirements: requirements.txt
+#      other-files:
+#        - weights.pth
+#      input-file: data.txt
+#      output:
+#        directory: results
+#        file: predicts.txt
+#
+#      machines:
+#        - user: admin
+#          password: secret
+#          host: localhost
+#          working-dir: /workdir
+#          py-interpreter-dir: /python3
+#
+#      - user: admin
+#        password: secret
+#        host: otherhost
+#        working-dir: /python3
+#        py-interpreter-dir: /python3
+
 #executor:
 #  type: docker
 #  image: python:3.9-slim
 
-#executor:
-#  type: ssh
-#  user: admin
-#  host: localhost
-#  directory: /home/project/
+# executor:
+#   type: ssh
+#   user: admin
+#   password: secret
+#   host: localhost
+#   directory: /project

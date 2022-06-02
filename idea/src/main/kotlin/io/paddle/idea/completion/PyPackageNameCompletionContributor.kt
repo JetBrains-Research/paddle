@@ -1,10 +1,10 @@
 package io.paddle.idea.completion
 
 import com.intellij.codeInsight.completion.*
-import com.intellij.codeInsight.completion.CompletionUtilCore.DUMMY_IDENTIFIER_TRIMMED
 import com.intellij.codeInsight.lookup.LookupElementBuilder
 import com.intellij.patterns.PlatformPatterns.*
 import com.intellij.util.ProcessingContext
+import io.paddle.idea.utils.PaddleProject
 import io.paddle.plugin.python.dependencies.repositories.PyPackageRepositories
 import io.paddle.plugin.python.extensions.repositories
 import io.paddle.project.Project
@@ -25,13 +25,13 @@ class PyPackageNameCompletionContributor : CompletionContributor() {
     }
 }
 
-abstract class AbstractPyPackageNameCompletionProvider : ProjectProvider, CompletionProvider<CompletionParameters>() {
+abstract class AbstractPyPackageNameCompletionProvider : CompletionProvider<CompletionParameters>() {
 
     abstract fun repositories(project: Project): PyPackageRepositories
 
     override fun addCompletions(parameters: CompletionParameters, context: ProcessingContext, result: CompletionResultSet) {
-        val prefix = parameters.position.text.trim().removeSuffix(DUMMY_IDENTIFIER_TRIMMED)
-        val variants = repositories(project(parameters)).findAvailablePackagesByPrefix(prefix)
+        val prefix = result.prefixMatcher.prefix
+        val variants = repositories(PaddleProject.currentProject!!).findAvailablePackagesByPrefix(prefix)
 
         for ((pkgName, repo) in variants) {
             result.addElement(LookupElementBuilder.create(pkgName).withTypeText(repo.name, true))

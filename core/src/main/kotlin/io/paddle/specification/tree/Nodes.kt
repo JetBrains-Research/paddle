@@ -7,43 +7,43 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 @SerialName("object")
-open class CompositeSpecTreeNode(
+data class CompositeSpecTreeNode(
     override val title: String? = null,
     override val description: String? = null,
 
     @SerialName("required")
-    var namesOfRequired: MutableSet<String>? = null,
+    var namesOfRequired: MutableList<String>? = null,
 
     @SerialName("properties")
     val children: MutableMap<String, SpecTreeNode> = hashMapOf(),
 
-    @SerialName("enum")
-    var validValues: MutableList<CompositeSpecTreeNode>? = null
+    @SerialName("anyOf")
+    var validSpecs: MutableList<CompositeSpecTreeNode>? = null
 ) : SpecTreeNode() {
-    override fun <R, D> accept(visitor: SpecTreeVisitor<R, D>, ctx: D) = visitor.visit(this, ctx)
+    override fun <R> accept(visitor: SpecTreeVisitor<R>) = visitor.visit(this)
 }
 
 @Serializable
 @SerialName("array")
-open class ArraySpecTreeNode<T : SpecTreeNode>(override val title: String? = null, override val description: String? = null, val items: T) : SpecTreeNode() {
-    override fun <R, D> accept(visitor: SpecTreeVisitor<R, D>, ctx: D) = visitor.visit(this, ctx)
+data class ArraySpecTreeNode<T : SpecTreeNode>(override val title: String? = null, override val description: String? = null, val items: T) : SpecTreeNode() {
+    override fun <R> accept(visitor: SpecTreeVisitor<R>) = visitor.visit(this)
 }
 
 @Serializable
 @SerialName("string")
-class StringSpecTreeNode(
+data class StringSpecTreeNode(
     override var title: String? = null,
     override var description: String? = null,
 
     @SerialName("enum")
     var validValues: MutableList<String>? = null
 ) : SpecTreeNode() {
-    override fun <R, D> accept(visitor: SpecTreeVisitor<R, D>, ctx: D) = visitor.visit(this, ctx)
+    override fun <R> accept(visitor: SpecTreeVisitor<R>) = visitor.visit(this)
 }
 
 @Serializable
 @SerialName("boolean")
-class BooleanSpecTreeNode(
+data class BooleanSpecTreeNode(
     override var title: String? = null,
     override var description: String? = null,
 
@@ -51,12 +51,12 @@ class BooleanSpecTreeNode(
     var validValues: MutableList<Boolean>? = null
 ) :
     SpecTreeNode() {
-    override fun <R, D> accept(visitor: SpecTreeVisitor<R, D>, ctx: D) = visitor.visit(this, ctx)
+    override fun <R> accept(visitor: SpecTreeVisitor<R>) = visitor.visit(this)
 }
 
 @Serializable
 @SerialName("number")
-class IntegerSpecTreeNode(
+data class IntegerSpecTreeNode(
     override var title: String? = null,
     override var description: String? = null,
 
@@ -64,5 +64,5 @@ class IntegerSpecTreeNode(
     var validValues: MutableList<Int>? = null
 ) :
     SpecTreeNode() {
-    override fun <R, D> accept(visitor: SpecTreeVisitor<R, D>, ctx: D) = visitor.visit(this, ctx)
+    override fun <R> accept(visitor: SpecTreeVisitor<R>) = visitor.visit(this)
 }

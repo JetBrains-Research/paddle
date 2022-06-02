@@ -4,6 +4,8 @@ import io.paddle.plugin.*
 import io.paddle.project.Project
 import io.paddle.utils.config.PluginsConfig
 import io.paddle.utils.ext.Extendable
+import io.paddle.utils.plugins.PluginName
+import io.paddle.utils.plugins.PluginsRepoName
 import org.apache.commons.collections4.Trie
 import org.apache.commons.collections4.trie.PatriciaTrie
 
@@ -11,7 +13,7 @@ import org.apache.commons.collections4.trie.PatriciaTrie
 val Project.jarPluginsRepositories: JarPluginsRepositories
     get() = extensions.get(JarPluginsRepositories.Extension.key)!!
 
-class JarPluginsRepositories(private val storage: Map<LocalPluginsRepoName, JarPluginsRepository>) {
+class JarPluginsRepositories(private val storage: Map<PluginsRepoName, JarPluginsRepository>) {
 
     private val index: Trie<PluginName, List<JarPluginsRepository>>
 
@@ -50,11 +52,11 @@ class JarPluginsRepositories(private val storage: Map<LocalPluginsRepoName, JarP
         }
     }
 
-    operator fun get(repoName: LocalPluginsRepoName): JarPluginsRepository? = storage[repoName]
+    operator fun get(repoName: PluginsRepoName): JarPluginsRepository? = storage[repoName]
 
-    operator fun get(repoName: LocalPluginsRepoName, pluginName: PluginName): Plugin? = storage[repoName]?.plugin(pluginName)
+    operator fun get(repoName: PluginsRepoName, pluginName: PluginName): Plugin? = storage[repoName]?.plugin(pluginName)
 
-    fun contains(repoName: LocalPluginsRepoName): Boolean = storage.containsKey(repoName)
+    fun contains(repoName: PluginsRepoName): Boolean = storage.containsKey(repoName)
 
     fun findAvailablePluginsBy(prefix: String): Map<PluginName, List<JarPluginsRepository>> {
         return index.prefixMap(prefix)

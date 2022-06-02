@@ -19,6 +19,6 @@ class PyTask(override val id: String, override val group: String, project: Proje
     }
 
     override suspend fun actAsCoroutine() {
-        project.pyPluginsClient.run(id)
+        project.pyPluginsClient.act(id)
     }
 }

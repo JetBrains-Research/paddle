@@ -1,10 +1,14 @@
 package io.paddle.plugin.pyinjector.utils
 
-import io.paddle.plugin.pyinjector.dependencies.PyModule
 import io.paddle.utils.config.ConfigurationView
+import io.paddle.utils.plugins.PluginName
 import java.io.File
 
 object Metafile {
+    const val metafileName = "paddle-plugins.yaml"
+
+    data class Description(val pluginName: PluginName, val filenameOrPath: String)
+
     /**
      * Parse a file with meta information about specified local plugins' repository.
      *
@@ -14,12 +18,12 @@ object Metafile {
      * File format:
      *      plugins:
      *          - name: [plugin-name-1]
-     *            module: [filename-1 or path]
+     *            module: [filename or path]
      *
      *          - name: [plugin-name-2]
-     *            module: [filename-2 or path]
+     *            module: [filename or path]
      */
-    fun parse(file: File): List<PyModule.Description> {
+    fun parse(file: File): List<Description> {
         val config = object : ConfigurationView("", from(file)) {
             val plugins: List<Map<String, String>> by list("plugins", emptyList())
         }
@@ -29,7 +33,7 @@ object Metafile {
             requireNotNull(name)
             requireNotNull(module)
 
-            PyModule.Description(name, module)
+            Description(name, module)
         }
     }
 }

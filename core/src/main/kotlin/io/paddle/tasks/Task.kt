@@ -47,7 +47,7 @@ abstract class Task(val project: Project) {
 
     private fun dfs(task: Task, prolog: (Task) -> Unit, epilog: (Task) -> Unit, condition: (Task) -> Boolean) {
         prolog(task)
-        for (dep in dependencies) {
+        for (dep in task.dependencies) {
             if (condition(dep)) {
                 dfs(dep, prolog, epilog, condition)
             }

@@ -10,8 +10,10 @@ import io.paddle.utils.ext.Extendable
 val Project.pyPluginsRepositories: PyPluginsRepositories
     get() = extensions.get(PyPluginsRepositories.Extension.key)!!
 
-class PyPluginsRepositories(project: Project, pyPackageReposDescriptors: List<Repositories.Descriptor>,
-                            pyModuleReposDescriptors: List<ModuleRepoDescriptor>) {
+class PyPluginsRepositories(
+    project: Project, pyPackageReposDescriptors: List<Repositories.Descriptor>,
+    pyModuleReposDescriptors: List<PyModuleRepositories.ModuleRepoDescriptor>
+) {
 
     val withPyPackages: PyPackageRepositories = PyPackageRepositories.resolve(pyPackageReposDescriptors)
     val withPyModules: PyModuleRepositories = PyModuleRepositories.resolve(project.workDir.toPath(), pyModuleReposDescriptors)
@@ -34,13 +36,11 @@ class PyPluginsRepositories(project: Project, pyPackageReposDescriptors: List<Re
                 )
             }
 
-            val pyModuleReposDescriptions: List<ModuleRepoDescriptor> = plugins.moduleRepos.map {
-                ModuleRepoDescriptor(it["name"]!!, it["dir"]!!)
+            val pyModuleReposDescriptions: List<PyModuleRepositories.ModuleRepoDescriptor> = plugins.moduleRepos.map {
+                PyModuleRepositories.ModuleRepoDescriptor(it["name"]!!, it["dir"]!!)
             }
 
             return PyPluginsRepositories(project, pyPackageReposDescriptions, pyModuleReposDescriptions)
         }
     }
-
-    data class ModuleRepoDescriptor(val name: String, val directory: String)
 }

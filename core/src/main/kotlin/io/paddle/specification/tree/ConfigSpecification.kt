@@ -21,22 +21,14 @@ abstract class ConfigurationSpecification {
     abstract fun <T : SpecTreeNode> get(key: String): T?
 
     @Serializable
-    abstract class SpecTreeNode {
+    sealed class SpecTreeNode {
         abstract val title: String?
         abstract val description: String?
 
-        abstract fun <R, D> accept(visitor: SpecTreeVisitor<R, D>, ctx: D): R
+        abstract fun <R> accept(visitor: SpecTreeVisitor<R>): R
     }
 }
 
-abstract class SpecializedConfigSpec<R, D> : ConfigurationSpecification() {
-    abstract val root: CompositeSpecTreeNode
-
-    abstract val visitor: SpecTreeVisitor<R, D>
-
+abstract class SpecializedConfigSpec<R>(val root: CompositeSpecTreeNode) : ConfigurationSpecification() {
     abstract fun specialize(): R
-
-    companion object {
-        fun fromResource(configSpecUrl: String): SpecializedConfigSpec<String, Unit> = JsonSchemaSpecification(configSpecUrl)
-    }
 }

@@ -8,8 +8,24 @@ import io.paddle.plugin.python.extensions.Requirements
 import io.paddle.project.Project
 import io.paddle.utils.config.PluginsConfig
 import io.paddle.utils.ext.Extendable
+import io.paddle.utils.plugins.PluginName
 
-class PyPluginsData(project: Project, pyPackageDescriptors: List<Requirements.Descriptor>, pyModuleDescriptors: List<LocalPluginsDescriptors.Descriptor>) {
+data class PyPackagePluginData(val name: PluginName, val pyPackage: PyPackage) {
+    val hash: String
+        get() = "$name:${pyPackage.distributionUrl}"
+}
+
+data class PyModulePluginData(val name: PluginName, val pyModule: PyModule) {
+    val hash: String
+        get() = "$name:${pyModule.repository.absolutePathTo}:${pyModule.relativePathTo}"
+}
+
+class PyPluginsData(
+    project: Project,
+    pyPackageDescriptors: List<Requirements.Descriptor>,
+    pyModuleDescriptors: List<LocalPluginsDescriptors.Descriptor>,
+    pyPluginToPackage: List<Pair<PluginName, String>>
+) {
 
     val pyPackages: Collection<PyPackage> = PipResolver.resolve(
         project, pyPackageDescriptors,
@@ -17,7 +33,15 @@ class PyPluginsData(project: Project, pyPackageDescriptors: List<Requirements.De
         project.pyPluginsEnvironment.localInterpreterPath
     ) + project.pyPluginsEnvironment.venv.pyPackages
 
-    val pyModules: Collection<PyModule> = resolveModules(project, pyModuleDescriptors)
+    val pyPackagesPlugins: Collection<PyPackagePluginData> = pyPluginToPackage.map {
+        pyPackages.find { pkg -> pkg.name == it.second }?.run {
+            PyPackagePluginData(it.first, this)
+        } ?: throw IllegalArgumentException("Cannot find plugin with name `${it.second}`")
+    }
+
+    val pyModulesPlugins: Collection<PyModulePluginData> = resolveModules(project, pyModuleDescriptors)
+
+    val pyModules: Collection<PyModule> = pyModulesPlugins.map { it.pyModule }
 
     object Extension : Project.Extension<PyPluginsData> {
         override val key: Extendable.Key<PyPluginsData> = Extendable.Key()
@@ -26,23 +50,27 @@ class PyPluginsData(project: Project, pyPackageDescriptors: List<Requirements.De
             val config = object : PluginsConfig(project) {
                 val plugins: List<Map<String, String>> by plugins(type = "py")
             }
-            val descriptors = config.plugins.map {
-                Requirements.Descriptor(it["name"]!!, it["version"], it["repository"])
+            val pyPluginToPackage: MutableList<Pair<PluginName, String>> = mutableListOf()
+            val pyPackageDescriptors = config.plugins.map {
+                val pluginName = it["name"]!!
+                val packageName = it["library"]!!
+                pyPluginToPackage.add(pluginName to packageName)
+
+                Requirements.Descriptor(packageName, it["version"], it["repository"])
             }
+            val pyModuleDescriptors = project.extensions.get(LocalPluginsDescriptors.Extension.key)?.others ?: emptyList()
 
             project.pyPluginsEnvironment.initialize()
 
-            return PyPluginsData(
-                project, descriptors,
-                project.extensions.get(LocalPluginsDescriptors.Extension.key)?.others ?: emptyList()
-            )
+            return PyPluginsData(project, pyPackageDescriptors, pyModuleDescriptors, pyPluginToPackage)
         }
     }
 
-    private fun resolveModules(project: Project, descriptions: List<LocalPluginsDescriptors.Descriptor>): List<PyModule> {
-        return descriptions.map {
-            project.pyPluginsRepositories.withPyModules[it.repoName, it.name]
-                ?: throw IllegalArgumentException("Cannot find module with name `${it.name}` inside repository `${it.repoName}`")
+    private fun resolveModules(project: Project, descriptors: List<LocalPluginsDescriptors.Descriptor>): List<PyModulePluginData> {
+        return descriptors.map {
+            project.pyPluginsRepositories.withPyModules[it.repoName]?.sourceModuleFor(it.pluginName)?.run {
+                PyModulePluginData(it.pluginName, this)
+            } ?: throw IllegalArgumentException("Cannot find plugin `${it.pluginName}` in repository `${it.repoName}`")
         }
     }
 }

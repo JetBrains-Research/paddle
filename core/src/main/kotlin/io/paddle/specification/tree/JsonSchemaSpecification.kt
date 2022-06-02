@@ -4,11 +4,7 @@ import io.paddle.specification.visitor.JsonSchemaSpecVisitor
 import io.paddle.utils.json.schema.JSONSCHEMA
 import io.paddle.utils.splitAndTrim
 
-class JsonSchemaSpecification(baseSchemaResourceUrl: String) : SpecializedConfigSpec<String, Unit>() {
-    override val root = readSchemaBy(baseSchemaResourceUrl)
-
-    override val visitor = JsonSchemaSpecVisitor()
-
+class JsonSchemaSpecification(root: CompositeSpecTreeNode) : SpecializedConfigSpec<String>(root) {
     @Suppress("UNCHECKED_CAST")
     override fun <T : SpecTreeNode> get(key: String): T? {
         val parts = key.splitAndTrim(".").takeIf { it.isNotEmpty() } ?: return root as T?
@@ -24,15 +20,24 @@ class JsonSchemaSpecification(baseSchemaResourceUrl: String) : SpecializedConfig
         return current[name] as? T?
     }
 
-    override fun specialize() = visitor.visit(root, Unit)
+    override fun specialize() = JsonSchemaSpecVisitor.visit(root)
 
     override fun toString() = specialize()
 
-    private fun readSchemaBy(url: String): CompositeSpecTreeNode {
-        val inputStreamWithSchema = javaClass.classLoader.getResourceAsStream(url)
-        val schema = inputStreamWithSchema?.bufferedReader()?.use {
-            it.readText()
+    companion object {
+        private const val schemaUrl = "/schema/paddle-schema.json"
+
+        val base: JsonSchemaSpecification by lazy {
+            JsonSchemaSpecification(readSchema())
         }
-        return schema?.let { JSONSCHEMA.parse(it) } ?: CompositeSpecTreeNode()
+
+        @JvmStatic
+        private fun readSchema(): CompositeSpecTreeNode {
+            val inputStreamWithSchema = Companion::class.java.classLoader.getResourceAsStream(schemaUrl)
+            val schema = inputStreamWithSchema?.bufferedReader()?.use {
+                it.readText()
+            }
+            return schema?.let { JSONSCHEMA.parse(it) } ?: CompositeSpecTreeNode()
+        }
     }
 }

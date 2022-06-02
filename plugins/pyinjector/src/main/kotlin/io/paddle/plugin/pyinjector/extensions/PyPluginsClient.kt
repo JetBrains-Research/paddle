@@ -1,5 +1,6 @@
 package io.paddle.plugin.pyinjector.extensions
 
+import io.grpc.Channel
 import io.paddle.plugin.interop.*
 import io.paddle.project.Project
 import io.paddle.utils.ext.Extendable
@@ -8,15 +9,15 @@ import kotlinx.coroutines.runBlocking
 val Project.pyPluginsClient: PyPluginsClient
     get() = extensions.get(PyPluginsClient.Extension.key)!!
 
-class PyPluginsClient(val project: Project) {
+class PyPluginsClient(val project: Project, channel: Channel) {
 
-    private val client = PluginsGrpcKt.PluginsCoroutineStub(project.channel)
+    private val client = PluginsGrpcKt.PluginsCoroutineStub(channel)
 
     object Extension : Project.Extension<PyPluginsClient> {
         override val key: Extendable.Key<PyPluginsClient> = Extendable.Key()
 
         override fun create(project: Project): PyPluginsClient {
-            return PyPluginsClient(project)
+            return PyPluginsClient(project, project.extensions.get(PyPluginsInterop.Extension.key)!!.channel)
         }
     }
 
@@ -30,48 +31,48 @@ class PyPluginsClient(val project: Project) {
         )
     }
 
-    fun exportPlugins() = runBlocking {
+    fun importPlugins() = runBlocking {
         val pyPluginsData = project.extensions.get(PyPluginsData.Extension.key)!!
 
-        client.exportPyPackagePlugins(
-            exportPyPackagePluginsRequest {
+        client.importPyPackagePlugins(
+            importPyPackagePluginsRequest {
                 this.projectId = project.id
-                this.plugins.addAll(pyPluginsData.pyPackages.map {
-                    pyPackagePluginInfo {
-                        this.pluginName = it.name
-                        this.pluginVersion = it.version
+                this.packages.addAll(pyPluginsData.pyPackages.map {
+                    pyPackageInfo {
+                        this.packageName = it.name
+                        this.distributionUrl = it.distributionUrl
                     }
                 })
             }
         )
 
-        client.exportPyModulePlugins(
-            exportPyModulePluginsRequest {
+        client.importPyModulePlugins(
+            importPyModulePluginsRequest {
                 this.projectId = project.id
-                this.plugins.addAll(pyPluginsData.pyModules.map {
-                    pyModulePluginInfo {
-                        this.pluginName = it.name
-                        this.absoluteModulePath = it.absolutePathTo.toString()
+                this.modules.addAll(pyPluginsData.pyModules.map {
+                    pyModuleInfo {
+                        this.absoluteRepoDir = it.repository.absolutePathTo.toString()
+                        this.relativeDirToModule = it.relativePathTo.toString()
                     }
                 })
             }
         )
     }
 
-    suspend fun configure(pluginName: String) {
+    suspend fun configure(pluginHash: String) {
         client.configure(
             processPluginRequest {
                 this.projectId = project.id
-                this.pluginName = pluginName
+                this.pluginHash = pluginHash
             }
         )
     }
 
-    suspend fun tasks(pluginName: String): List<TaskInfo> {
+    suspend fun tasks(pluginHash: String): List<TaskInfo> {
         return client.tasks(
             processPluginRequest {
                 this.projectId = project.id
-                this.pluginName = pluginName
+                this.pluginHash = pluginHash
             }
         ).tasksInfoList
     }
@@ -85,8 +86,8 @@ class PyPluginsClient(val project: Project) {
         )
     }
 
-    suspend fun run(taskId: String) {
-        client.run(
+    suspend fun act(taskId: String) {
+        client.act(
             processTaskRequest {
                 this.projectId = project.id
                 this.taskId = taskId

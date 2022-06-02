@@ -9,6 +9,7 @@ import io.paddle.tasks.Task
 import io.paddle.terminal.Terminal
 import io.paddle.utils.config.PluginsConfig
 
+@Suppress("unused")
 object SshPlugin : Plugin {
     private fun isSshExecutorSelectedIn(project: Project): Boolean {
         return project.config.get<String>("executor.type") == "ssh"
@@ -27,8 +28,7 @@ object SshPlugin : Plugin {
         }
         if (isSshExecutorSelectedIn(project)) {
             project.configSpec.get<CompositeSpecTreeNode>("executor")?.run {
-                namesOfRequired = namesOfRequired ?: mutableSetOf()
-                namesOfRequired!!.addAll(listOf("user", "host", "directory"))
+                namesOfRequired = (namesOfRequired ?: mutableListOf()).apply { addAll(listOf("user", "host", "directory")) }
                 children["user"] = StringSpecTreeNode(description = "User to login via ssh")
                 children["host"] = StringSpecTreeNode(description = "Host to connect via ssh")
                 children["directory"] = StringSpecTreeNode(description = "Absolute path of remote working directory")

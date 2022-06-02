@@ -2,28 +2,16 @@ package io.paddle.specification.visitor
 
 import io.paddle.specification.tree.*
 
-class SpecTreeStructureVisitor: SpecTreeVisitor<Unit, MutableMap<String, Any?>> {
-    override fun visit(compositeNode: CompositeSpecTreeNode, ctx: MutableMap<String, Any?>) {
-        compositeNode.children.forEach { (name, node) ->
-            val substructure = mutableMapOf<String, Any?>()
-            node.accept(this, substructure)
-            ctx[name] = substructure.ifEmpty { null }
-        }
+class SpecTreeStructureVisitor: SpecTreeVisitor<Map<String, Any?>> {
+    override fun visit(compositeNode: CompositeSpecTreeNode): Map<String, Any?> {
+        return compositeNode.children.mapValues { it.value.accept(this).ifEmpty { null } }
     }
 
-    override fun visit(integerNode: IntegerSpecTreeNode, ctx: MutableMap<String, Any?>) {
+    override fun visit(integerNode: IntegerSpecTreeNode): Map<String, Any?> = emptyMap()
 
-    }
+    override fun visit(booleanNode: BooleanSpecTreeNode): Map<String, Any?> = emptyMap()
 
-    override fun visit(booleanNode: BooleanSpecTreeNode, ctx: MutableMap<String, Any?>) {
+    override fun visit(stringNode: StringSpecTreeNode): Map<String, Any?> = emptyMap()
 
-    }
-
-    override fun visit(stringNode: StringSpecTreeNode, ctx: MutableMap<String, Any?>) {
-
-    }
-
-    override fun <T : ConfigurationSpecification.SpecTreeNode> visit(arrayNode: ArraySpecTreeNode<T>, ctx: MutableMap<String, Any?>) {
-
-    }
+    override fun <T : ConfigurationSpecification.SpecTreeNode> visit(arrayNode: ArraySpecTreeNode<T>): Map<String, Any?> = emptyMap()
 }

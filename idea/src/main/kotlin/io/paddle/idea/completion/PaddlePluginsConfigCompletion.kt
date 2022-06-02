@@ -14,7 +14,6 @@ import org.jetbrains.yaml.psi.YAMLDocument
 class PaddlePluginsConfigCompletionContributor : CompletionContributor() {
     init {
         extend(CompletionType.BASIC, LOCALS_NAMES, LocalPluginsNamesProvider())
-
         extend(CompletionType.BASIC, PY_PACKAGE_NAMES, PyPackagePluginsNamesProvider())
         extend(CompletionType.BASIC, PY_PACKAGE_VERSIONS, PyPackagePluginsVersionsProvider())
     }
@@ -22,21 +21,21 @@ class PaddlePluginsConfigCompletionContributor : CompletionContributor() {
     companion object {
         private val COMMON_PSI_PREFIX: PsiElementPattern.Capture<PsiElement> = psiElement()
             .inFile(PlatformPatterns.psiFile().withName(PlatformPatterns.string().equalTo("paddle.yaml")))
-            .withSuperParent(6, psiElement().withText(PlatformPatterns.string().startsWith("enabled:")))
-            .withSuperParent(8, psiElement().withText(PlatformPatterns.string().startsWith("plugins:")))
-            .withSuperParent(10, YAMLDocument::class.java)
+            .withSuperParent(8, psiElement().withText(PlatformPatterns.string().startsWith("enabled")))
+            .withSuperParent(10, psiElement().withText(PlatformPatterns.string().startsWith("plugins")))
+            .withSuperParent(12, YAMLDocument::class.java)
 
         private val PY_PACKAGE_NAMES: PsiElementPattern.Capture<PsiElement> = COMMON_PSI_PREFIX
-            .withSuperParent(2, psiElement().withText(PlatformPatterns.string().startsWith("name:")))
-            .withSuperParent(4, psiElement().withText(PlatformPatterns.string().startsWith("py:")))
+            .withSuperParent(2, psiElement().withText(PlatformPatterns.string().startsWith("name")))
+            .withSuperParent(6, psiElement().withText(PlatformPatterns.string().startsWith("py")))
 
         private val PY_PACKAGE_VERSIONS: PsiElementPattern.Capture<PsiElement> = COMMON_PSI_PREFIX
-            .withSuperParent(2, psiElement().withText(PlatformPatterns.string().startsWith("version:")))
-            .withSuperParent(4, psiElement().withText(PlatformPatterns.string().startsWith("py:")))
+            .withSuperParent(2, psiElement().withText(PlatformPatterns.string().startsWith("version")))
+            .withSuperParent(6, psiElement().withText(PlatformPatterns.string().startsWith("py")))
 
         private val LOCALS_NAMES: PsiElementPattern.Capture<PsiElement> = COMMON_PSI_PREFIX
-            .withSuperParent(2, psiElement().withText(PlatformPatterns.string().startsWith("name:")))
-            .withSuperParent(4, psiElement().withText(PlatformPatterns.string().startsWith("local:")))
+            .withSuperParent(2, psiElement().withText(PlatformPatterns.string().startsWith("name")))
+            .withSuperParent(6, psiElement().withText(PlatformPatterns.string().startsWith("local")))
     }
 }
 

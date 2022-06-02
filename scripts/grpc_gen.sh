@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 import_dir='../stub/src/proto'
-out_dir='src'
+out_dir='.'
 
 cd_to_plugins () {
   cd "../python-plugins"

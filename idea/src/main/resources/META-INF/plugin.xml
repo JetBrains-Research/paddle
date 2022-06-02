@@ -52,7 +52,7 @@
         <completion.contributor language="yaml"
                                 implementationClass="io.paddle.idea.completion.PyPackageVersionCompletionContributor"/>
 
-        <completion.contributor language="yaml"
+        <completion.contributor language="yaml" id="PaddlePluginsConfigCompletionContributor"
                                 implementationClass="io.paddle.idea.completion.PaddlePluginsConfigCompletionContributor"/>
     </extensions>
 

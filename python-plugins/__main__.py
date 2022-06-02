@@ -8,9 +8,9 @@ import click
 import grpc
 from grpc.aio import Channel
 
-import plugins_pb2 as plugins_api
 import plugins_pb2_grpc as grpc_servicer
-from src.container import PaddleProjectContainer, PyPackageInfo, PyModuleInfo
+import plugins_pb2 as plugins_api
+from container import PaddleProjectContainer, PyPackageInfo, PyModuleInfo
 
 _cleanup_coroutines = []
 
@@ -21,7 +21,7 @@ class PaddlePyPSConfig:
     channel_to_paddle: Channel
 
 
-class PaddlePythonPluginsService(grpc_servicer.PluginsServicer):
+class PaddlePythonPluginsServiceImpl(grpc_servicer.PluginsServicer):
     """
     Paddle Python Plugins Server (PaddlePyPS) implementation.
     """
@@ -32,7 +32,6 @@ class PaddlePythonPluginsService(grpc_servicer.PluginsServicer):
         self.__containers = dict()
         self.__containers_lock = Lock()
 
-    # TODO: add exception handling
     async def InitializeProjectStub(self, request: plugins_api.InitializeProjectRequest,
                                     context: grpc.aio.ServicerContext) -> plugins_api.google_dot_protobuf_dot_empty__pb2.Empty:
         project_id = request.projectId
@@ -46,36 +45,42 @@ class PaddlePythonPluginsService(grpc_servicer.PluginsServicer):
     async def ImportPyModulePlugins(self, request: plugins_api.ImportPyModulePluginsRequest,
                                     context: grpc.aio.ServicerContext) -> plugins_api.google_dot_protobuf_dot_empty__pb2.Empty:
         project_id = request.projectId
-        plugins = request.plugins
+        modules = request.modules
         with self.__containers_lock:
             container = self.__containers[project_id]
-        container.import_module_plugins(map(lambda p: PyModuleInfo(name=p.pluginName, repo_dir=p.repoDir, relative_path=p.relativePath), plugins))
+        container.import_module_plugins(map(lambda p: PyModuleInfo(
+            with_repo_dir=p.absoluteRepoDir, relative_path_to_module=p.relativeDirToModule
+        ), modules))
+        return plugins_api.google_dot_protobuf_dot_empty__pb2.Empty()
 
     async def ImportPyPackagePlugins(self, request: plugins_api.ImportPyPackagePluginsRequest,
                                      context: grpc.aio.ServicerContext) -> plugins_api.google_dot_protobuf_dot_empty__pb2.Empty:
         project_id = request.projectId
-        plugins = request.plugins
+        packages = request.packages
         with self.__containers_lock:
             container = self.__containers[project_id]
-        container.import_package_plugins(map(lambda p: PyPackageInfo(name=p.pluginName, version=p.pluginVersion), plugins))
+        container.import_package_plugins(map(lambda p: PyPackageInfo(
+            package_name=p.packageName, distribution_url=p.distributionUrl
+        ), packages))
+        return plugins_api.google_dot_protobuf_dot_empty__pb2.Empty()
 
     async def Configure(self, request: plugins_api.ProcessPluginRequest,
                         context: grpc.aio.ServicerContext) -> plugins_api.google_dot_protobuf_dot_empty__pb2.Empty:
         project_id = request.projectId
-        plugin_name = request.pluginName
+        plugin_hash = request.pluginHash
         with self.__containers_lock:
             container = self.__containers[project_id]
-        await container.configure_plugin(plugin_name)
+        await container.configure_plugin(plugin_hash)
         return plugins_api.google_dot_protobuf_dot_empty__pb2.Empty()
 
     async def Tasks(self, request: plugins_api.ProcessPluginRequest, context: grpc.aio.ServicerContext) -> plugins_api.GetTasksResponse:
         project_id = request.projectId
-        plugin_name = request.pluginName
+        plugin_hash = request.pluginHash
         with self.__containers_lock:
             container = self.__containers[project_id]
-        tasks = await container.plugin_tasks(plugin_name)
+        tasks = await container.plugin_tasks(plugin_hash)
         tasks_info = list(map(lambda task: plugins_api.TaskInfo(id=task.identifier, group=task.group, depsIds=task.deps), tasks))
-        return plugins_api.GetTasksResponse(taskInfoList=tasks_info)
+        return plugins_api.GetTasksResponse(tasksInfo=tasks_info)
 
     async def Initialize(self, request: plugins_api.ProcessTaskRequest,
                          context: grpc.aio.ServicerContext) -> plugins_api.google_dot_protobuf_dot_empty__pb2.Empty:
@@ -100,13 +105,14 @@ class PaddlePythonPluginsService(grpc_servicer.PluginsServicer):
 async def serve(*, working_dir: str, server_port: int, client_port: int) -> None:
     os.chdir(working_dir)
     channel_to_paddle = grpc.aio.insecure_channel(f"localhost:{client_port}")
-    service = PaddlePythonPluginsService(PaddlePyPSConfig(working_dir=working_dir, channel_to_paddle=channel_to_paddle))
+    service = PaddlePythonPluginsServiceImpl(PaddlePyPSConfig(working_dir=working_dir, channel_to_paddle=channel_to_paddle))
     aio_server = grpc.aio.server()
     grpc_servicer.add_PluginsServicer_to_server(service, aio_server)
     chosen_port = aio_server.add_insecure_port(f"[::]:{server_port}")
 
     await aio_server.start()
-    print(chosen_port)
+    # # Paddle needs the port to start up PaddlePyPS client
+    # print(chosen_port)
 
     async def service_graceful_shutdown():
         await aio_server.stop(grace=2)
@@ -117,9 +123,9 @@ async def serve(*, working_dir: str, server_port: int, client_port: int) -> None
 
 
 @click.command()
-@click.option("--server_port", default=0, help="Port number to start PaddlePyPS")
+@click.option("--server_port", default=50052, help="Port number to start PaddlePyPS")
 @click.option("--client_port", default=50051, help="Port number for client connection to Paddle Project API Service")
-@click.option("--working_dir", default=".", help="Working directory")
+@click.option("--working_dir", default="/home/sergey/IdeaProjects/paddle/example", help="Working directory")
 def main(server_port: int, client_port: int, working_dir: str) -> None:
     loop = asyncio.get_event_loop()
     try:

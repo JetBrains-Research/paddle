@@ -15,6 +15,7 @@ import io.paddle.specification.tree.*
 import io.paddle.tasks.Task
 import io.paddle.utils.config.PluginsConfig
 
+@Suppress("unused")
 object PythonPlugin : Plugin {
     override fun configure(project: Project) {
         val plugins = object : PluginsConfig(project) {
@@ -24,7 +25,7 @@ object PythonPlugin : Plugin {
             project.configSpec.root.children["environment"] =
                 CompositeSpecTreeNode(
                     description = "Environment that should be used by Paddle for Python build process",
-                    namesOfRequired = mutableSetOf("path", "python"),
+                    namesOfRequired = mutableListOf("path", "python"),
                     children = mutableMapOf(
                         "path" to StringSpecTreeNode(description = "Path to the virtual environment location"),
                         "python" to StringSpecTreeNode(description = "Version of Python interpreter to be used")
@@ -35,7 +36,7 @@ object PythonPlugin : Plugin {
                 ArraySpecTreeNode(
                     description = "List of the available PyPI repositories",
                     items = CompositeSpecTreeNode(
-                        namesOfRequired = mutableSetOf("name", "url"),
+                        namesOfRequired = mutableListOf("name", "url"),
                         children = mutableMapOf(
                             "name" to StringSpecTreeNode(), "url" to StringSpecTreeNode(),
                             "default" to BooleanSpecTreeNode(), "secondary" to BooleanSpecTreeNode()
@@ -47,7 +48,7 @@ object PythonPlugin : Plugin {
                 ArraySpecTreeNode(
                     description = "List of project requirements",
                     items = CompositeSpecTreeNode(
-                        namesOfRequired = mutableSetOf("name"),
+                        namesOfRequired = mutableListOf("name"),
                         children = mutableMapOf(
                             "name" to StringSpecTreeNode(),
                             "version" to StringSpecTreeNode(),

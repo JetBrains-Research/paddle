@@ -6,11 +6,13 @@ import io.paddle.plugin.standard.StandardPlugin
 import io.paddle.project.Project
 import io.paddle.utils.config.PluginsConfig
 import io.paddle.utils.ext.Extendable
+import io.paddle.utils.plugins.PluginName
+import io.paddle.utils.plugins.PluginsRepoName
 
 val Project.plugins: Plugins
     get() = extensions.get(Plugins.Extension.key)!!
 
-class Plugins(private val project: Project, private val _enabled: MutableList<Plugin>) {
+class Plugins(private val _enabled: MutableList<Plugin>) {
     val enabled: List<Plugin>
         get() = _enabled
 
@@ -28,38 +30,15 @@ class Plugins(private val project: Project, private val _enabled: MutableList<Pl
             }
 
             project.extensions.get(LocalPluginsDescriptors.Extension.key)?.forJarPlugins?.forEach {
-                project.jarPluginsRepositories[it.repoName, it.name]?.apply {
+                project.jarPluginsRepositories[it.repoName, it.pluginName]?.apply {
                     enabled.add(this@apply)
-                } ?: throw IllegalArgumentException("Cannot find jar plugin with name `${it.name}` inside repository `${it.repoName}`")
+                } ?: throw IllegalArgumentException("Cannot find jar plugin with name `${it.pluginName}` inside repository `${it.repoName}`")
             }
 
-            return Plugins(project, enabled)
-        }
-    }
-
-    fun enableAndRegister(plugin: Plugin) {
-        enable(plugin)
-        project.register(plugin)
-    }
-
-    fun enableAndRegister(plugins: Collection<Plugin>) {
-        plugins.forEach { enableAndRegister(it) }
-    }
-
-
-    fun enable(plugin: Plugin) {
-        _enabled.add(plugin)
-    }
-
-    fun enable(plugins: Collection<Plugin>) {
-        plugins.forEach {
-            enable(it)
+            return Plugins(enabled)
         }
     }
 }
-
-typealias PluginName = String
-typealias LocalPluginsRepoName = String
 
 class LocalPluginsDescriptors(val forJarPlugins: List<Descriptor>, val others: List<Descriptor>) {
     object Extension : Project.Extension<LocalPluginsDescriptors> {
@@ -73,7 +52,7 @@ class LocalPluginsDescriptors(val forJarPlugins: List<Descriptor>, val others: L
             val (jars, others) = config.localPlugins.map {
                 val name = it["name"]
                 requireNotNull(name)
-                val repoName: LocalPluginsRepoName? = it["repository"]
+                val repoName: PluginsRepoName? = it["repository"]
                 requireNotNull(repoName)
                 Descriptor(name, repoName)
             }.partition {
@@ -84,5 +63,5 @@ class LocalPluginsDescriptors(val forJarPlugins: List<Descriptor>, val others: L
         }
     }
 
-    data class Descriptor(val name: PluginName, val repoName: LocalPluginsRepoName)
+    data class Descriptor(val pluginName: PluginName, val repoName: PluginsRepoName)
 }

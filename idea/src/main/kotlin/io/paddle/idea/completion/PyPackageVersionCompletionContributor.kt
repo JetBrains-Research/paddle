@@ -4,6 +4,7 @@ import com.intellij.codeInsight.completion.*
 import com.intellij.codeInsight.lookup.LookupElementBuilder
 import com.intellij.patterns.PlatformPatterns
 import com.intellij.util.ProcessingContext
+import io.paddle.idea.utils.PaddleProject
 import io.paddle.plugin.python.dependencies.repositories.PyPackageRepositories
 import io.paddle.plugin.python.extensions.repositories
 import io.paddle.project.Project
@@ -24,13 +25,13 @@ class PyPackageVersionCompletionContributor : CompletionContributor() {
     }
 }
 
-abstract class AbstractPyPackageVersionCompletionProvider : ProjectProvider, CompletionProvider<CompletionParameters>() {
+abstract class AbstractPyPackageVersionCompletionProvider : CompletionProvider<CompletionParameters>() {
     abstract fun repositories(project: Project): PyPackageRepositories
 
     override fun addCompletions(parameters: CompletionParameters, context: ProcessingContext, result: CompletionResultSet) {
         val prefix = parameters.position.text.trim().removeSuffix(CompletionUtilCore.DUMMY_IDENTIFIER_TRIMMED)
         val packageName = parameters.originalPosition?.parent?.parent?.prevSibling?.prevSibling?.prevSibling?.lastChild?.text ?: return
-        val variants = repositories(project(parameters)).findAvailableDistributionsByPackageName(packageName)
+        val variants = repositories(PaddleProject.currentProject!!).findAvailableDistributionsByPackageName(packageName)
 
         for ((distribution, repo) in variants) {
             if (!distribution.version.startsWith(prefix)) continue

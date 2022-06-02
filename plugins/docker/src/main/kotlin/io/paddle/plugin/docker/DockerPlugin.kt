@@ -9,6 +9,7 @@ import io.paddle.tasks.Task
 import io.paddle.terminal.Terminal
 import io.paddle.utils.config.PluginsConfig
 
+@Suppress("unused")
 object DockerPlugin : Plugin {
     private fun isDockerExecutorSelectedIn(project: Project): Boolean {
         return project.config.get<String>("executor.type") == "docker"
@@ -27,8 +28,7 @@ object DockerPlugin : Plugin {
         }
         if (isDockerExecutorSelectedIn(project)) {
             project.configSpec.get<CompositeSpecTreeNode>("executor")?.run {
-                namesOfRequired = namesOfRequired ?: mutableSetOf()
-                namesOfRequired!!.add("image")
+                namesOfRequired = (namesOfRequired ?: mutableListOf()).apply { add("image") }
                 children["image"] = StringSpecTreeNode(description = "Image to be used for build")
             }
         }
