@@ -1,4 +1,4 @@
-package io.paddle.idea.execution.providers
+package io.paddle.idea.execution.state
 
 import com.intellij.execution.configurations.RunConfiguration
 import com.intellij.execution.runners.ExecutionEnvironment

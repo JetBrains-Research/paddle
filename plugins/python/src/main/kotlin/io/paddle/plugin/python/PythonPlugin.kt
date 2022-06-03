@@ -48,6 +48,7 @@ object PythonPlugin : Plugin {
             Interpreter.Extension,
             JsonSchema.Extension,
             BuildEnvironment.Extension,
+            PyTestEnvironment.Extension
         ) as List<PaddleProject.Extension<Any>>
     }
 }

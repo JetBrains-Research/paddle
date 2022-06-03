@@ -10,8 +10,9 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.wm.ToolWindowId
 import io.paddle.idea.PaddleManager
 import io.paddle.idea.execution.cmdline.PaddleCommandLine
-import io.paddle.idea.execution.providers.*
+import io.paddle.idea.execution.state.*
 import io.paddle.plugin.python.tasks.run.RunTask
+import io.paddle.plugin.python.tasks.test.PyTestTask
 import io.paddle.project.PaddleProjectProvider
 import java.io.File
 import java.util.*
@@ -57,6 +58,7 @@ class PaddleRunConfiguration(project: Project, factory: ConfigurationFactory, na
 
         return when (task) {
             is RunTask -> PaddleTaskRunProfileStateProvider.findInstance(PythonScriptCommandLineStateProvider::class.java)?.getState(task, ctx)
+            is PyTestTask -> PaddleTaskRunProfileStateProvider.findInstance(PyPyTestExecutionEnvironmentProvider::class.java)?.getState(task, ctx)
             else -> ExternalSystemRunnableState(settings, project, ToolWindowId.DEBUG == executor.id, this, env)
         }
     }

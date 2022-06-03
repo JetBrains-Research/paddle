@@ -21,12 +21,13 @@
 
     <extensionPoints>
         <extensionPoint qualifiedName="io.paddle.idea.runProfileStateProvider"
-                        interface="io.paddle.idea.execution.providers.PaddleTaskRunProfileStateProvider"
+                        interface="io.paddle.idea.execution.state.PaddleTaskRunProfileStateProvider"
                         dynamic="true"/>
     </extensionPoints>
 
     <extensions defaultExtensionNs="io.paddle.idea">
-        <runProfileStateProvider implementation="io.paddle.idea.execution.providers.PythonScriptCommandLineStateProvider"/>
+        <runProfileStateProvider implementation="io.paddle.idea.execution.state.PythonScriptCommandLineStateProvider"/>
+        <runProfileStateProvider implementation="io.paddle.idea.execution.state.PyPyTestExecutionEnvironmentProvider"/>
     </extensions>
 
     <extensions defaultExtensionNs="com.intellij">

@@ -28,13 +28,6 @@ class PaddleTaskRunner : ProgramRunner<RunnerSettings> {
     }
 
     private fun doExecute(state: RunProfileState, environment: ExecutionEnvironment): RunContentDescriptor? {
-        if (state !is ExternalSystemRunnableState
-            && state !is HistoryTestRunnableState
-            && state !is PythonCommandLineState
-        ) {
-            return null
-        }
-
         val executionResult = state.execute(environment.executor, this) ?: return null
         val runContentDescriptor = RunContentBuilder(executionResult, environment).showRunContent(environment.contentToReuse) ?: return null
 
