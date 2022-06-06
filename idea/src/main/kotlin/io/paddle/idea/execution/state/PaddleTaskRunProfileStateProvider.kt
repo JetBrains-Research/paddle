@@ -26,7 +26,15 @@ internal interface PaddleTaskRunProfileStateProvider<T : Task> {
         val beforeRunTaskProvider = BeforeRunTaskProvider.getProvider(project, PaddleBeforeRunTaskProvider.ID) as? PaddleBeforeRunTaskProvider
         val runManager = RunManagerEx.getInstanceEx(project)
 
-        val newBeforeRunTasks = task.dependencies.map { dependsOnTask ->
+        // If 1 -> 2, 1 -> 3, 2 -> 3 then we should execute only dep-task #2 as a before-run task for task #1
+        // since dep-task #3 will be handled by Paddle automatically
+        val deps = task.dependencies.filter { dep ->
+            task.dependencies.all { otherDep ->
+                otherDep.dependencies.contains(dep)
+            }
+        }
+
+        val newBeforeRunTasks = deps.map { dependsOnTask ->
             beforeRunTaskProvider?.createTask(context.originalRunConfiguration)
                 ?.apply {
                     taskExecutionSettings.externalProjectPath = dependsOnTask.project.workDir.absolutePath
