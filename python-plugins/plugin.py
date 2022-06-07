@@ -3,7 +3,7 @@ import sys
 from abc import ABC, abstractmethod
 from typing import List
 
-from project import PaddleProject, ExtendedPaddleProject
+from project import PaddleProject, ExtendedPaddleProject, TaskDefaultGroups
 
 
 class PaddleTask(ABC):
@@ -12,10 +12,10 @@ class PaddleTask(ABC):
     """
 
     @abstractmethod
-    def __init__(self, project: PaddleProject, identifier: str, group: str, deps: List[str]) -> None:
+    def __init__(self, project: PaddleProject, identifier: str, group: TaskDefaultGroups, deps: List[str]) -> None:
         self.__project = project
         self.__id = identifier
-        self.__group = group
+        self.__group = group.value
         self.__deps = deps
 
     @property
@@ -55,7 +55,6 @@ class PaddleTask(ABC):
         """
         return self.__project
 
-    @abstractmethod
     async def initialize(self) -> None:
         """
         Performs initial initialization during import of the whole Paddle project.

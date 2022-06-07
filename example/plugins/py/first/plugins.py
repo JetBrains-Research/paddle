@@ -14,7 +14,7 @@ class GreetingPlugin(PaddlePlugin):
 
 class GreetingTask(PaddleTask):
     def __init__(self, project) -> None:
-        PaddleTask.__init__(self, project, "greet", TaskDefaultGroups.APP.value, deps=[])
+        PaddleTask.__init__(self, project, "greet", TaskDefaultGroups.APP, deps=[])
 
     async def initialize(self) -> None:
         pass
@@ -52,7 +52,7 @@ class MkdirTask(PaddleTask):
 
 class CreateFileTask(PaddleTask):
     def __init__(self, project) -> None:
-        PaddleTask.__init__(self, project, "createfile", TaskDefaultGroups.TEST.value, deps=["mkdir"])
+        PaddleTask.__init__(self, project, "createfile", TaskDefaultGroups.TEST, deps=["mkdir"])
 
     async def initialize(self) -> None:
         await self.project.print_message("Initialize create file task...", MessageType.INFO)
@@ -66,7 +66,7 @@ class CreateFileTask(PaddleTask):
 
 class WriteDescrioptorTask(PaddleTask):
     def __init__(self, project) -> None:
-        PaddleTask.__init__(self, project, "write-descriptor", TaskDefaultGroups.TEST.value, deps=["createfile"])
+        PaddleTask.__init__(self, project, "write-descriptor", TaskDefaultGroups.TEST, deps=["createfile"])
 
     async def initialize(self) -> None:
         await self.project.print_message("Initialize write descriptor task...", MessageType.INFO)
