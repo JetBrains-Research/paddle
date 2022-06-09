@@ -7,7 +7,6 @@ import io.paddle.plugin.python.dependencies.packages.PyPackage
 import io.paddle.plugin.python.dependencies.resolvers.PipResolver
 import io.paddle.plugin.standard.extensions.roots
 import io.paddle.project.PaddleProject
-import io.paddle.terminal.Terminal
 import io.paddle.utils.config.ConfigurationView
 import io.paddle.utils.ext.Extendable
 import io.paddle.utils.hash.Hashable
@@ -54,7 +53,7 @@ class Environment(val project: PaddleProject, val venv: VenvDir) : Hashable {
                 interpreterPath.absolutePathString(),
                 listOf("-m", "pip", "install", PipResolver.PIP_RESOLVER_URL),
                 project.workDir,
-                Terminal.MOCK
+                project.terminal
             )
         }
     }

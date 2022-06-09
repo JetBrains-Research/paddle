@@ -87,6 +87,9 @@
                                 implementationClass="io.paddle.idea.completion.PyPackageNameCompletionContributor"/>
         <completion.contributor language="yaml"
                                 implementationClass="io.paddle.idea.completion.PyPackageVersionCompletionContributor"/>
+
+
+        <notificationGroup id="Paddle" displayType="BALLOON"/>
     </extensions>
 
     <actions>

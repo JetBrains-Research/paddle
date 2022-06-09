@@ -1,8 +1,7 @@
 package io.paddle.plugin.python.dependencies
 
+import io.paddle.plugin.python.dependencies.packages.*
 import io.paddle.plugin.python.dependencies.packages.CachedPyPackage.Companion.PYPACKAGE_CACHE_FILENAME
-import io.paddle.plugin.python.dependencies.packages.PyPackage
-import io.paddle.plugin.python.dependencies.packages.PyPackageMetadata
 import io.paddle.plugin.python.utils.*
 import io.paddle.tasks.Task
 import kotlinx.serialization.decodeFromString

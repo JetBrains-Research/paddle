@@ -20,7 +20,7 @@ class Repositories(val project: PaddleProject, val descriptors: List<Descriptor>
         project.terminal.info("Resolving repositories...")
         val result: PyPackageRepositories
         measureTimeMillis {
-            result = PyPackageRepositories.resolve(descriptors)
+            result = PyPackageRepositories.resolve(descriptors, project)
         }.also {
             project.terminal.info("Finished: $it ms")
         }

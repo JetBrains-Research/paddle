@@ -16,7 +16,7 @@ class PyTestTask(project: PaddleProject) : Task(project) {
         get() = listOf(project.tasks.getOrFail("install"))
 
     override fun initialize() {
-        project.requirements.descriptors.add(Requirements.Descriptor("pytest", project.pytest.version, Repositories.Descriptor.PYPI.name))
+        project.requirements.descriptors.add(Requirements.Descriptor("pytest", project.pytest.version))
         project.tasks.clean.locations.add(File(project.workDir, ".pytest_cache"))
     }
 

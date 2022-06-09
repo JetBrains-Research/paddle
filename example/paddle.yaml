@@ -32,10 +32,10 @@ repositories:
 
 requirements:
   - name: redis
-    version: 3.5.3
-    repository: pypi
+    version: <=3.5.3
 
   - name: grazie-supar
+    version: ~=1.2.1
 
 plugins:
   enabled:

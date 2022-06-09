@@ -105,9 +105,6 @@
           },
           "version": {
             "type": "string"
-          },
-          "repository": {
-            "type": "string"
           }
         }
       }

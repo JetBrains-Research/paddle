@@ -16,17 +16,10 @@ import org.jsoup.Jsoup
 
 object PyPackageRepositoryIndexer {
     suspend fun downloadPackagesNames(repository: PyPackageRepository): Collection<PyPackageName> {
-        return try {
-            val client = CachedHttpClient.getInstance(repository.credentials)
-            client.request<HttpStatement>(repository.urlSimple).execute { response ->
-                val allNamesDocument = Jsoup.parse(response.readText())
-                return@execute allNamesDocument.body().getElementsByTag("a").map { it.text() }
-            }
-        } catch (exception: Throwable) {
-            throw Task.ActException(
-                "Failed to update index of available packages for PyPI repository " +
-                    "${repository.name}: ${repository.urlSimple.getSecure()} (${exception.message})"
-            )
+        val client = CachedHttpClient.getInstance(repository.credentials)
+        return client.request<HttpStatement>(repository.urlSimple).execute { response ->
+            val allNamesDocument = Jsoup.parse(response.readText())
+            return@execute allNamesDocument.body().getElementsByTag("a").map { it.text() }
         }
     }
 

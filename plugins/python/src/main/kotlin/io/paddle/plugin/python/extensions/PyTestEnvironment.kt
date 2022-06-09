@@ -1,6 +1,6 @@
 package io.paddle.plugin.python.extensions
 
-import io.paddle.plugin.python.utils.PyPackageVersion
+import io.paddle.plugin.python.dependencies.packages.PyPackageVersionSpecifier
 import io.paddle.project.PaddleProject
 import io.paddle.tasks.Task
 import io.paddle.utils.ext.Extendable
@@ -13,7 +13,7 @@ val PaddleProject.pytest: PyTestEnvironment
 
 class PyTestEnvironment(
     val project: PaddleProject,
-    val version: PyPackageVersion,
+    val version: PyPackageVersionSpecifier,
     val targets: List<File>,
     val keywords: String?,
     val additionalArguments: List<String>
@@ -22,7 +22,7 @@ class PyTestEnvironment(
         override val key: Extendable.Key<PyTestEnvironment> = Extendable.Key()
 
         override fun create(project: PaddleProject): PyTestEnvironment {
-            val version = project.config.get<String>("tasks.tests.pytest.version") ?: "7.1.2"
+            val versionSpec = PyPackageVersionSpecifier.fromString(project.config.get<String>("tasks.tests.pytest.version") ?: "7.1.2")
 
             val relativeTargets = project.config.get<List<String>>("tasks.tests.pytest.targets") ?: emptyList()
             val targets = ArrayList<File>()
@@ -42,7 +42,7 @@ class PyTestEnvironment(
                 ?.split(" ")
                 ?: emptyList()
 
-            return PyTestEnvironment(project, version, targets, keywords, additionalArgs)
+            return PyTestEnvironment(project, versionSpec, targets, keywords, additionalArgs)
         }
     }
 

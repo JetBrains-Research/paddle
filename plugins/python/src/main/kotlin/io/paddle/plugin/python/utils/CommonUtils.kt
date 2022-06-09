@@ -9,7 +9,6 @@ import java.util.*
 
 
 typealias PyPackageName = String
-typealias PyPackageVersion = String
 
 fun PyPackageName.normalize(): PyPackageName {
     return this.lowercase().replace('-', '_').replace('.', '_')
