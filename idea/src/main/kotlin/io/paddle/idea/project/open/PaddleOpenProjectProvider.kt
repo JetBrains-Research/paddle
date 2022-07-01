@@ -24,15 +24,15 @@ import java.nio.file.Path
 object PaddleOpenProjectProvider : AbstractOpenProjectProvider() {
     override fun isProjectFile(file: VirtualFile): Boolean = file.isPaddle
 
-    override fun linkAndRefreshProject(projectDirectory: Path, project: Project) {
-        val projectSettings = createLinkSettings(projectDirectory)
-
+    override fun linkToExistingProject(projectFile: VirtualFile, project: Project) {
+        val projectDirectory = if (projectFile.isDirectory) projectFile else projectFile.parent
+        val projectSettings = createLinkSettings(projectDirectory.toNioPath())
         attachProjectAndRefresh(projectSettings, project)
     }
 
     private fun createLinkSettings(projectDirectory: Path): PaddleProjectSettings {
-        val projectSettings = PaddleProjectSettings().also {
-            it.externalProjectPath = projectDirectory.findPaddleInDirectory()!!.toFile().canonicalPath
+        val projectSettings = PaddleProjectSettings().apply {
+            externalProjectPath = projectDirectory.findPaddleInDirectory()!!.toFile().canonicalPath
         }
 
         return projectSettings
@@ -42,6 +42,7 @@ object PaddleOpenProjectProvider : AbstractOpenProjectProvider() {
         ExternalSystemApiUtil.getSettings(project, PaddleManager.ID).linkProject(settings)
 
         if (Registry.`is`("external.system.auto.import.disabled")) return
+
         ExternalSystemUtil.refreshProject(
             settings.externalProjectPath,
             ImportSpecBuilder(project, PaddleManager.ID)

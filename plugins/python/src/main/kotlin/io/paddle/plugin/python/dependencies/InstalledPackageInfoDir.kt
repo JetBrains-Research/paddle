@@ -4,6 +4,7 @@ import io.paddle.plugin.python.dependencies.packages.CachedPyPackage.Companion.P
 import io.paddle.plugin.python.dependencies.packages.PyPackage
 import io.paddle.plugin.python.dependencies.packages.PyPackageMetadata
 import io.paddle.plugin.python.utils.*
+import io.paddle.tasks.Task
 import kotlinx.serialization.decodeFromString
 import java.io.File
 import java.io.FileOutputStream
@@ -28,12 +29,12 @@ class InstalledPackageInfoDir(val dir: File, val type: Type, val name: PyPackage
 
         fun findByNameAndVersion(parentDir: File, name: PyPackageName, version: PyPackageVersion): InstalledPackageInfoDir {
             return findByNameAndVersionOrNull(parentDir, name, version)
-                ?: error("Neither .dist-info nor .egg-info directory was found in $parentDir for package $name==$version.")
+                ?: throw Task.ActException("Neither .dist-info nor .egg-info directory was found in $parentDir for package $name==$version.")
         }
 
         fun findIfSingle(parentDir: File): InstalledPackageInfoDir {
             val infoDir = findInfoDirWithPredicateOrNull(parentDir) { true }
-                ?: error("Neither .dist-info nor .egg-info directory was found in $parentDir for package.")
+                ?: throw Task.ActException("Neither .dist-info nor .egg-info directory was found in $parentDir for package.")
             return InstalledPackageInfoDir(
                 infoDir,
                 type = if (infoDir.name.endsWith(".dist-info")) Type.DIST else Type.LEGACY,

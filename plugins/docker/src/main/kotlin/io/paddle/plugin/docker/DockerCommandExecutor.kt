@@ -10,17 +10,17 @@ import com.github.dockerjava.core.DockerClientImpl
 import com.github.dockerjava.httpclient5.ApacheDockerHttpClient
 import io.paddle.execution.CommandExecutor
 import io.paddle.execution.ExecutionResult
-import io.paddle.project.Project
+import io.paddle.project.PaddleProject
 import io.paddle.terminal.Terminal
 import io.paddle.terminal.TextOutput
 import io.paddle.utils.ext.Extendable
 import java.io.File
 
 class DockerCommandExecutor(private val image: String, output: TextOutput) : CommandExecutor(OutputConfiguration(output)) {
-    object Extension : Project.Extension<DockerCommandExecutor> {
+    object Extension : PaddleProject.Extension<DockerCommandExecutor> {
         override val key: Extendable.Key<DockerCommandExecutor> = Extendable.Key()
 
-        override fun create(project: Project): DockerCommandExecutor {
+        override fun create(project: PaddleProject): DockerCommandExecutor {
             val image: String? = project.config.get("executor.image")
             return DockerCommandExecutor(image!!, project.output)
         }

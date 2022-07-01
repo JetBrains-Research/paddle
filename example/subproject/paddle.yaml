@@ -1,0 +1,27 @@
+descriptor:
+  name: subproject
+  version: 0.1.0
+
+subprojects:
+  - dependency
+
+roots:
+  sources:
+    - src
+
+plugins:
+  enabled:
+    - python
+
+requirements:
+  - name: aioredis
+
+
+environment:
+  path: .venv
+  python: 3.9
+
+tasks:
+  run:
+    - entrypoint: src/main.py
+      id: main

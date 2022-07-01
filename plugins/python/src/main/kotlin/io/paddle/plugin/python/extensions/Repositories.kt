@@ -4,24 +4,24 @@ import io.paddle.plugin.python.dependencies.authentication.AuthInfo
 import io.paddle.plugin.python.dependencies.authentication.AuthType
 import io.paddle.plugin.python.dependencies.repositories.PyPackageRepositories
 import io.paddle.plugin.python.utils.PyPackagesRepositoryUrl
-import io.paddle.project.Project
+import io.paddle.project.PaddleProject
 import io.paddle.utils.ext.Extendable
 import io.paddle.utils.hash.Hashable
 import io.paddle.utils.hash.hashable
 
 
-val Project.repositories: Repositories
+val PaddleProject.repositories: Repositories
     get() = extensions.get(Repositories.Extension.key)!!
 
-class Repositories(val project: Project, val descriptors: List<Descriptor>) : Hashable {
+class Repositories(val project: PaddleProject, val descriptors: List<Descriptor>) : Hashable {
 
     val resolved: PyPackageRepositories by lazy { PyPackageRepositories.resolve(descriptors) }
 
     @Suppress("UNCHECKED_CAST")
-    object Extension : Project.Extension<Repositories> {
+    object Extension : PaddleProject.Extension<Repositories> {
         override val key: Extendable.Key<Repositories> = Extendable.Key()
 
-        override fun create(project: Project): Repositories {
+        override fun create(project: PaddleProject): Repositories {
             val reposConfig = project.config.get<List<Map<String, Any>>>("repositories") ?: emptyList()
 
             val descriptors = reposConfig.map { repo ->

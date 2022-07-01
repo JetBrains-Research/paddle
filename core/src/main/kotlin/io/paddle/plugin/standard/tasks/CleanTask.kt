@@ -1,13 +1,13 @@
 package io.paddle.plugin.standard.tasks
 
-import io.paddle.project.Project
+import io.paddle.project.PaddleProject
 import io.paddle.project.Tasks
 import io.paddle.tasks.Task
 import io.paddle.utils.deleteRecursivelyWithoutSymlinks
 import io.paddle.utils.tasks.TaskDefaultGroups
 import java.io.File
 
-class CleanTask(project: Project) : Task(project) {
+class CleanTask(project: PaddleProject) : Task(project) {
     var locations = ArrayList<File>()
 
     override val id: String = "clean"

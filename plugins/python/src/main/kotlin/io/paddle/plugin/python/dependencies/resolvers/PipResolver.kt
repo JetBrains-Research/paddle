@@ -9,7 +9,7 @@ import io.paddle.plugin.python.dependencies.packages.PyPackage
 import io.paddle.plugin.python.dependencies.repositories.PyPackageRepository
 import io.paddle.plugin.python.extensions.*
 import io.paddle.plugin.python.utils.*
-import io.paddle.project.Project
+import io.paddle.project.PaddleProject
 import io.paddle.tasks.Task
 import io.paddle.utils.hash.hashable
 import kotlinx.coroutines.runBlocking
@@ -31,7 +31,7 @@ object PipResolver {
             "\\((?<version>[\\w\\-_.*+!]+?)\\)"
     )
 
-    fun resolve(project: Project): Set<PyPackage> =
+    fun resolve(project: PaddleProject): Set<PyPackage> =
         cached(
             storage = PyLocations.pipResolverCachePath.toFile(),
             serializer = MapSerializer(String.serializer(), ListSerializer(String.serializer()))
@@ -47,7 +47,7 @@ object PipResolver {
             getFromCache(cacheInput)?.let { output.addAll(it) } ?: ExecutionResult(
                 CommandLineUtils.executeCommandLine(
                     Commandline().apply {
-                        executable = project.environment.localInterpreterPath.absolutePathString()
+                        executable = project.environment.interpreterPath.absolutePathString()
                         addArguments(pipResolveArgs.toTypedArray())
                     },
                     ByteArrayInputStream("\n\n".encodeToByteArray()),
@@ -66,7 +66,7 @@ object PipResolver {
             return@cached packages
         }
 
-    private fun parse(output: List<String>, project: Project): Set<PyPackage> {
+    private fun parse(output: List<String>, project: PaddleProject): Set<PyPackage> {
         val startIdx = output.indexOfFirst { it == "--- RESOLVED-BEGIN ---" }
         val endIdx = output.indexOfLast { it == "--- RESOLVED-END ---" }
         if (startIdx == -1 || endIdx == -1) {
@@ -91,13 +91,13 @@ object PipResolver {
 
             val pyDistributionInfo = WheelPyDistributionInfo.fromString(filename)
                 ?: ArchivePyDistributionInfo.fromString(filename)
-                ?: error("FIXME: Unknown distribution type: $filename")
+                ?: throw Task.ActException("FIXME: Unknown distribution type: $filename")
 
             val repo = if (repoUrl == "None") {
                 runBlocking {
                     PyPackageRepository.PYPI_REPOSITORY.also {
                         distributionUrl = PyPackageRepositoryIndexer.getDistributionUrl(pyDistributionInfo, it)
-                            ?: error(
+                            ?: throw Task.ActException(
                                 "Distribution $filename was not found in the repository ${it.url.getSecure()}.\n" +
                                     "It is possible that it was resolved from your local cache, " +
                                     "which is deprecated since it is not available online anymore.\n" +

@@ -5,7 +5,9 @@ import io.paddle.plugin.python.dependencies.GlobalCacheRepository
 import io.paddle.plugin.python.dependencies.VenvDir
 import io.paddle.plugin.python.dependencies.packages.PyPackage
 import io.paddle.plugin.python.dependencies.resolvers.PipResolver
-import io.paddle.project.Project
+import io.paddle.plugin.standard.extensions.roots
+import io.paddle.plugin.standard.extensions.subprojects
+import io.paddle.project.PaddleProject
 import io.paddle.terminal.Terminal
 import io.paddle.utils.config.ConfigurationView
 import io.paddle.utils.ext.Extendable
@@ -16,18 +18,24 @@ import java.nio.file.Path
 import kotlin.io.path.absolutePathString
 
 
-val Project.environment: Environment
+val PaddleProject.environment: Environment
     get() = extensions.get(Environment.Extension.key)!!
 
-class Environment(val project: Project, val venv: VenvDir) : Hashable {
+class Environment(val project: PaddleProject, val venv: VenvDir) : Hashable {
 
-    val localInterpreterPath: Path
+    val interpreterPath: Path
         get() = venv.getInterpreterPath(project)
 
-    object Extension : Project.Extension<Environment> {
+    val pythonPath: String
+        get() {
+            val paths = project.roots.sources.map { it.canonicalPath } + project.subprojects.map { it.environment.pythonPath }
+            return paths.joinToString(System.getProperty("path.separator"))
+        }
+
+    object Extension : PaddleProject.Extension<Environment> {
         override val key: Extendable.Key<Environment> = Extendable.Key()
 
-        override fun create(project: Project): Environment {
+        override fun create(project: PaddleProject): Environment {
             val config = object : ConfigurationView("environment", project.config) {
                 val venv by string("path", default = ".venv")
             }
@@ -37,14 +45,20 @@ class Environment(val project: Project, val venv: VenvDir) : Hashable {
     }
 
     fun initialize(): ExecutionResult {
+        // Create __init__.py files for all source roots
+//        for (root in project.roots.sources) {
+//            root.resolve("__init__.py").takeUnless { it.exists() }?.createNewFile()
+//        }
+
+        // Create virtualenv and install pip-resolver package (used in PipResolver.kt)
         return project.executor.execute(
             project.interpreter.resolved.path.toString(),
-            listOf("-m", "venv", "--clear", venv.absolutePath),
+            listOf("-m", "venv", venv.absolutePath),
             project.workDir,
             project.terminal
         ).then {
             project.executor.execute(
-                localInterpreterPath.absolutePathString(),
+                interpreterPath.absolutePathString(),
                 listOf("-m", "pip", "install", PipResolver.PIP_RESOLVER_URL),
                 project.workDir,
                 Terminal.MOCK
@@ -54,19 +68,21 @@ class Environment(val project: Project, val venv: VenvDir) : Hashable {
 
     fun runModule(module: String, arguments: List<String> = emptyList()): ExecutionResult {
         return project.executor.execute(
-            localInterpreterPath.absolutePathString(),
+            interpreterPath.absolutePathString(),
             listOf("-m", module, *arguments.toTypedArray()),
             project.workDir,
-            project.terminal
+            project.terminal,
+            hashMapOf("PYTHONPATH" to project.environment.pythonPath)
         )
     }
 
     fun runScript(file: String, arguments: List<String> = emptyList()): ExecutionResult {
         return project.executor.execute(
-            localInterpreterPath.absolutePathString(),
+            interpreterPath.absolutePathString(),
             listOf(file, *arguments.toTypedArray()),
             project.workDir,
-            project.terminal
+            project.terminal,
+            hashMapOf("PYTHONPATH" to project.environment.pythonPath)
         )
     }
 

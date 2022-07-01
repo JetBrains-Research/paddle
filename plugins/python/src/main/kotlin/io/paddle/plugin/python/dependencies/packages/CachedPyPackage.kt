@@ -1,6 +1,7 @@
 package io.paddle.plugin.python.dependencies.packages
 
 import io.paddle.plugin.python.dependencies.InstalledPackageInfoDir
+import io.paddle.tasks.Task
 import java.io.File
 import java.nio.file.Path
 
@@ -28,7 +29,7 @@ data class CachedPyPackage(val pkg: PyPackage, val srcPath: Path) : IResolvedPyP
 
         fun load(srcPath: Path): CachedPyPackage {
             val infoDir = InstalledPackageInfoDir.findIfSingle(srcPath.toFile())
-            val pkg = infoDir.pkg ?: error("Failed to load cached package from $srcPath: 'PyPackage.json' not found.'")
+            val pkg = infoDir.pkg ?: throw Task.ActException("Failed to load cached package from $srcPath: 'PyPackage.json' not found.'")
             return CachedPyPackage(pkg, srcPath)
         }
     }

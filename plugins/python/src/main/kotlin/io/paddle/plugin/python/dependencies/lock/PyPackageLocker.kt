@@ -7,13 +7,15 @@ import io.paddle.plugin.python.dependencies.packages.PyPackage
 import io.paddle.plugin.python.dependencies.repositories.PyPackageRepository
 import io.paddle.plugin.python.extensions.*
 import io.paddle.plugin.python.utils.*
-import io.paddle.project.Project
+import io.paddle.plugin.standard.extensions.subprojects
+import io.paddle.project.PaddleProject
+import io.paddle.tasks.Task
 import kotlinx.coroutines.supervisorScope
 import java.util.concurrent.ConcurrentHashMap
 
 object PyPackageLocker {
 
-    suspend fun lock(project: Project) {
+    suspend fun lock(project: PaddleProject) {
         supervisorScope {
             val lockedPackages = project.requirements.resolved.parallelMap { pkg ->
                 val metadata = PyPackageRepositoryIndexer.downloadMetadata(pkg, project.terminal)
@@ -32,17 +34,30 @@ object PyPackageLocker {
         }
     }
 
-    suspend fun installFromLock(project: Project) {
+    suspend fun installFromLock(project: PaddleProject) {
         val pyLockFile = PyLockFile.fromFile(project.workDir.resolve(PyLockFile.FILENAME))
 
         val lockedInterpreter = PyInterpreter.find(PyInterpreter.Version(pyLockFile.interpreterVersion), project)
         if (lockedInterpreter.version != project.interpreter.resolved.version) {
-            error(
+            throw Task.ActException(
                 "Locked interpreter version (${lockedInterpreter.version.number}) is not consistent with " +
                     "current interpreter version ${project.interpreter.resolved.version}."
             )
         }
 
+        val packages = extractPyPackages(pyLockFile, project)
+        for (pkg in packages) {
+            project.environment.install(pkg)
+        }
+
+        for (subproject in project.subprojects) {
+            for (pkg in subproject.requirements.resolved) {
+                project.environment.install(pkg)
+            }
+        }
+    }
+
+    private suspend fun extractPyPackages(pyLockFile: PyLockFile, project: PaddleProject): Collection<PyPackage> {
         val lockedPackages = pyLockFile.lockedPackages
         val packageByIdentifier = ConcurrentHashMap<LockedPyPackageIdentifier, PyPackage>()
 
@@ -60,12 +75,10 @@ object PyPackageLocker {
             packageByIdentifier[lockedPkg.identifier]!!.comesFrom = comesFrom
         }
 
-        for (pkg in packageByIdentifier.values) {
-            project.environment.install(pkg)
-        }
+        return packageByIdentifier.values
     }
 
-    private suspend fun checkHashes(pkg: PyPackage, lockedPkg: LockedPyPackage, project: Project) {
+    private suspend fun checkHashes(pkg: PyPackage, lockedPkg: LockedPyPackage, project: PaddleProject) {
         val metadata = PyPackageRepositoryIndexer.downloadMetadata(pkg, project.terminal)
         val availableDistributions = metadata?.releases?.get(pkg.version)
 
@@ -74,12 +87,26 @@ object PyPackageLocker {
             // TODO: ask user - trust or not?
             return
         } else if (availableDistributions == null) {
-            error("Corresponding locked distribution ${pkg.distributionUrl} was not found in current package metadata. Consider upgrading your lockfile.")
+            throw Task.ActException(
+                "Corresponding locked distribution ${pkg.distributionUrl} was not found in current package metadata. " +
+                    "Consider upgrading your lockfile."
+            )
         }
 
         val currentHash = availableDistributions.find { it.url == pkg.distributionUrl }?.packageHash
         if (currentHash !in lockedPkg.distributions.map { it.hash }) {
-            error("Can not find appropriate distribution in the lockfile for ${pkg.distributionUrl}: inconsistent hashes.")
+            val msg = "Can not find appropriate distribution in the lockfile for ${pkg.distributionUrl}: inconsistent hashes."
+            if (lockedPkg.repoMetadata.url.trimmedEquals(PyPackageRepository.PYPI_REPOSITORY.url)) {
+                throw Task.ActException(msg)
+            } else {
+                // TODO: ask user - trust or not?
+                project.terminal.warn(msg)
+                project.terminal.warn(
+                    "If repo = ${lockedPkg.repoMetadata.url} is private, then (most probably) " +
+                        "the repo owner did not provide package metadata in a JSON format." +
+                        "You should consider contact them directly."
+                )
+            }
         }
     }
 }

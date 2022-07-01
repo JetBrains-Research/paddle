@@ -1,14 +1,14 @@
 package io.paddle.schema.extensions
 
 import io.paddle.plugin.standard.extensions.plugins
-import io.paddle.project.Project
+import io.paddle.project.PaddleProject
 import io.paddle.utils.ext.Extendable
 
-val Project.jsonSchema: JsonSchema
+val PaddleProject.jsonSchema: JsonSchema
     get() = extensions.get(JsonSchema.Extension.key)!!
 
 class JsonSchema(val extensions: MutableList<BaseJsonSchemaExtension>) {
-    object Extension : Project.Extension<JsonSchema> {
+    object Extension : PaddleProject.Extension<JsonSchema> {
         override val key: Extendable.Key<JsonSchema> = Extendable.Key()
 
         private fun createExtensionForCompletion(names: List<String>): BaseJsonSchemaExtension {
@@ -20,7 +20,7 @@ class JsonSchema(val extensions: MutableList<BaseJsonSchemaExtension>) {
             })
         }
 
-        override fun create(project: Project): JsonSchema {
+        override fun create(project: PaddleProject): JsonSchema {
             return JsonSchema(mutableListOf(createExtensionForCompletion(project.plugins.namesOfAvailable)))
         }
     }

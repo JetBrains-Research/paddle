@@ -2,6 +2,7 @@ package io.paddle.plugin.python.dependencies.lock
 
 import io.paddle.plugin.python.dependencies.lock.models.LockedPyPackage
 import io.paddle.plugin.python.utils.jsonParser
+import io.paddle.tasks.Task
 import kotlinx.serialization.*
 import kotlinx.serialization.json.Json
 import java.io.File
@@ -14,7 +15,7 @@ class PyLockFile(val interpreterVersion: String, val lockedPackages: Set<LockedP
 
         fun fromFile(file: File): PyLockFile {
             if (!file.exists()) {
-                error("$FILENAME was not found in the project.")
+                throw Task.ActException("$FILENAME was not found in the project.")
             }
             return jsonParser.decodeFromString(file.readText())
         }

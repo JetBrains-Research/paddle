@@ -4,7 +4,7 @@ class CommandOutput(private val output: TextOutput) {
     sealed class Command {
         abstract fun output(): String
 
-        class Task(val id: String, val status: Status): Command() {
+        class Task(val route: String, val status: Status): Command() {
             companion object {
                 private val regex = Regex("> Task :(.*?): (.*)")
 
@@ -24,7 +24,7 @@ class CommandOutput(private val output: TextOutput) {
             }
 
             override fun output(): String {
-                return "> Task :${id}: ${Terminal.colored(status.display, status.color)}"
+                return "> Task ${route}: ${Terminal.colored(status.display, status.color)}"
             }
         }
     }

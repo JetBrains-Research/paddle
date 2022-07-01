@@ -1,13 +1,13 @@
-package io.paddle.plugin.python.tasks.exec
+package io.paddle.plugin.python.tasks.run
 
 import io.paddle.plugin.python.extensions.environment
-import io.paddle.project.Project
+import io.paddle.project.PaddleProject
 import io.paddle.tasks.Task
 import io.paddle.utils.tasks.TaskDefaultGroups
 
-class RunTask(name: String, private val entrypoint: String, private val arguments: List<String>, project: Project) : Task(project) {
+class RunTask(name: String, private val entrypoint: String, private val arguments: List<String>, project: PaddleProject) : Task(project) {
     companion object {
-        fun from(project: Project): List<RunTask> {
+        fun from(project: PaddleProject): List<RunTask> {
             val configurations = project.config.get<List<Map<String, Any>>?>("tasks.run") ?: return emptyList()
             val tasks = ArrayList<RunTask>()
             for (configuration in configurations) {
@@ -24,12 +24,12 @@ class RunTask(name: String, private val entrypoint: String, private val argument
         }
     }
 
-    override val id: String = "run:${name}"
+    override val id: String = "run$${name}"
 
     override val group: String = TaskDefaultGroups.RUN
 
     override val dependencies: List<Task>
-        get() = listOf(project.tasks.getOrFail("venv"))
+        get() = listOf(project.tasks.getOrFail("install"))
 
     override fun initialize() {}
 

@@ -2,6 +2,9 @@ package io.paddle.plugin.python.utils
 
 import io.ktor.client.*
 import io.ktor.client.engine.cio.*
+import io.ktor.client.features.auth.*
+import io.ktor.client.features.auth.providers.*
+import io.paddle.plugin.python.dependencies.repositories.PyPackageRepository
 import io.paddle.utils.hash.StringHashable
 
 
@@ -23,6 +26,36 @@ internal val httpClient = HttpClient(CIO) {
             connectTimeout = TIMEOUT_MS
             requestTimeout = TIMEOUT_MS
             socketTimeout = TIMEOUT_MS
+        }
+    }
+}
+
+class CachedHttpClient private constructor(val client: HttpClient, val credentials: PyPackageRepository.Credentials) {
+    companion object {
+        @Volatile
+        private var instance: CachedHttpClient? = null
+
+        fun getInstance(credentials: PyPackageRepository.Credentials): HttpClient =
+            if (credentials == PyPackageRepository.Credentials.EMPTY)
+                httpClient
+            else
+                instance?.client ?: synchronized(this) {
+                    instance?.client ?: authenticateClient(credentials).also { instance = it }.client
+                }
+
+        private fun authenticateClient(credentials: PyPackageRepository.Credentials): CachedHttpClient {
+            return CachedHttpClient(
+                httpClient.config {
+                    install(Auth) {
+                        basic {
+                            credentials {
+                                BasicAuthCredentials(username = credentials.login, password = credentials.password)
+                            }
+                        }
+                    }
+                },
+                credentials
+            )
         }
     }
 }

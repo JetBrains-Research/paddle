@@ -18,6 +18,8 @@ dependencies {
     implementation("com.github.ajalt.clikt", "clikt", "3.2.0")
 
     implementation("ch.qos.logback", "logback-classic", "1.2.3")
+
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.2")
 }
 
 val shadowJar = shadowJar {

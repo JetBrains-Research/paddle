@@ -4,6 +4,7 @@ import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.util.io.exists
 import com.intellij.util.io.isDirectory
+import java.io.File
 import java.nio.file.Files.isRegularFile
 import java.nio.file.Path
 
@@ -25,4 +26,8 @@ internal val Path.isPaddle: Boolean
 internal fun Path.findPaddleInDirectory(): Path? {
     require(isDirectory()) { "Trying to find paddle.yaml not in directory" }
     return resolve("paddle.yaml").takeIf { it.exists() }
+}
+
+fun File.containsPrefix(other: File): Boolean {
+    return canonicalPath.startsWith(other.canonicalPath)
 }

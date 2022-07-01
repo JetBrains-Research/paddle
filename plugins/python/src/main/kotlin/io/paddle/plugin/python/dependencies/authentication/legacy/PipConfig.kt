@@ -1,6 +1,7 @@
 package io.paddle.plugin.python.dependencies.authentication.legacy
 
 import io.paddle.plugin.python.utils.exists
+import io.paddle.tasks.Task
 import org.codehaus.plexus.util.Os
 import org.ini4j.Ini
 import java.nio.file.Paths
@@ -39,7 +40,7 @@ class PipConfig private constructor(
                     return PipConfig(userConfig, globalConfig)
                 }
                 else -> {
-                    error("Can not find pip configuration file: only Unix and MacOS platforms are supported now.")
+                    throw Task.ActException("Can not find pip configuration file: only Unix and MacOS platforms are supported now.")
                 }
             }
         }

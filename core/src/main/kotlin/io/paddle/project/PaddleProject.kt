@@ -4,6 +4,7 @@ import io.paddle.execution.CommandExecutor
 import io.paddle.execution.local.LocalCommandExecutor
 import io.paddle.plugin.Plugin
 import io.paddle.plugin.standard.extensions.Plugins
+import io.paddle.plugin.standard.extensions.subprojects
 import io.paddle.schema.extensions.BaseJsonSchemaExtension
 import io.paddle.schema.extensions.JsonSchema
 import io.paddle.terminal.*
@@ -13,22 +14,30 @@ import io.paddle.utils.hash.StringHashable
 import io.paddle.utils.yaml.YAML
 import java.io.File
 
-class Project(val config: Configuration, val workDir: File = File("."), val output: TextOutput = TextOutput.Console) {
+class PaddleProject internal constructor(val config: Configuration, val workDir: File, val rootDir: File, output: TextOutput = TextOutput.Console) {
     interface Extension<V : Any> {
         val key: Extendable.Key<V>
 
-        fun create(project: Project): V
+        fun create(project: PaddleProject): V
     }
 
-    val id: String = "project_" + StringHashable(workDir.absolutePath).hash()
+    val id: String = "project_" + StringHashable(workDir.canonicalPath).hash()
     val tasks = Tasks()
     val extensions = Extendable()
+    val parents = ArrayList<PaddleProject>()
+
+    var output: TextOutput = output
+        set(value) {
+            field = value
+            executor = LocalCommandExecutor(value)
+            terminal = Terminal(value)
+            subprojects.forEach { it.output = value }
+        }
     var executor: CommandExecutor = LocalCommandExecutor(output)
-    val terminal = Terminal(output)
+    var terminal = Terminal(output)
 
     val buildFile: File = workDir.resolve("paddle.yaml")
     val yaml: MutableMap<String, Any> = buildFile.readText().let { YAML.parse(it) }
-
 
     init {
         extensions.register(Plugins.Extension.key, Plugins.Extension.create(this))
@@ -65,9 +74,16 @@ class Project(val config: Configuration, val workDir: File = File("."), val outp
         task.run()
     }
 
-    companion object {
-        fun load(file: File): Project {
-            return Project(config = Configuration.from(file))
-        }
+    override fun hashCode(): Int = id.hashCode()
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+        other as PaddleProject
+        if (id != other.id) return false
+        return true
     }
+
+    class ProjectInitializationException(reason: String) : Exception(reason)
 }
+

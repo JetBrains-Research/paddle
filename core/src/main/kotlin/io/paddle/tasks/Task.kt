@@ -1,10 +1,11 @@
 package io.paddle.tasks
 
-import io.paddle.project.Project
+import io.paddle.plugin.standard.extensions.route
+import io.paddle.project.PaddleProject
 import io.paddle.terminal.CommandOutput
 import io.paddle.utils.tasks.TaskDefaultGroups
 
-abstract class Task(val project: Project) {
+abstract class Task(val project: PaddleProject) {
     /**
      * Identifier of the task in the project.
      *
@@ -45,17 +46,18 @@ abstract class Task(val project: Project) {
      * Decorated version of [act]: prints current state to project's terminal.
      */
     protected open fun execute() {
-        project.terminal.commands.stdout(CommandOutput.Command.Task(id, CommandOutput.Command.Task.Status.EXECUTE))
+        val taskRoute = ":" + project.route.joinToString(":") + ":$id"
+        project.terminal.commands.stdout(CommandOutput.Command.Task(taskRoute, CommandOutput.Command.Task.Status.EXECUTE))
 
         try {
             act()
         } catch (e: ActException) {
             e.message?.let { project.terminal.error(it) }
-            project.terminal.commands.stdout(CommandOutput.Command.Task(id, CommandOutput.Command.Task.Status.FAILED))
+            project.terminal.commands.stdout(CommandOutput.Command.Task(taskRoute, CommandOutput.Command.Task.Status.FAILED))
             throw e
         }
 
-        project.terminal.commands.stdout(CommandOutput.Command.Task(id, CommandOutput.Command.Task.Status.DONE))
+        project.terminal.commands.stdout(CommandOutput.Command.Task(taskRoute, CommandOutput.Command.Task.Status.DONE))
     }
 
     /**

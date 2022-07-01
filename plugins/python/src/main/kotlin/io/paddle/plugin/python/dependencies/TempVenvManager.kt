@@ -8,7 +8,8 @@ import io.paddle.plugin.python.dependencies.packages.PyPackage
 import io.paddle.plugin.python.dependencies.resolvers.PipResolver
 import io.paddle.plugin.python.extensions.environment
 import io.paddle.plugin.python.utils.jsonParser
-import io.paddle.project.Project
+import io.paddle.project.PaddleProject
+import io.paddle.tasks.Task
 import io.paddle.terminal.Terminal
 import kotlinx.serialization.encodeToString
 import java.io.File
@@ -19,25 +20,25 @@ import kotlin.io.path.absolutePathString
  * A service for managing Paddle's internal virtual environment, where all the packages are installed for the first time.
  * Then, Paddle moves them to the corresponding ~/.paddle/cache/repo/package/version folder.
  */
-class TempVenvManager private constructor(val venv: VenvDir, val project: Project) {
+class TempVenvManager private constructor(val venv: VenvDir, val project: PaddleProject) {
     companion object {
         @Volatile
         private var instance: TempVenvManager? = null
 
-        fun getInstance(project: Project): TempVenvManager =
+        fun getInstance(project: PaddleProject): TempVenvManager =
             instance ?: synchronized(this) {
                 instance ?: getTempVenvManager(project).also { instance = it }
             }
 
-        private fun getTempVenvManager(project: Project): TempVenvManager {
+        private fun getTempVenvManager(project: PaddleProject): TempVenvManager {
             val venv = VenvDir(PyLocations.venvsDir.resolve(project.id).toFile())
-            createTempVenv(project, venv).orElse { error("Failed to create Paddle's internal virtualenv. Check your python installation.") }
+            createTempVenv(project, venv).orElse { throw Task.ActException("Failed to create Paddle's internal virtualenv. Check your python installation.") }
             return TempVenvManager(venv, project)
         }
 
-        private fun createTempVenv(project: Project, venv: VenvDir, options: List<String> = emptyList(), verbose: Boolean = true): ExecutionResult {
+        private fun createTempVenv(project: PaddleProject, venv: VenvDir, options: List<String> = emptyList(), verbose: Boolean = true): ExecutionResult {
             return project.executor.execute(
-                command = project.environment.localInterpreterPath.absolutePathString(),
+                command = project.environment.interpreterPath.absolutePathString(),
                 args = listOf("-m", "venv") + options + PyLocations.venvsDir.resolve(project.id).toString(),
                 workingDir = PyLocations.paddleHome.toFile(),
                 terminal = Terminal.MOCK,
