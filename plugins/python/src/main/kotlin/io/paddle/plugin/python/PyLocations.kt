@@ -1,10 +1,12 @@
 package io.paddle.plugin.python
 
+import io.paddle.plugin.python.utils.deepResolve
 import io.paddle.utils.exists
+import java.io.File
 import java.nio.file.Path
 import java.nio.file.Paths
 
-object PaddlePyConfig {
+object PyLocations {
     /**
      * A home directory for Paddle. Contains installed package caches and internal virtual environment. Planning to support caching wheels, etc.
      */
@@ -17,7 +19,7 @@ object PaddlePyConfig {
      *
      * ```
      *   $PADDLE_HOME/
-     *       cache/
+     *       packages/
      *           repo_name_hash/
      *               package_name/
      *                   version_1/
@@ -32,7 +34,7 @@ object PaddlePyConfig {
      *                   ...
      * ```
      */
-    val cacheDir: Path = paddleHome.resolve("cache")
+    val packagesDir: Path = paddleHome.resolve("packages")
 
     /**
      * A path to the internal venvs directory which contains virtual environment per project.
@@ -48,7 +50,10 @@ object PaddlePyConfig {
     val interpretersDir: Path = paddleHome.resolve("interpreters")
         get() = field.also { if (!field.exists()) field.toFile().mkdirs() }
 
-    val distResolverCachePath: Path = paddleHome.resolve("distResolverCache.json")
+    val distResolverCachePath: Path = paddleHome.deepResolve("cache", "distResolverCache.json")
 
-    val pipResolverCachePath: Path = paddleHome.resolve("pipResolverCache.json")
+    val pipResolverCachePath: Path = paddleHome.deepResolve("cache", "pipResolverCache.json")
+
+    val profiles: File = paddleHome.resolve("profiles.yaml").toFile()
 }
+

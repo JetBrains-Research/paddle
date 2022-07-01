@@ -1,7 +1,7 @@
 package io.paddle.plugin.python.dependencies.resolvers
 
 import io.paddle.execution.ExecutionResult
-import io.paddle.plugin.python.PaddlePyConfig
+import io.paddle.plugin.python.PyLocations
 import io.paddle.plugin.python.dependencies.index.PyPackageRepositoryIndexer
 import io.paddle.plugin.python.dependencies.index.distributions.ArchivePyDistributionInfo
 import io.paddle.plugin.python.dependencies.index.distributions.WheelPyDistributionInfo
@@ -11,10 +11,12 @@ import io.paddle.plugin.python.extensions.*
 import io.paddle.plugin.python.utils.*
 import io.paddle.project.Project
 import io.paddle.tasks.Task
+import io.paddle.utils.hash.hashable
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.builtins.*
 import org.codehaus.plexus.util.cli.CommandLineUtils
 import org.codehaus.plexus.util.cli.Commandline
+import java.io.ByteArrayInputStream
 import kotlin.io.path.absolutePathString
 
 object PipResolver {
@@ -29,42 +31,54 @@ object PipResolver {
             "\\((?<version>[\\w\\-_.*+!]+?)\\)"
     )
 
-    fun resolve(project: Project): Set<PyPackage> {
-        // Collect requirements which repo is not specified directly (or specified as PyPi)
-        val generalRequirements = project.requirements.descriptors
-            .filter { it.repo == null || it.repo == PyPackageRepository.PYPI_REPOSITORY.name }
-            .map { it.name + (it.version?.let { v -> "==$v" } ?: "") }
-        val pipResolveArgs = listOf("-m", "pip", "resolve") + generalRequirements + project.repositories.resolved.asPipArgs
+    fun resolve(project: Project): Set<PyPackage> =
+        cached(
+            storage = PyLocations.pipResolverCachePath.toFile(),
+            serializer = MapSerializer(String.serializer(), ListSerializer(String.serializer()))
+        ) {
+            // Collect requirements which repo is not specified directly (or specified as PyPi)
+            val generalRequirements = project.requirements.descriptors
+                .filter { it.repo == null || it.repo == PyPackageRepository.PYPI_REPOSITORY.name }
+                .map { it.name + (it.version?.let { v -> "==$v" } ?: "") }
+            val pipResolveArgs = listOf("-m", "pip", "resolve") + generalRequirements + project.repositories.resolved.asPipArgs
+            val cacheInput = pipResolveArgs.map { it.hashable() }.hashable().hash()
 
-        val output = ArrayList<String>()
-        Cache.find(pipResolveArgs)?.let { output.addAll(it) }
-            ?: ExecutionResult(
+            val output = ArrayList<String>()
+            getFromCache(cacheInput)?.let { output.addAll(it) } ?: ExecutionResult(
                 CommandLineUtils.executeCommandLine(
                     Commandline().apply {
                         executable = project.environment.localInterpreterPath.absolutePathString()
                         addArguments(pipResolveArgs.toTypedArray())
                     },
+                    ByteArrayInputStream("\n\n".encodeToByteArray()),
                     { output.add(it); project.terminal.stdout(it) },
                     { project.terminal.stderr(it) }
                 )
             )
 
-        // TODO: resolve requirements which repo is specified directly
+            // TODO: resolve requirements which repo is specified directly
 
-        Cache.update(pipResolveArgs, output)
-        return parse(output, project)
-    }
+            val packages = parse(output, project)
+            if (packages.isNotEmpty()) {
+                updateCache(cacheInput, output)
+            }
+
+            return@cached packages
+        }
 
     private fun parse(output: List<String>, project: Project): Set<PyPackage> {
         val startIdx = output.indexOfFirst { it == "--- RESOLVED-BEGIN ---" }
         val endIdx = output.indexOfLast { it == "--- RESOLVED-END ---" }
         if (startIdx == -1 || endIdx == -1) {
+            if (output.all { it.contains("Requirement already satisfied") }) {
+                return emptySet()
+            }
             output.map { project.terminal.stderr(it) }
             throw Task.ActException("Package resolution failed.")
         }
 
         val lines = output.slice((startIdx + 1) until endIdx)
-        val comesFromByPackage = HashMap<PyPackage, PyPackageUrl>()
+        val comesFromUrlByPackage = HashMap<PyPackage, PyPackageUrl>()
 
         for (i in lines.indices step PACKAGE_PROPERTIES_NUM) {
             val name = lines[i].substringAfter(": ")
@@ -84,7 +98,7 @@ object PipResolver {
                     PyPackageRepository.PYPI_REPOSITORY.also {
                         distributionUrl = PyPackageRepositoryIndexer.getDistributionUrl(pyDistributionInfo, it)
                             ?: error(
-                                "Distribution $filename was not found in the repository ${it.url}.\n" +
+                                "Distribution $filename was not found in the repository ${it.url.getSecure()}.\n" +
                                     "It is possible that it was resolved from your local cache, " +
                                     "which is deprecated since it is not available online anymore.\n" +
                                     "Please, consider removing $distributionUrl and re-running the task."
@@ -97,50 +111,17 @@ object PipResolver {
             }
 
             val pkg = PyPackage(name, pyDistributionInfo.version, repo, distributionUrl)
-            comesFromByPackage[pkg] = comesFromDistributionUrl
+            comesFromUrlByPackage[pkg] = comesFromDistributionUrl
         }
 
         // Restoring inter-package dependencies via 'comesFrom' field
-        for ((pkg, comesFromDistributionUrl) in comesFromByPackage) {
+        for ((pkg, comesFromDistributionUrl) in comesFromUrlByPackage) {
             if (comesFromDistributionUrl != "None") {
-                val comesFrom = comesFromByPackage.keys.find { it.distributionUrl == comesFromDistributionUrl }
+                val comesFrom = comesFromUrlByPackage.keys.find { it.distributionUrl == comesFromDistributionUrl }
                 pkg.comesFrom = comesFrom
             }
         }
 
-        return comesFromByPackage.keys
-    }
-
-    object Cache {
-        private val storage = PaddlePyConfig.pipResolverCachePath.toFile()
-
-        private var cache: Map<String, List<String>>
-            get() {
-                storage.parentFile.mkdirs()
-                return storage.takeIf { it.exists() }
-                    ?.let {
-                        jsonParser.decodeFromString(
-                            MapSerializer(String.serializer(), ListSerializer(String.serializer())),
-                            it.readText()
-                        )
-                    }
-                    ?: emptyMap()
-            }
-            set(value) {
-                storage.parentFile.mkdirs()
-                storage.writeText(
-                    jsonParser.encodeToString(
-                        MapSerializer(String.serializer(), ListSerializer(String.serializer())),
-                        value
-                    )
-                )
-            }
-
-        fun find(pipResolveArgs: List<String>) = cache[pipResolveArgs.toString()]
-
-        @Synchronized
-        fun update(pipResolveArgs: List<String>, output: List<String>) {
-            cache = cache.toMutableMap().also { it[pipResolveArgs.toString()] = output }
-        }
+        return comesFromUrlByPackage.keys
     }
 }

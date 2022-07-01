@@ -13,7 +13,7 @@ object PyPackageRepoMetadataSerializer : KSerializer<PyPackageRepository> {
 
     override fun deserialize(decoder: Decoder): PyPackageRepository {
         val metadata = decoder.decodeSerializableValue(delegateSerializer)
-        return PyPackageRepository(metadata.url, metadata.name)
+        return PyPackageRepository(metadata)
     }
 
     override fun serialize(encoder: Encoder, value: PyPackageRepository) {

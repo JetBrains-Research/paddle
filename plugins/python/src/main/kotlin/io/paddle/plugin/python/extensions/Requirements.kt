@@ -29,7 +29,8 @@ class Requirements(val project: Project, val descriptors: MutableList<Descriptor
         }
     }
 
-    data class Descriptor(val name: PyPackageName, val version: PyPackageVersion? = null, val repo: String? = null) : Hashable {
+    data class Descriptor(val name: PyPackageName, val version: PyPackageVersion? = null, val repo: String? = null) :
+        Hashable {
         override fun hash(): String {
             val hashables = mutableListOf(name.hashable())
             version?.let { hashables.add(version.hashable()) }

@@ -91,6 +91,27 @@
         }
       }
     },
+    "requirements": {
+      "description": "List of project requirements",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "name"
+        ],
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "version": {
+            "type": "string"
+          },
+          "repository": {
+            "type": "string"
+          }
+        }
+      }
+    },
     "repositories": {
       "description": "List of the available PyPI repositories",
       "type": "array",
@@ -112,27 +133,45 @@
           },
           "secondary": {
             "type": "boolean"
-          }
-        }
-      }
-    },
-    "requirements": {
-      "description": "List of project requirements",
-      "type": "array",
-      "items": {
-        "type": "object",
-        "required": [
-          "name"
-        ],
-        "properties": {
-          "name": {
-            "type": "string"
           },
-          "version": {
-            "type": "string"
-          },
-          "repository": {
-            "type": "string"
+          "auth": {
+            "description": "The way how credentials for authentication will be provided",
+            "type": "object",
+            "required": [
+              "type"
+            ],
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": [
+                  "keyring",
+                  "netrc",
+                  "profile",
+                  "none"
+                ]
+              }
+            },
+            "allOf": [
+              {
+                "if": {
+                  "properties": {
+                    "type": {
+                      "enum": [
+                        "keyring",
+                        "profile"
+                      ]
+                    }
+                  }
+                },
+                "then": {
+                  "properties": {
+                    "username": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            ]
           }
         }
       }
@@ -210,6 +249,5 @@
         }
       }
     }
-  },
-  "allOf": []
+  }
 }

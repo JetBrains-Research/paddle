@@ -4,11 +4,11 @@ import io.paddle.plugin.Plugin
 import io.paddle.plugin.python.extensions.*
 import io.paddle.plugin.python.tasks.env.*
 import io.paddle.plugin.python.tasks.exec.RunTask
-import io.paddle.plugin.python.tasks.linter.MyPyTask
-import io.paddle.plugin.python.tasks.linter.PyLintTask
+import io.paddle.plugin.python.tasks.lint.MyPyTask
+import io.paddle.plugin.python.tasks.lint.PyLintTask
 import io.paddle.plugin.python.tasks.migrate.ParseRequirementsTxtTask
 import io.paddle.plugin.python.tasks.resolve.*
-import io.paddle.plugin.python.tasks.tests.PyTestTask
+import io.paddle.plugin.python.tasks.test.PyTestTask
 import io.paddle.plugin.standard.tasks.CleanTask
 import io.paddle.project.Project
 import io.paddle.tasks.Task

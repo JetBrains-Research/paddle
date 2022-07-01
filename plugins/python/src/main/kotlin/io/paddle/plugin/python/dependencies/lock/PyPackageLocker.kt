@@ -2,35 +2,34 @@ package io.paddle.plugin.python.dependencies.lock
 
 import io.paddle.plugin.python.dependencies.PyInterpreter
 import io.paddle.plugin.python.dependencies.index.PyPackageRepositoryIndexer
-import io.paddle.plugin.python.dependencies.index.metadata.JsonPackageMetadataReleaseInfo
 import io.paddle.plugin.python.dependencies.lock.models.*
 import io.paddle.plugin.python.dependencies.packages.PyPackage
 import io.paddle.plugin.python.dependencies.repositories.PyPackageRepository
 import io.paddle.plugin.python.extensions.*
-import io.paddle.plugin.python.utils.parallelForEach
-import io.paddle.plugin.python.utils.parallelMap
+import io.paddle.plugin.python.utils.*
 import io.paddle.project.Project
+import kotlinx.coroutines.supervisorScope
 import java.util.concurrent.ConcurrentHashMap
 
 object PyPackageLocker {
 
     suspend fun lock(project: Project) {
-        val lockedPackages = project.requirements.resolved.parallelMap { pkg ->
-            val metadata = PyPackageRepositoryIndexer.downloadMetadata(pkg)
-            val distributions = metadata?.releases?.get(pkg.version) ?: emptyList<JsonPackageMetadataReleaseInfo>().also {
-                project.terminal.warn("Can't find and check metadata for available distributions of package ${pkg.name}==${pkg.version}")
+        supervisorScope {
+            val lockedPackages = project.requirements.resolved.parallelMap { pkg ->
+                val metadata = PyPackageRepositoryIndexer.downloadMetadata(pkg, project.terminal)
+                val distributions = metadata?.releases?.get(pkg.version) ?: emptyList()
+                LockedPyPackage(
+                    LockedPyPackageIdentifier(pkg),
+                    comesFrom = pkg.comesFrom?.let { LockedPyPackageIdentifier(it) },
+                    distributions = distributions.map { LockedPyDistribution(it.filename, it.packageHash) }
+                )
             }
-            LockedPyPackage(
-                LockedPyPackageIdentifier(pkg),
-                comesFrom = pkg.comesFrom?.let { LockedPyPackageIdentifier(it) },
-                distributions = distributions.map { LockedPyDistribution(it.filename, it.packageHash) }
+            val lockFile = PyLockFile(
+                interpreterVersion = project.interpreter.resolved.version.number,
+                lockedPackages = lockedPackages.toSet()
             )
+            lockFile.save(project.workDir.toPath())
         }
-        val lockFile = PyLockFile(
-            interpreterVersion = project.interpreter.resolved.version.number,
-            lockedPackages = lockedPackages.toSet()
-        )
-        lockFile.save(project.workDir.toPath())
     }
 
     suspend fun installFromLock(project: Project) {
@@ -67,12 +66,11 @@ object PyPackageLocker {
     }
 
     private suspend fun checkHashes(pkg: PyPackage, lockedPkg: LockedPyPackage, project: Project) {
-        val metadata = PyPackageRepositoryIndexer.downloadMetadata(pkg)
+        val metadata = PyPackageRepositoryIndexer.downloadMetadata(pkg, project.terminal)
         val availableDistributions = metadata?.releases?.get(pkg.version)
 
         if (availableDistributions == null && lockedPkg.distributions.isEmpty()) {
-            project.terminal.warn("Can't find and check metadata for available distributions of package ${pkg.name}==${pkg.version}")
-            project.terminal.warn("Probably, the corresponding repository ${pkg.repo.url} doesn't contain JSON with metadata needed.")
+            project.terminal.warn("Probably, the corresponding repository ${pkg.repo.url.getSecure()} doesn't contain JSON with metadata needed.")
             // TODO: ask user - trust or not?
             return
         } else if (availableDistributions == null) {

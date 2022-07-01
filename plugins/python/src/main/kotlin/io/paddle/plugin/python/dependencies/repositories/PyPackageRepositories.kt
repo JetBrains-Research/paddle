@@ -1,6 +1,6 @@
 package io.paddle.plugin.python.dependencies.repositories
 
-import io.paddle.plugin.python.PaddlePyConfig
+import io.paddle.plugin.python.PyLocations
 import io.paddle.plugin.python.dependencies.index.distributions.PyDistributionInfo
 import io.paddle.plugin.python.extensions.Repositories
 import io.paddle.plugin.python.utils.*
@@ -17,18 +17,17 @@ class PyPackageRepositories(
     companion object {
         private const val CACHE_SYNC_PERIOD_MS = 60000L
 
-        fun resolve(data: List<Repositories.Descriptor>): PyPackageRepositories {
+        fun resolve(repoDescriptors: List<Repositories.Descriptor>): PyPackageRepositories {
             val repositories = hashSetOf(PyPackageRepository.PYPI_REPOSITORY)
             var primarySource = PyPackageRepository.PYPI_REPOSITORY
 
-            for (descriptor in data) {
-                val url = descriptor.url.removeSuffix("/").removeSuffix("/simple")
-                require(url.isValidUrl()) { "The provided url is invalid: $url" }
-                val name = descriptor.name
+            for (descriptor in repoDescriptors) {
+                require(descriptor.url.isValidUrl()) { "The provided url is invalid: ${descriptor.url}" }
+
+                val repo = PyPackageRepository(descriptor)
+
                 val default = descriptor.default ?: false
                 val secondary = descriptor.secondary ?: false
-
-                val repo = PyPackageRepository(url, name)
                 if (!secondary) {
                     primarySource = repo
                 }
@@ -44,14 +43,14 @@ class PyPackageRepositories(
         }
 
         private fun updateIndex(repositories: Set<PyPackageRepository>) = runBlocking {
-            repositories.map { launch { it.updateIndex() } }.joinAll()
+            repositories.parallelForEach { it.updateIndex() }
             repositories.forEach { it.saveCache() }
         }
     }
 
     init {
         if (useCachedIndex) {
-            val cachedFiles = PaddlePyConfig.indexDir.toFile().listFiles() ?: emptyArray()
+            val cachedFiles = PyLocations.indexDir.toFile().listFiles() ?: emptyArray()
             val newRepositories = HashSet<PyPackageRepository>()
             for (repo in repositories) {
                 cachedFiles.find { it.name == repo.cacheFileName }
@@ -96,11 +95,6 @@ class PyPackageRepositories(
         }
     }
 
-    fun getRepositoryByPyPackageUrl(url: PyPackageUrl): PyPackageRepository {
-        return this.repositories.find { repo -> url.startsWith(repo.url) }
-            ?: throw IllegalStateException("The repository with specified URL was not found.")
-    }
-
     val all: Set<PyPackageRepository>
         get() = repositories.toSet()
 
@@ -110,11 +104,11 @@ class PyPackageRepositories(
     val asPipArgs: List<String>
         get() = ArrayList<String>().apply {
             add("--index-url")
-            add(this@PyPackageRepositories.primarySource.urlSimple)
+            add(this@PyPackageRepositories.primarySource.authenticatedUrlSimple)
             for (repo in this@PyPackageRepositories.repositories) {
                 if (repo != this@PyPackageRepositories.primarySource) {
                     add("--extra-index-url")
-                    add(repo.urlSimple)
+                    add(repo.authenticatedUrlSimple)
                 }
             }
         }
