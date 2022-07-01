@@ -14,6 +14,11 @@ abstract class Task(val project: PaddleProject) {
     abstract val id: String
 
     /**
+     * Short description of the task.
+     */
+    val description: String = ""
+
+    /**
      * Tasks are grouped into categories by semantics.
      *
      * Use [TaskDefaultGroups] for standard groups for tasks

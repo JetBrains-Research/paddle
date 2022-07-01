@@ -27,7 +27,7 @@ class Paddle(private val project: PaddleProject) : CliktCommand() {
 
                 current.execute(taskId)
             } else {
-                project.execute(id = taskRoute)
+                project.execute(taskId = taskRoute)
             }
         } catch (e: Task.ActException) {
             return

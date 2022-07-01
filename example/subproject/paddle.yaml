@@ -17,7 +17,7 @@ plugins:
 
 requirements:
   - name: aioredis
-
+    version: 2.0.0
 
 environment:
   path: .venv
@@ -27,3 +27,9 @@ tasks:
   run:
     - entrypoint: src/main.py
       id: main
+  tests:
+    pytest:
+      targets: # if not specified, then all test roots will be used
+        - test/test_app.py
+      keywords: "not this"
+      parameters: ""

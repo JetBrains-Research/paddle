@@ -1,4 +1,4 @@
-package io.paddle.idea.runner
+package io.paddle.idea.execution
 
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId

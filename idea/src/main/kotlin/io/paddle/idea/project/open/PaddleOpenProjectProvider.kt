@@ -50,7 +50,6 @@ object PaddleOpenProjectProvider : AbstractOpenProjectProvider() {
         )
 
         ExternalProjectsManagerImpl.getInstance(project).runWhenInitialized {
-            ExternalSystemUtil.ensureToolWindowInitialized(project, PaddleManager.ID)
             ExternalSystemUtil.refreshProject(
                 settings.externalProjectPath,
                 ImportSpecBuilder(project, PaddleManager.ID)

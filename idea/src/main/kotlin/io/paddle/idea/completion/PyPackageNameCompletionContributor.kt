@@ -6,9 +6,7 @@ import com.intellij.codeInsight.lookup.LookupElementBuilder
 import com.intellij.patterns.PlatformPatterns.*
 import com.intellij.util.ProcessingContext
 import io.paddle.plugin.python.extensions.repositories
-import io.paddle.project.PaddleProjectProvider
 import org.jetbrains.yaml.psi.YAMLDocument
-import java.io.File
 
 class PyPackageNameCompletionContributor : CompletionContributor() {
     init {
@@ -17,9 +15,8 @@ class PyPackageNameCompletionContributor : CompletionContributor() {
             psiElement()
                 .inFile(psiFile().withName(string().equalTo("paddle.yaml")))
                 .withSuperParent(2, psiElement().withText(string().startsWith("name:")))
-                .withSuperParent(6, psiElement().withText(string().startsWith("libraries:")))
-                .withSuperParent(8, psiElement().withText(string().startsWith("requirements:")))
-                .withSuperParent(10, YAMLDocument::class.java),
+                .withSuperParent(6, psiElement().withText(string().startsWith("requirements:")))
+                .withSuperParent(8, YAMLDocument::class.java),
             PyPackageNameCompletionProvider()
         )
     }
@@ -27,11 +24,10 @@ class PyPackageNameCompletionContributor : CompletionContributor() {
 
 class PyPackageNameCompletionProvider : CompletionProvider<CompletionParameters>() {
     override fun addCompletions(parameters: CompletionParameters, context: ProcessingContext, result: CompletionResultSet) {
-        val rootDir = File(parameters.editor.project?.basePath!!)
-        val project = PaddleProjectProvider.getInstance(rootDir).getProject(rootDir) ?: return
+        val paddleProject = parameters.extractPaddleProject() ?: return
 
         val prefix = parameters.position.text.trim().removeSuffix(DUMMY_IDENTIFIER_TRIMMED)
-        val variants = project.repositories.resolved.findAvailablePackagesByPrefix(prefix)
+        val variants = paddleProject.repositories.resolved.findAvailablePackagesByPrefix(prefix)
 
         for ((pkgName, repo) in variants) {
             result.addElement(LookupElementBuilder.create(pkgName).withTypeText(repo.name, true))

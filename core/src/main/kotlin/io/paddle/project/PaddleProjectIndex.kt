@@ -23,7 +23,7 @@ internal class PaddleProjectIndex(rootDir: File) {
 
     fun refresh(rootDir: File) {
         dumbProjects = collectDumbProjects(rootDir)
-        indexByName = dumbProjects.associateBy { it.descriptor.name }.let { ConcurrentHashMap(it) }
+        indexByName = ConcurrentHashMap(dumbProjects.associateBy { it.descriptor.name })
         indexByWorkdir = ConcurrentHashMap(dumbProjects.associateBy { it.workDir })
     }
 

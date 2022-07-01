@@ -29,8 +29,7 @@ class PaddleProjectSettingsUpdater : ExternalSystemSettingsListenerEx {
         val connection = project.messageBus.connect(Disposer.newDisposable())
         connection.subscribe(ProjectDataImportListener.TOPIC, ProjectDataImportListener {
             val rootDir = project.basePath?.let { File(it) } ?: return@ProjectDataImportListener
-            val provider = PaddleProjectProvider.getInstance(rootDir)
-            provider.sync()
+            val provider = PaddleProjectProvider.getInstance(rootDir).also { it.sync() }
 
             for (module in project.modules) {
                 val subproject = module.basePath?.let { provider.getProject(File(it)) } ?: continue
@@ -39,10 +38,5 @@ class PaddleProjectSettingsUpdater : ExternalSystemSettingsListenerEx {
                 }
             }
         })
-
-        // Schedule Paddle file watcher to update global index
-//        val rootDir = project.basePath?.let { File(it) } ?: return
-//        val scheduler = PaddleWatchersScheduler.getInstance(rootDir)
-//        Thread { scheduler.schedule(rootDir) }.start()
     }
 }

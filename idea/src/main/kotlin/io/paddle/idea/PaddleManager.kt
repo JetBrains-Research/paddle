@@ -1,24 +1,26 @@
 package io.paddle.idea
 
 import com.intellij.execution.configurations.SimpleJavaParameters
-import com.intellij.icons.AllIcons
 import com.intellij.openapi.externalSystem.*
 import com.intellij.openapi.externalSystem.model.ProjectSystemId
 import com.intellij.openapi.externalSystem.service.project.ExternalSystemProjectResolver
 import com.intellij.openapi.externalSystem.service.project.autoimport.CachingExternalSystemAutoImportAware
 import com.intellij.openapi.externalSystem.task.ExternalSystemTaskManager
+import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
 import com.intellij.openapi.externalSystem.util.ExternalSystemConstants
 import com.intellij.openapi.fileChooser.FileChooserDescriptor
 import com.intellij.openapi.options.Configurable
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.startup.StartupActivity
 import com.intellij.openapi.util.Pair
 import com.intellij.openapi.util.registry.Registry
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.util.Function
 import icons.ExternalSystemIcons
+import icons.PythonIcons
+import io.paddle.idea.execution.PaddleTaskManager
 import io.paddle.idea.project.PaddleAutoImportAware
 import io.paddle.idea.project.PaddleProjectResolver
-import io.paddle.idea.runner.PaddleTaskManager
 import io.paddle.idea.settings.*
 import io.paddle.idea.utils.isPaddle
 import java.io.File
@@ -33,7 +35,7 @@ class PaddleManager : ExternalSystemManager<
     >,
     ExternalSystemUiAware,
     ExternalSystemConfigurableAware,
-    ExternalSystemAutoImportAware {
+    ExternalSystemAutoImportAware, StartupActivity {
 
     companion object {
         val ID: ProjectSystemId = ProjectSystemId("Paddle")
@@ -70,7 +72,7 @@ class PaddleManager : ExternalSystemManager<
     }
 
     override fun getLocalSettingsProvider(): Function<Project, PaddleLocalSettings> {
-        return Function { PaddleLocalSettings(it) }
+        return Function<Project, PaddleLocalSettings> { project: Project -> project.getService(PaddleLocalSettings::class.java) }
     }
 
     override fun getExecutionSettingsProvider(): Function<Pair<Project, String>, PaddleExecutionSettings> {
@@ -90,14 +92,18 @@ class PaddleManager : ExternalSystemManager<
     override fun getExternalProjectDescriptor(): FileChooserDescriptor = FILE_CHOOSER_DESCRIPTOR
 
     override fun getProjectRepresentationName(targetProjectPath: String, rootProjectPath: String?): String {
-        return "Paddle"
+        return ExternalSystemApiUtil.getProjectRepresentationName(targetProjectPath, rootProjectPath);
     }
 
-    override fun getProjectIcon(): Icon = AllIcons.Nodes.IdeaProject
+    override fun getProjectIcon(): Icon = PythonIcons.Python.Python
 
     override fun getTaskIcon(): Icon = ExternalSystemIcons.Task
 
     override fun getConfigurable(project: Project): Configurable {
         return PaddleConfigurable(project)
+    }
+
+    override fun runActivity(project: Project) {
+        val localSettings = project.getService(PaddleLocalSettings::class.java)
     }
 }

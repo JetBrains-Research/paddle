@@ -26,9 +26,9 @@ repositories:
       type: netrc
       username: Oleg.Smirnov
 
-  - name: paper-analyzer
-    url: https://repo.labs.intellij.net/artifactory/api/pypi/paper-analyzer/simple/
-    secondary: True # Thus, <grazie-ml> still would be the primary source. But without such flag, this repo would have precedence over <ml>
+#  - name: paper-analyzer
+#    url: https://repo.labs.intellij.net/artifactory/api/pypi/paper-analyzer/simple/
+#    secondary: True # Thus, <grazie-ml> still would be the primary source. But without such flag, this repo would have precedence over <ml>
 
 requirements:
   - name: redis

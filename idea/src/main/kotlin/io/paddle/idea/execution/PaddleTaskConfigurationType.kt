@@ -1,4 +1,4 @@
-package io.paddle.idea.runner
+package io.paddle.idea.execution
 
 import com.intellij.execution.configurations.ConfigurationFactory
 import com.intellij.openapi.externalSystem.model.ProjectSystemId
@@ -9,15 +9,13 @@ import com.intellij.openapi.project.Project
 import io.paddle.idea.PaddleManager
 
 class PaddleTaskConfigurationType : AbstractExternalSystemTaskConfigurationType(PaddleManager.ID) {
-    override fun getConfigurationFactoryId() = "Paddle"
-
-    override fun isDumbAware(): Boolean {
-        return true
+    companion object {
+        fun getInstance(): PaddleTaskConfigurationType {
+            return ExternalSystemUtil.findConfigurationType(PaddleManager.ID) as PaddleTaskConfigurationType
+        }
     }
 
-    override fun isEditableInDumbMode(): Boolean {
-        return true
-    }
+    override fun getConfigurationFactoryId(): String = "Paddle"
 
     override fun doCreateConfiguration(
         externalSystemId: ProjectSystemId,
@@ -28,8 +26,7 @@ class PaddleTaskConfigurationType : AbstractExternalSystemTaskConfigurationType(
         return PaddleRunConfiguration(project, factory, name)
     }
 
-    companion object {
-        val instance: PaddleTaskConfigurationType
-            get() = ExternalSystemUtil.findConfigurationType(PaddleManager.ID) as PaddleTaskConfigurationType
-    }
+    override fun isDumbAware(): Boolean = true
+
+    override fun isEditableInDumbMode(): Boolean = true
 }

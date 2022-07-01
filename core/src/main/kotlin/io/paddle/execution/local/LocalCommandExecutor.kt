@@ -17,7 +17,7 @@ open class LocalCommandExecutor(output: TextOutput) : CommandExecutor(OutputConf
         verbose: Boolean
     ): ExecutionResult {
         if (verbose) {
-            terminal.info("${workingDir.path}$ $command ${args.joinToString(" ")}")
+            terminal.info("${workingDir.path} % $command ${args.joinToString(" ")}")
         }
         return ExecutionResult(
             CommandLineUtils.executeCommandLine(

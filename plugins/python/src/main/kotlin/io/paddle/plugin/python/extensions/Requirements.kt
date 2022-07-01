@@ -8,6 +8,7 @@ import io.paddle.project.PaddleProject
 import io.paddle.utils.ext.Extendable
 import io.paddle.utils.hash.Hashable
 import io.paddle.utils.hash.hashable
+import kotlin.system.measureTimeMillis
 
 
 val PaddleProject.requirements: Requirements
@@ -16,7 +17,14 @@ val PaddleProject.requirements: Requirements
 class Requirements(val project: PaddleProject, val descriptors: MutableList<Descriptor>) : Hashable {
 
     val resolved: Collection<PyPackage> by lazy {
-        PipResolver.resolve(project) + project.environment.venv.pyPackages
+        project.terminal.info("Resolving requirements...")
+        val result: Collection<PyPackage>
+        measureTimeMillis {
+            result = PipResolver.resolve(project) + project.environment.venv.pyPackages
+        }.also {
+            project.terminal.info("Finished: $it ms")
+        }
+        result
     }
 
     object Extension : PaddleProject.Extension<Requirements> {
