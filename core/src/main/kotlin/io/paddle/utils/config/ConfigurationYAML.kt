@@ -5,8 +5,11 @@ import io.paddle.utils.yaml.YAML
 import java.io.File
 
 
-class ConfigurationYAML(file: File) : Configuration() {
-    private val config = YAML.parse<Map<String, Any>>(file.readText())
+class ConfigurationYAML(private val config: Map<String, Any>) : Configuration() {
+    companion object {
+        fun from(file: File) = ConfigurationYAML(YAML.parse(file.readText()))
+        fun from(yaml: Map<String, Any>) = ConfigurationYAML(yaml)
+    }
 
     @Suppress("UNCHECKED_CAST")
     override fun <T> get(key: String): T? {
@@ -22,4 +25,6 @@ class ConfigurationYAML(file: File) : Configuration() {
 
         return current[name] as? T?
     }
+
+    fun toMutableMap() = config.toMutableMap()
 }

@@ -12,7 +12,6 @@ import io.paddle.project.PaddleProject
 import io.paddle.tasks.Task
 import kotlinx.coroutines.runBlocking
 import org.codehaus.plexus.archiver.tar.TarGZipUnArchiver
-import org.codehaus.plexus.logging.console.ConsoleLoggerManager
 import org.codehaus.plexus.util.Os
 import org.codehaus.plexus.util.cli.CommandLineUtils
 import org.codehaus.plexus.util.cli.Commandline
@@ -115,6 +114,8 @@ class PyInterpreter(val path: Path, val version: Version) {
             unpackTarGZip(workDir.resolve(archiveDistName), extractDir)
             project.terminal.info("Unpacking finished")
 
+            installPrerequisites(project)
+
             // TODO: support Win?
             project.terminal.info("Installing interpreter...")
             val localPythonDir = extractDir.resolve(LOCAL_PYTHON_DIR_NAME).also { it.mkdirs() }
@@ -170,6 +171,21 @@ class PyInterpreter(val path: Path, val version: Version) {
             return PyInterpreter(path, matchedVersion)
         }
 
+        private fun installPrerequisites(project: PaddleProject) {
+            if (Os.isFamily(Os.FAMILY_MAC)) {
+                project.executor.execute(
+                    command = "brew",
+                    args = "install openssl readline sqlite3 xz zlib tcl-tk".split(" "),
+                    workingDir = project.rootDir,
+                    terminal = project.terminal
+                ).orElse {
+                    throw Task.ActException("Failed to install prerequisites. Run this command: 'brew install openssl readline sqlite3 xz zlib tcl-tk'")
+                }
+            } else {
+                // TODO
+            }
+        }
+
         private fun downloadArchive(url: String, target: File, project: PaddleProject) = runBlocking {
             httpClient.get<HttpStatement>(url).execute { httpResponse ->
                 when {
@@ -194,9 +210,7 @@ class PyInterpreter(val path: Path, val version: Version) {
         }
 
         private fun unpackTarGZip(sourceFile: File, destDirectory: File) {
-            TarGZipUnArchiver().run {
-                val consoleLoggerManager = ConsoleLoggerManager().also { it.initialize() }
-                enableLogging(consoleLoggerManager.getLoggerForComponent("python-tgz-un-archiver"))
+            TarGZipUnArchiver().apply {
                 this.sourceFile = sourceFile
                 this.destDirectory = destDirectory
                 extract()

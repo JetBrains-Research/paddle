@@ -2,7 +2,7 @@ group = rootProject.group
 version = rootProject.version
 
 plugins {
-    id("org.jetbrains.intellij") version "1.3.1" apply true
+    id("org.jetbrains.intellij") version "1.6.0" apply true
 }
 
 dependencies {
@@ -18,20 +18,23 @@ dependencies {
     implementation(project(":plugins:ssh")) {
         exclude("org.slf4j")
     }
+    implementation(project(":plugins:migration")) {
+        exclude("org.slf4j")
+    }
 }
 
 intellij {
     pluginName.set("Paddle")
 
     type.set("PC")
-    version.set("PC-2021.3.3")
+    version.set("PC-2022.1.1")
 
     downloadSources.set(true)
 
     plugins.set(
         listOf(
-            "PythonCore:213.7172.26",
-            "org.jetbrains.plugins.yaml:213.6777.22"
+            "PythonCore:221.5591.52",
+            "org.jetbrains.plugins.yaml:221.5591.46"
         )
     )
 

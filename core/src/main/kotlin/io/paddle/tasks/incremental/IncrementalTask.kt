@@ -1,6 +1,7 @@
 package io.paddle.tasks.incremental
 
 import io.paddle.project.PaddleProject
+import io.paddle.project.extensions.route
 import io.paddle.tasks.Task
 import io.paddle.terminal.CommandOutput
 import io.paddle.utils.hash.Hashable
@@ -27,7 +28,8 @@ abstract class IncrementalTask(project: PaddleProject) : Task(project) {
 
     override fun execute() {
         if (isUpToDate()) {
-            project.terminal.commands.stdout(CommandOutput.Command.Task(id, CommandOutput.Command.Task.Status.UP_TO_DATE))
+            val taskRoute = ":" + project.route.joinToString(":") + ":$id"
+            project.terminal.commands.stdout(CommandOutput.Command.Task(taskRoute, CommandOutput.Command.Task.Status.UP_TO_DATE))
             return
         }
 

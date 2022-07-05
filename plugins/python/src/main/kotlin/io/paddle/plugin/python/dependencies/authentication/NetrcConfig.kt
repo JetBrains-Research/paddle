@@ -1,7 +1,7 @@
 package io.paddle.plugin.python.dependencies.authentication
 
 import io.paddle.plugin.python.dependencies.repositories.PyPackageRepository
-import io.paddle.plugin.python.utils.*
+import io.paddle.plugin.python.utils.exists
 import io.paddle.utils.splitAndTrim
 import java.nio.file.Paths
 import java.util.regex.Pattern
@@ -21,8 +21,8 @@ class NetrcConfig(private val hosts: Map<NetrcHost, PyPackageRepository.Credenti
         }
     }
 
-    fun authenticators(host: PyPackagesRepositoryUrl): PyPackageRepository.Credentials? {
-        return hosts[host] ?: hosts[host.getSimple()] ?: hosts[host.getSimple().trim('/')] ?: hosts["default"]
+    fun authenticators(host: String): PyPackageRepository.Credentials? {
+        return hosts[host] ?: hosts["default"]
     }
 
     private class Parser(private val lines: List<String>) {

@@ -4,6 +4,7 @@ import io.paddle.plugin.python.PyLocations
 import io.paddle.plugin.python.dependencies.index.distributions.PyDistributionInfo
 import io.paddle.plugin.python.extensions.Repositories
 import io.paddle.plugin.python.utils.*
+import io.paddle.project.PaddleProject
 import kotlinx.coroutines.*
 import java.util.*
 import kotlin.concurrent.schedule
@@ -11,13 +12,14 @@ import kotlin.concurrent.schedule
 class PyPackageRepositories(
     private val repositories: Set<PyPackageRepository>,
     val primarySource: PyPackageRepository,
+    val project: PaddleProject,
     useCachedIndex: Boolean = true,
     downloadIndex: Boolean = false
 ) {
     companion object {
         private const val CACHE_SYNC_PERIOD_MS = 60000L
 
-        fun resolve(repoDescriptors: List<Repositories.Descriptor>): PyPackageRepositories {
+        fun resolve(repoDescriptors: List<Repositories.Descriptor>, project: PaddleProject): PyPackageRepositories {
             val repositories = hashSetOf(PyPackageRepository.PYPI_REPOSITORY)
             var primarySource = PyPackageRepository.PYPI_REPOSITORY
 
@@ -39,12 +41,21 @@ class PyPackageRepositories(
                 repositories.add(repo)
             }
 
-            return PyPackageRepositories(repositories, primarySource)
+            return PyPackageRepositories(repositories, primarySource, project)
         }
 
-        private fun updateIndex(repositories: Set<PyPackageRepository>) = runBlocking {
-            repositories.parallelForEach { it.updateIndex() }
-            repositories.forEach { it.saveCache() }
+        private fun updateIndex(repositories: Set<PyPackageRepository>, project: PaddleProject) = runBlocking {
+            repositories.parallelForEach {
+                try {
+                    it.updateIndex()
+                    it.saveCache()
+                } catch (e: Throwable) {
+                    project.terminal.warn(
+                        "Failed to update index for PyPI repository: ${it.urlSimple}. " +
+                            "Autocompletion for package names will not be available at the moment."
+                    )
+                }
+            }
         }
     }
 
@@ -57,11 +68,11 @@ class PyPackageRepositories(
                     ?.let { repo.loadCache(it) }
                     ?: newRepositories.add(repo)
             }
-            updateIndex(newRepositories)
+            updateIndex(newRepositories, project)
         }
 
         if (downloadIndex) {
-            updateIndex(repositories)
+            updateIndex(repositories, project)
         }
 
         Timer("PyPackagesRepositoriesCacheSynchronizer", true)

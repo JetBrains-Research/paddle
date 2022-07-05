@@ -24,7 +24,7 @@ class PaddleProfilesConfig(private val profiles: List<Profile>) {
         fun getInstance(): PaddleProfilesConfig? {
             val profilesFile = PyLocations.profiles.takeIf { it.exists() } ?: return null
             val config = try {
-                ConfigurationYAML(profilesFile)
+                ConfigurationYAML.from(profilesFile)
             } catch (e: Throwable) {
                 throw Task.ActException("Parse error: ${profilesFile.path} has wrong structure.")
             }

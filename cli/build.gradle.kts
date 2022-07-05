@@ -12,6 +12,7 @@ plugins {
 dependencies {
     implementation(project(":core"))
     implementation(project(":plugins:python"))
+    implementation(project(":plugins:migration"))
     implementation(project(":plugins:docker"))
     implementation(project(":plugins:ssh"))
 

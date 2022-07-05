@@ -2,6 +2,7 @@ package io.paddle.utils.hash
 
 import io.paddle.utils.checksumHash
 import io.paddle.utils.json.JSON
+import io.paddle.utils.lightHash
 import kotlinx.serialization.SerializationStrategy
 import org.apache.commons.codec.digest.DigestUtils
 import java.io.File
@@ -60,4 +61,8 @@ open class FileHashable(private val file: File, private val hashingFunction: (Fi
 
 fun File.hashable(): Hashable {
     return FileHashable(this)
+}
+
+fun File.lightHashable(): Hashable {
+    return StringHashable(lightHash())
 }

@@ -5,7 +5,10 @@ import io.paddle.project.PaddleProject
 import io.paddle.tasks.Task
 import io.paddle.utils.tasks.TaskDefaultGroups
 
-class RunTask(name: String, private val entrypoint: String, private val arguments: List<String>, project: PaddleProject) : Task(project) {
+class RunTask(val name: String, val entrypoint: String, val arguments: List<String>, project: PaddleProject) : Task(project) {
+    val isModuleMode: Boolean
+        get() = !entrypoint.endsWith(".py")
+
     companion object {
         fun from(project: PaddleProject): List<RunTask> {
             val configurations = project.config.get<List<Map<String, Any>>?>("tasks.run") ?: return emptyList()
@@ -24,7 +27,7 @@ class RunTask(name: String, private val entrypoint: String, private val argument
         }
     }
 
-    override val id: String = "run$${name}"
+    override val id: String = "run$$name"
 
     override val group: String = TaskDefaultGroups.RUN
 
@@ -35,8 +38,8 @@ class RunTask(name: String, private val entrypoint: String, private val argument
 
     override fun act() {
         when {
-            entrypoint.endsWith(".py") -> project.environment.runScript(entrypoint, arguments)
-            else -> project.environment.runModule(entrypoint, arguments)
+            isModuleMode -> project.environment.runModule(entrypoint, arguments)
+            else -> project.environment.runScript(entrypoint, arguments)
         }.orElse { throw ActException("Script has returned non-zero exit code: $it") }
     }
 }

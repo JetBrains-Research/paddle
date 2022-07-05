@@ -8,6 +8,8 @@ subprojects:
 roots:
   sources:
     - src
+  tests:
+    - test
 
 plugins:
   enabled:
@@ -15,7 +17,7 @@ plugins:
 
 requirements:
   - name: aioredis
-
+    version: 2.0.0
 
 environment:
   path: .venv
@@ -25,3 +27,9 @@ tasks:
   run:
     - entrypoint: src/main.py
       id: main
+  pytest:
+    - id: some_tests
+      targets: # if not specified, then all test roots will be used
+        - test/test_app.py
+      keywords: "not this"
+      parameters: ""

@@ -8,13 +8,7 @@ class PaddleProjectSettings : ExternalProjectSettings() {
         abstract class Adapter : Listener, ExternalSystemSettingsListenerAdapter<PaddleProjectSettings>()
 
         class DelegatingAdapter(delegate: ExternalSystemSettingsListener<PaddleProjectSettings>) :
-            DelegatingExternalSystemSettingsListener<PaddleProjectSettings>(delegate), Listener {
-            override fun onProjectsLinked(settings: MutableCollection<PaddleProjectSettings>) {
-                for (projectSettings in settings) {
-                    projectSettings.modules
-                }
-            }
-        }
+            DelegatingExternalSystemSettingsListener<PaddleProjectSettings>(delegate), Listener
 
         companion object {
             @JvmField

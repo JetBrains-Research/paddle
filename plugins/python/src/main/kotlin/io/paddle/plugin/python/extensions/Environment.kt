@@ -6,9 +6,7 @@ import io.paddle.plugin.python.dependencies.VenvDir
 import io.paddle.plugin.python.dependencies.packages.PyPackage
 import io.paddle.plugin.python.dependencies.resolvers.PipResolver
 import io.paddle.plugin.standard.extensions.roots
-import io.paddle.plugin.standard.extensions.subprojects
 import io.paddle.project.PaddleProject
-import io.paddle.terminal.Terminal
 import io.paddle.utils.config.ConfigurationView
 import io.paddle.utils.ext.Extendable
 import io.paddle.utils.hash.Hashable
@@ -45,12 +43,6 @@ class Environment(val project: PaddleProject, val venv: VenvDir) : Hashable {
     }
 
     fun initialize(): ExecutionResult {
-        // Create __init__.py files for all source roots
-//        for (root in project.roots.sources) {
-//            root.resolve("__init__.py").takeUnless { it.exists() }?.createNewFile()
-//        }
-
-        // Create virtualenv and install pip-resolver package (used in PipResolver.kt)
         return project.executor.execute(
             project.interpreter.resolved.path.toString(),
             listOf("-m", "venv", venv.absolutePath),
@@ -61,7 +53,7 @@ class Environment(val project: PaddleProject, val venv: VenvDir) : Hashable {
                 interpreterPath.absolutePathString(),
                 listOf("-m", "pip", "install", PipResolver.PIP_RESOLVER_URL),
                 project.workDir,
-                Terminal.MOCK
+                project.terminal
             )
         }
     }

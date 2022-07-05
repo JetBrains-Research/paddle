@@ -11,7 +11,7 @@ import com.jetbrains.python.sdk.PythonSdkType
 import com.jetbrains.python.sdk.pythonSdk
 import io.paddle.plugin.python.extensions.environment
 import io.paddle.plugin.python.extensions.interpreter
-import io.paddle.plugin.standard.extensions.descriptor
+import io.paddle.project.extensions.descriptor
 import kotlin.io.path.absolutePathString
 
 object PaddlePythonSdkUtil {

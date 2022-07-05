@@ -19,17 +19,15 @@ data class WheelPyDistributionInfo(
     override val ext: String = ".whl"
 
     companion object {
-        private val WHEEL_DISTRIBUTION_PATTERN by lazy {
-            Regex(
-                "^(?<name>(.*)?)-" +
-                    "(?<version>.*?)" +
-                    "(?<buildTag>(-[0-9].*)?)-" +
-                    "(?<pyTag>((py|cp|ip|pp|jy)([0-9]+))(\\.(py|cp|ip|pp|jy)([0-9]+))*)-" +
-                    "(?<abiTag>[^-]+?)-" +
-                    "(?<platformTag>[^-]+?)" +
-                    "\\.whl\$"
-            )
-        }
+        private val WHEEL_DISTRIBUTION_PATTERN = Regex(
+            "^(?<name>([^-]*)?)-" +
+                "(?<version>([^-]*)?)-" +
+                "((?<buildTag>([0-9][^-]*)?)-)?" +
+                "(?<pyTag>((py|cp|ip|pp|jy)([0-9]+))(\\.(py|cp|ip|pp|jy)([0-9]+))*)-" +
+                "(?<abiTag>[^-]+?)-" +
+                "(?<platformTag>[^-]+?)" +
+                "\\.whl\$"
+        )
 
         fun fromString(filename: String): WheelPyDistributionInfo? {
             val matchResult = WHEEL_DISTRIBUTION_PATTERN.find(filename)

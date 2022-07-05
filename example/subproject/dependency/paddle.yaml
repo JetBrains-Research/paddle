@@ -1,0 +1,17 @@
+descriptor:
+  name: dependency
+  version: 0.1.0
+  author: Oleg Smirnov
+  author_email: oleg.smirnov@jetbrains.com
+
+plugins:
+  enabled:
+    - python
+
+roots:
+  sources:
+    - src
+
+environment:
+  path: .venv
+  python: 3.9

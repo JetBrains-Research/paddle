@@ -16,9 +16,9 @@ import com.intellij.openapi.util.registry.Registry
 import com.intellij.openapi.vfs.VirtualFile
 import io.paddle.idea.PaddleManager
 import io.paddle.idea.settings.PaddleProjectSettings
-import io.paddle.idea.utils.findPaddleInDirectory
 import io.paddle.idea.utils.isPaddle
 import java.nio.file.Path
+import kotlin.io.path.absolutePathString
 
 @Suppress("UnstableApiUsage")
 object PaddleOpenProjectProvider : AbstractOpenProjectProvider() {
@@ -32,9 +32,8 @@ object PaddleOpenProjectProvider : AbstractOpenProjectProvider() {
 
     private fun createLinkSettings(projectDirectory: Path): PaddleProjectSettings {
         val projectSettings = PaddleProjectSettings().apply {
-            externalProjectPath = projectDirectory.findPaddleInDirectory()!!.toFile().canonicalPath
+            externalProjectPath = projectDirectory.absolutePathString()
         }
-
         return projectSettings
     }
 
@@ -51,7 +50,6 @@ object PaddleOpenProjectProvider : AbstractOpenProjectProvider() {
         )
 
         ExternalProjectsManagerImpl.getInstance(project).runWhenInitialized {
-            ExternalSystemUtil.ensureToolWindowInitialized(project, PaddleManager.ID)
             ExternalSystemUtil.refreshProject(
                 settings.externalProjectPath,
                 ImportSpecBuilder(project, PaddleManager.ID)

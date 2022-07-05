@@ -2,8 +2,7 @@ package io.paddle.plugin.python.dependencies.authentication
 
 import io.paddle.plugin.python.PyLocations
 import io.paddle.plugin.python.dependencies.repositories.PyPackageRepository
-import io.paddle.plugin.python.utils.PyPackagesRepositoryUrl
-import io.paddle.plugin.python.utils.getSimple
+import io.paddle.plugin.python.utils.*
 import io.paddle.tasks.Task
 
 enum class AuthType {
@@ -27,19 +26,19 @@ object AuthenticationProvider {
     private val netrc: NetrcConfig? by lazy { NetrcConfig.findInstance() }
     private val profiles: PaddleProfilesConfig? by lazy { PaddleProfilesConfig.getInstance() }
 
-    fun resolveCredentials(host: PyPackagesRepositoryUrl, authInfo: AuthInfo): PyPackageRepository.Credentials {
+    fun resolveCredentials(repoUrl: PyPackagesRepositoryUrl, authInfo: AuthInfo): PyPackageRepository.Credentials {
         return when (authInfo.type) {
             AuthType.NETRC -> {
                 netrc ?: throw Task.ActException(".netrc configuration not found.")
-                netrc?.authenticators(host = host)
-                    ?: throw Task.ActException("Can not find credentials for host = $host within .netrc file.")
+                netrc?.authenticators(host = repoUrl.getHost())
+                    ?: throw Task.ActException("Can not find credentials for host = ${repoUrl.getHost()} within .netrc file.")
             }
             AuthType.KEYRING -> {
                 val username = authInfo.username ?: throw IllegalStateException("Keyring auth: username must be specified.")
-                val password = CachedKeyring.getCachedPasswordOrNull(host, username)
-                    ?: CachedKeyring.getCachedPasswordOrNull(host.getSimple(), username)
-                    ?: CachedKeyring.getCachedPasswordOrNull(host.getSimple().trim('/'), username)
-                    ?: throw Task.ActException("Could not find appropriate credentials for host = $host, username = $username via Keyring.")
+                val password = CachedKeyring.getCachedPasswordOrNull(repoUrl, username)
+                    ?: CachedKeyring.getCachedPasswordOrNull(repoUrl.getSimple(), username)
+                    ?: CachedKeyring.getCachedPasswordOrNull(repoUrl.getSimple().trim('/'), username)
+                    ?: throw Task.ActException("Could not find appropriate credentials for host = $repoUrl, username = $username via Keyring.")
                 return PyPackageRepository.Credentials(username, password)
             }
             AuthType.PROFILE -> {

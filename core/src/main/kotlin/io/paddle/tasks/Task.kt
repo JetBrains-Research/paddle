@@ -1,7 +1,7 @@
 package io.paddle.tasks
 
-import io.paddle.plugin.standard.extensions.route
 import io.paddle.project.PaddleProject
+import io.paddle.project.extensions.route
 import io.paddle.terminal.CommandOutput
 import io.paddle.utils.tasks.TaskDefaultGroups
 
@@ -12,6 +12,11 @@ abstract class Task(val project: PaddleProject) {
      * Note that this identifier will be used to call the task from the terminal.
      */
     abstract val id: String
+
+    /**
+     * Short description of the task.
+     */
+    val description: String = ""
 
     /**
      * Tasks are grouped into categories by semantics.

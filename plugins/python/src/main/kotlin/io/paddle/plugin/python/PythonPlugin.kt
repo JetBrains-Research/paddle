@@ -5,13 +5,12 @@ import io.paddle.plugin.python.extensions.*
 import io.paddle.plugin.python.tasks.install.*
 import io.paddle.plugin.python.tasks.lint.MyPyTask
 import io.paddle.plugin.python.tasks.lint.PyLintTask
-import io.paddle.plugin.python.tasks.migrate.ParseRequirementsTxtTask
 import io.paddle.plugin.python.tasks.resolve.*
 import io.paddle.plugin.python.tasks.run.RunTask
+import io.paddle.plugin.python.tasks.setup.BuildTask
 import io.paddle.plugin.python.tasks.test.PyTestTask
 import io.paddle.plugin.python.tasks.venv.VenvTask
 import io.paddle.plugin.standard.extensions.plugins
-import io.paddle.plugin.standard.tasks.CleanTask
 import io.paddle.project.PaddleProject
 import io.paddle.tasks.Task
 
@@ -26,7 +25,6 @@ object PythonPlugin : Plugin {
 
     override fun tasks(project: PaddleProject): List<Task> {
         return listOf(
-            CleanTask(project),
             VenvTask(project),
             InstallTask(project),
             ResolveInterpreterTask(project),
@@ -36,9 +34,8 @@ object PythonPlugin : Plugin {
             CiTask(project),
             MyPyTask(project),
             PyLintTask(project),
-            PyTestTask(project),
-            ParseRequirementsTxtTask(project)
-        ) + RunTask.from(project)
+            BuildTask(project)
+        ) + RunTask.from(project) + PyTestTask.from(project)
     }
 
     @Suppress("UNCHECKED_CAST")
@@ -48,7 +45,8 @@ object PythonPlugin : Plugin {
             Repositories.Extension,
             Environment.Extension,
             Interpreter.Extension,
-            JsonSchema.Extension
+            JsonSchema.Extension,
+            BuildEnvironment.Extension,
         ) as List<PaddleProject.Extension<Any>>
     }
 }

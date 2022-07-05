@@ -1,8 +1,7 @@
 package io.paddle.plugin.python.dependencies
 
+import io.paddle.plugin.python.dependencies.packages.*
 import io.paddle.plugin.python.dependencies.packages.CachedPyPackage.Companion.PYPACKAGE_CACHE_FILENAME
-import io.paddle.plugin.python.dependencies.packages.PyPackage
-import io.paddle.plugin.python.dependencies.packages.PyPackageMetadata
 import io.paddle.plugin.python.utils.*
 import io.paddle.tasks.Task
 import kotlinx.serialization.decodeFromString
@@ -66,11 +65,11 @@ class InstalledPackageInfoDir(val dir: File, val type: Type, val name: PyPackage
             Type.DIST -> {
                 dir.resolve("RECORD").readLines()
                     .map { it.split(",")[0] }
-                    .map { dir.parentFile.resolveRelative(it) }
+                    .mapNotNull { dir.parentFile.resolveRelative(it).takeIf { f -> f.exists() } }
             }
             Type.LEGACY -> {
                 dir.resolve("installed-files.txt").readLines()
-                    .map { dir.resolveRelative(it) }
+                    .mapNotNull { dir.resolveRelative(it).takeIf { f -> f.exists() } }
             }
         }
 
