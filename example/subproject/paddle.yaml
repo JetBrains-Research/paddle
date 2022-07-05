@@ -27,8 +27,8 @@ tasks:
   run:
     - entrypoint: src/main.py
       id: main
-  tests:
-    pytest:
+  pytest:
+    - id: some_tests
       targets: # if not specified, then all test roots will be used
         - test/test_app.py
       keywords: "not this"

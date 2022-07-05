@@ -8,6 +8,7 @@ import com.intellij.openapi.util.Ref
 import com.intellij.psi.PsiElement
 import com.jetbrains.python.sdk.basePath
 import io.paddle.idea.PaddleManager
+import io.paddle.idea.utils.getSuperParent
 import org.jetbrains.yaml.psi.YAMLKeyValue
 
 class PaddleRunConfigurationProducer : AbstractExternalSystemRunConfigurationProducer() {
@@ -25,11 +26,19 @@ class PaddleRunConfigurationProducer : AbstractExternalSystemRunConfigurationPro
         }
 
         if (configuration.settings.externalSystemId != PaddleManager.ID || configuration !is PaddleRunConfiguration) return false
-        if (context.location?.psiElement?.parent !is YAMLKeyValue) return false
-        val runTaskId = (context.location?.psiElement?.parent as YAMLKeyValue).value?.text ?: return false
         val module = context.location?.module ?: return false
 
-        configuration.settings.taskNames = listOf("run$$runTaskId")
+        val element = context.location?.psiElement ?: return false
+        if (element.parent !is YAMLKeyValue) return false
+        val taskId = (context.location?.psiElement?.parent as YAMLKeyValue?)?.value?.text ?: return false
+
+        configuration.settings.taskNames = listOf(
+            when {
+                element.getSuperParent(5)?.text?.startsWith("pytest") ?: false -> "pytest$$taskId"
+                element.getSuperParent(5)?.text?.startsWith("run") ?: false -> "run$$taskId"
+                else -> throw IllegalStateException("Incorrect PSI element in YAML: $element")
+            }
+        )
         configuration.settings.externalProjectPath = module.basePath
         configuration.name = AbstractExternalSystemTaskConfigurationType.generateName(module.project, configuration.settings)
 
@@ -46,11 +55,13 @@ class PaddleRunConfigurationProducer : AbstractExternalSystemRunConfigurationPro
         if (configuration.settings.externalProjectPath != module.basePath) return false
 
         if (context.location?.psiElement?.parent !is YAMLKeyValue) return false
-        val runTaskId = (context.location?.psiElement?.parent as YAMLKeyValue).value?.text ?: return false
+        val taskId = (context.location?.psiElement?.parent as YAMLKeyValue).value?.text ?: return false
         val taskNames = configuration.settings.taskNames.takeIf { it.isNotEmpty() } ?: return false
-        if (taskNames.first() != "run$$runTaskId") return false
 
-        return true
+        return when (taskNames.first()) {
+            "run$$taskId", "pytest$$taskId" -> true
+            else -> false
+        }
     }
 
     override fun isPreferredConfiguration(self: ConfigurationFromContext?, other: ConfigurationFromContext): Boolean {

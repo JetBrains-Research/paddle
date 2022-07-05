@@ -34,9 +34,8 @@ object PythonPlugin : Plugin {
             CiTask(project),
             MyPyTask(project),
             PyLintTask(project),
-            PyTestTask(project),
             BuildTask(project)
-        ) + RunTask.from(project)
+        ) + RunTask.from(project) + PyTestTask.from(project)
     }
 
     @Suppress("UNCHECKED_CAST")
@@ -48,7 +47,6 @@ object PythonPlugin : Plugin {
             Interpreter.Extension,
             JsonSchema.Extension,
             BuildEnvironment.Extension,
-            PyTestEnvironment.Extension
         ) as List<PaddleProject.Extension<Any>>
     }
 }

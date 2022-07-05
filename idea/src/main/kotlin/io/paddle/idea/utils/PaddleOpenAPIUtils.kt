@@ -12,7 +12,7 @@ fun <T> UserDataHolder.getOrPut(key: Key<T>, factory: () -> T): T {
     }
 }
 
-fun PsiElement.getSuperParent(level: Int): PsiElement {
+fun PsiElement.getSuperParent(level: Int): PsiElement? {
     var current = this
     repeat(level) { current = current.parent }
     return current

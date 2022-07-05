@@ -9,7 +9,6 @@ import com.jetbrains.python.sdk.basePath
 import com.jetbrains.python.sdk.pythonSdk
 import com.jetbrains.python.testing.PyPyTestExecutionEnvironment
 import com.jetbrains.python.testing.PythonTestConfigurationType
-import io.paddle.plugin.python.extensions.pytest
 import io.paddle.plugin.python.tasks.test.PyTestTask
 
 class PyPyTestExecutionEnvironmentProvider : PaddleTaskRunProfileStateProvider<PyTestTask> {
@@ -23,7 +22,7 @@ class PyPyTestExecutionEnvironmentProvider : PaddleTaskRunProfileStateProvider<P
             target.apply {
                 // TODO: compound configurations for multiple targets
                 // https://intellij-support.jetbrains.com/hc/en-us/community/posts/360003520439-Run-multiple-test-using-PyTest-and-module-names
-                if (task.project.pytest.targets.isEmpty()) {
+                if (task.targets.isEmpty()) {
                     NotificationGroupManager.getInstance()
                         .getNotificationGroup("Paddle")
                         .createNotification(
@@ -32,12 +31,12 @@ class PyPyTestExecutionEnvironmentProvider : PaddleTaskRunProfileStateProvider<P
                         ).notify(project)
                     return null
                 } else {
-                    target = task.project.pytest.targets.first().absolutePath
+                    target = task.targets.first().absolutePath
                 }
                 targetType = PyRunTargetVariant.PATH
             }
-            task.project.pytest.keywords?.let { keywords = it }
-            additionalArguments = task.project.pytest.additionalArguments.joinToString(" ")
+            task.keywords?.let { keywords = it }
+            additionalArguments = task.additionalArgs.joinToString(" ")
             sdkHome = module.pythonSdk?.homePath
         }
 

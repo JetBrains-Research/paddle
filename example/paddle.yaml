@@ -48,12 +48,12 @@ plugins:
 
 tasks:
   run:
-    - entrypoint: src/main/main.py
-      id: main
-    - entrypoint: src.main.main
-      id: another
-  tests:
-    pytest:
+    - id: main
+      entrypoint: src/main/main.py
+    - id: main_as_module
+      entrypoint: src.main.main
+  pytest:
+    - id: tests_main_suite
       targets:
         - src/test/test_sample.py
 

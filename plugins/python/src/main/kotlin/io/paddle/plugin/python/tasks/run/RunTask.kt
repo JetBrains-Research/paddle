@@ -5,7 +5,7 @@ import io.paddle.project.PaddleProject
 import io.paddle.tasks.Task
 import io.paddle.utils.tasks.TaskDefaultGroups
 
-class RunTask(name: String, val entrypoint: String, val arguments: List<String>, project: PaddleProject) : Task(project) {
+class RunTask(val name: String, val entrypoint: String, val arguments: List<String>, project: PaddleProject) : Task(project) {
     val isModuleMode: Boolean
         get() = !entrypoint.endsWith(".py")
 
@@ -27,7 +27,7 @@ class RunTask(name: String, val entrypoint: String, val arguments: List<String>,
         }
     }
 
-    override val id: String = "run$${name}"
+    override val id: String = "run$$name"
 
     override val group: String = TaskDefaultGroups.RUN
 
