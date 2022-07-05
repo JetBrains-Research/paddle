@@ -1,5 +1,6 @@
 package io.paddle.plugin.python.tasks.venv
 
+import io.paddle.plugin.python.dependencies.packages.PyPackageVersionSpecifier
 import io.paddle.plugin.python.extensions.*
 import io.paddle.plugin.python.tasks.PythonPluginTaskGroups
 import io.paddle.plugin.standard.tasks.clean
@@ -24,14 +25,17 @@ class VenvTask(project: PaddleProject) : IncrementalTask(project) {
         get() = listOf(project.tasks.getOrFail("resolveInterpreter")) + project.subprojects.getAllTasksById(this.id)
 
     override fun initialize() {
-        project.requirements.descriptors.add(Requirements.Descriptor("wheel", "0.36.2", Repositories.Descriptor.PYPI.name))
+        val versionSpec = PyPackageVersionSpecifier.fromString("0.36.2")
+        project.requirements.descriptors.add(Requirements.Descriptor("wheel", versionSpec))
         project.tasks.clean.locations.add(project.environment.venv)
     }
 
     override fun act() {
         project.terminal.info("Creating virtual environment...")
         val duration = measureTimeMillis {
-            project.environment.initialize().orElse { throw ActException("Virtualenv creation has failed") }
+            project.environment.initialize().orElse {
+                throw ActException("virtualenv creation has failed with code: $it")
+            }
         }
         project.terminal.info("Finished: ${duration}ms")
     }

@@ -11,7 +11,6 @@ import com.intellij.openapi.externalSystem.util.ExternalSystemConstants
 import com.intellij.openapi.fileChooser.FileChooserDescriptor
 import com.intellij.openapi.options.Configurable
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.startup.StartupActivity
 import com.intellij.openapi.util.Pair
 import com.intellij.openapi.util.registry.Registry
 import com.intellij.openapi.vfs.VirtualFile
@@ -35,7 +34,7 @@ class PaddleManager : ExternalSystemManager<
     >,
     ExternalSystemUiAware,
     ExternalSystemConfigurableAware,
-    ExternalSystemAutoImportAware, StartupActivity {
+    ExternalSystemAutoImportAware {
 
     companion object {
         val ID: ProjectSystemId = ProjectSystemId("Paddle")
@@ -101,9 +100,5 @@ class PaddleManager : ExternalSystemManager<
 
     override fun getConfigurable(project: Project): Configurable {
         return PaddleConfigurable(project)
-    }
-
-    override fun runActivity(project: Project) {
-        val localSettings = project.getService(PaddleLocalSettings::class.java)
     }
 }

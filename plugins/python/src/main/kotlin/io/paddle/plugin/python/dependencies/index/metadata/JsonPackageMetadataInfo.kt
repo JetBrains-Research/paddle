@@ -1,6 +1,6 @@
 package io.paddle.plugin.python.dependencies.index.metadata
 
-import io.paddle.plugin.python.utils.PyPackageVersion
+import io.paddle.plugin.python.dependencies.packages.PyPackageVersion
 import kotlinx.serialization.Serializable
 
 @Serializable

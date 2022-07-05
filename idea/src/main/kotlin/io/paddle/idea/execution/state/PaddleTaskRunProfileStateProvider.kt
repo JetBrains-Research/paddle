@@ -29,9 +29,9 @@ internal interface PaddleTaskRunProfileStateProvider<T : Task> {
         // If 1 -> 2, 1 -> 3, 2 -> 3 then we should execute only dep-task #2 as a before-run task for task #1
         // since dep-task #3 will be handled by Paddle automatically
         val deps = task.dependencies.filter { dep ->
-            task.dependencies.all { otherDep ->
-                otherDep.dependencies.contains(dep)
-            }
+            task.dependencies
+                .filter { otherDep -> otherDep != dep }
+                .all { otherDep -> !otherDep.executionOrder.contains(dep) }
         }
 
         val newBeforeRunTasks = deps.map { dependsOnTask ->

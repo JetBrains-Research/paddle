@@ -17,7 +17,7 @@ class PythonScriptCommandLineStateProvider : PaddleTaskRunProfileStateProvider<R
 
         val pythonRunConfiguration = factory.createTemplateConfiguration(context.environment.project) as PythonRunConfiguration
         pythonRunConfiguration.apply {
-            scriptName = context.moduleDir.toPath().resolve(task.entrypoint).absolutePathString()
+            scriptName = if (task.isModuleMode) task.entrypoint else context.moduleDir.toPath().resolve(task.entrypoint).absolutePathString()
             scriptParameters = task.arguments.joinToString(" ")
             sdkHome = module.pythonSdk?.homePath
             isModuleMode = task.isModuleMode

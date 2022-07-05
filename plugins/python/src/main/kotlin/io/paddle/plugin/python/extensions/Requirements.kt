@@ -1,9 +1,9 @@
 package io.paddle.plugin.python.extensions
 
 import io.paddle.plugin.python.dependencies.packages.PyPackage
+import io.paddle.plugin.python.dependencies.packages.PyPackageVersionSpecifier
 import io.paddle.plugin.python.dependencies.resolvers.PipResolver
 import io.paddle.plugin.python.utils.PyPackageName
-import io.paddle.plugin.python.utils.PyPackageVersion
 import io.paddle.project.PaddleProject
 import io.paddle.utils.ext.Extendable
 import io.paddle.utils.hash.Hashable
@@ -32,19 +32,25 @@ class Requirements(val project: PaddleProject, val descriptors: MutableList<Desc
 
         override fun create(project: PaddleProject): Requirements {
             val config = project.config.get<List<Map<String, String>>>("requirements") ?: emptyList()
-            val descriptors = config.map { Descriptor(it["name"]!!, it["version"], it["repository"]) }.toMutableList()
+            val descriptors = config.map { req ->
+                Descriptor(
+                    name = req["name"]!!,
+                    versionSpecifier = req["version"]?.let { PyPackageVersionSpecifier.fromString(it) }
+                )
+            }.toMutableList()
             return Requirements(project, descriptors)
         }
     }
 
-    data class Descriptor(val name: PyPackageName, val version: PyPackageVersion? = null, val repo: String? = null) :
+    data class Descriptor(val name: PyPackageName, val versionSpecifier: PyPackageVersionSpecifier? = null) :
         Hashable {
         override fun hash(): String {
             val hashables = mutableListOf(name.hashable())
-            version?.let { hashables.add(version.hashable()) }
-            repo?.let { hashables.add(repo.hashable()) }
+            versionSpecifier?.let { hashables.add(versionSpecifier.toString().hashable()) }
             return hashables.hashable().hash()
         }
+
+        override fun toString(): String = "$name$versionSpecifier"
     }
 
     override fun hash(): String {

@@ -3,6 +3,7 @@ package io.paddle.plugin.python.dependencies.resolvers
 import io.paddle.plugin.python.PyLocations
 import io.paddle.plugin.python.dependencies.index.PyPackageRepositoryIndexer
 import io.paddle.plugin.python.dependencies.index.distributions.*
+import io.paddle.plugin.python.dependencies.packages.PyPackageVersion
 import io.paddle.plugin.python.dependencies.repositories.PyPackageRepository
 import io.paddle.plugin.python.extensions.interpreter
 import io.paddle.plugin.python.extensions.repositories

@@ -32,10 +32,10 @@ repositories:
 
 requirements:
   - name: redis
-    version: 3.5.3
-    repository: pypi
+    version: <=3.5.3
 
   - name: grazie-supar
+    version: ~=1.2.1
 
 plugins:
   enabled:
@@ -48,8 +48,14 @@ plugins:
 
 tasks:
   run:
-    - entrypoint: src/main/app.py
-      id: main
+    - id: main
+      entrypoint: src/main/main.py
+    - id: main_as_module
+      entrypoint: src.main.main
+  pytest:
+    - id: tests_main_suite
+      targets:
+        - src/test/test_sample.py
 
 #executor:
 #  type: docker
