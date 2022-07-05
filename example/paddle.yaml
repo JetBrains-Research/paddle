@@ -50,8 +50,12 @@ tasks:
   run:
     - entrypoint: src/main/main.py
       id: main
-    - entrypoint: src/main/main.py
+    - entrypoint: src.main.main
       id: another
+  tests:
+    pytest:
+      targets:
+        - src/test/test_sample.py
 
 #executor:
 #  type: docker
