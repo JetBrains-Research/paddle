@@ -53,7 +53,7 @@
 
         <!-- Tasks Execution & Run Configurations  -->
         <configurationType implementation="io.paddle.idea.execution.PaddleTaskConfigurationType"/>
-        <runConfigurationProducer implementation="io.paddle.idea.execution.PaddleRuntimeConfigurationProducer"/>
+        <runConfigurationProducer implementation="io.paddle.idea.execution.PaddleRunConfigurationProducer"/>
 
         <externalSystemOutputParserProvider implementation="io.paddle.idea.execution.parser.PaddleParserProvider"/>
 
@@ -62,6 +62,8 @@
 
         <stepsBeforeRunProvider implementation="io.paddle.idea.execution.beforeRun.PaddleBeforeRunTaskProvider"/>
         <externalSystem.beforeRunTaskImporter implementation="io.paddle.idea.execution.beforeRun.PaddleBeforeRunTaskImporter"/>
+
+        <runLineMarkerContributor language="yaml" implementationClass="io.paddle.idea.execution.PaddleRunLineMarkerContributor"/>
 
         <!-- Run & Debug -->
         <programRunner implementation="io.paddle.idea.execution.runners.PaddleTaskRunner"
@@ -88,7 +90,7 @@
         <completion.contributor language="yaml"
                                 implementationClass="io.paddle.idea.completion.PyPackageVersionCompletionContributor"/>
 
-
+        <!-- Notifications -->
         <notificationGroup id="Paddle" displayType="BALLOON"/>
     </extensions>
 

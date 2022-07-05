@@ -48,8 +48,10 @@ plugins:
 
 tasks:
   run:
-    - entrypoint: src/main/app.py
+    - entrypoint: src/main/main.py
       id: main
+    - entrypoint: src/main/main.py
+      id: another
 
 #executor:
 #  type: docker

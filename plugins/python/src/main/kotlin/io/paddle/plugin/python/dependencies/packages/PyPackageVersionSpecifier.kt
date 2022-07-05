@@ -23,7 +23,7 @@ class PyPackageVersionSpecifier private constructor(val clauses: List<PyPackageV
             return versionSpecifier.split(",").map { it.trim() }.map { clause ->
                 val relation = PyPackageVersionRelation.values().find { clause.startsWith(it.operator) }
                 if (relation == null) {
-                    // relation is not specified, assuming it is meant to be == (EQ)
+                    // the relation is not specified, assuming it is meant to be == (EQ)
                     PyPackageVersionClause(PyPackageVersionRelation.EQ, clause.trim())
                 } else {
                     val rawVersion = clause.substringAfter(relation.operator).trim()
