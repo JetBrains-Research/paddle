@@ -1,5 +1,6 @@
 package io.paddle.plugin.python.dependencies.setup
 
+import io.paddle.plugin.python.extensions.buildEnvironment
 import io.paddle.plugin.python.extensions.interpreter
 import io.paddle.plugin.python.utils.camelToSnakeCase
 import io.paddle.plugin.standard.extensions.roots
@@ -12,12 +13,12 @@ data class SetupConfig(val project: PaddleProject) {
         val name: String,
         val version: String,
         val author: String,
-        val authorEmail: String,
-        val description: String,
-        val longDescription: String,
-        val longDescriptionContentType: String,
+        val authorEmail: String?,
+        val description: String?,
+        val longDescription: String?,
+        val longDescriptionContentType: String?,
         val url: String?,
-        val classifiers: List<String>
+        val classifiers: List<String>?
     ) : Toml
 
     data class Options(
@@ -36,10 +37,12 @@ data class SetupConfig(val project: PaddleProject) {
                     is String -> {
                         data += "$key = $value"
                     }
+
                     is List<*> -> {
                         data += "$key = "
                         value.forEach { data += "\t$it" }
                     }
+
                     is Map<*, *> -> {
                         data += "$key = "
                         value.entries.forEach { data += "\t${it.key} = ${it.value}" }
@@ -50,30 +53,44 @@ data class SetupConfig(val project: PaddleProject) {
         }
     }
 
-    val metadata = Metadata(
-        name = project.descriptor.name,
-        version = project.descriptor.version,
-        author = project.descriptor.author ?: "Unknown Author",
-        authorEmail = project.descriptor.authorEmail ?: "unknown@example.com",
-        description = project.descriptor.description ?: "The author did not provide any description",
-        longDescription = "file: README.md",
-        longDescriptionContentType = "text/markdown",
-        url = project.descriptor.url,
-        classifiers = listOf("Programming Language :: Python :: ${project.interpreter.pythonVersion.major}")
-    )
+    val metadata: Metadata
+        get() = Metadata(
+            name = project.descriptor.name,
+            version = project.descriptor.version,
+            author = project.descriptor.author ?: "Unknown Author".also {
+                project.terminal.warn("Author is not provided. Default value will be set: Unknown Author")
+            },
+            authorEmail = project.descriptor.authorEmail ?: (null).also {
+                project.terminal.warn("Author's email is not provided.")
+            },
+            description = project.descriptor.description ?: (null).also {
+                project.terminal.warn("Description is not provided.")
+            },
+            longDescription = project.buildEnvironment.readme?.name?.let { "file: $it" } ?: (null).also {
+                project.terminal.warn("Long description (README or README.md file in the workDir) is not provided.")
+            },
+            longDescriptionContentType = project.buildEnvironment.readme?.run { "text/markdown" },
+            url = project.descriptor.url ?: (null).also {
+                project.terminal.warn("Url is not provided.")
+            },
+            classifiers = project.descriptor.classifiers ?: (null).also {
+                project.terminal.warn("Classifiers are not provided.")
+            }
+        )
 
-    val options = Options(
-        packageDir = mapOf("" to project.roots.sources.first().relativeTo(project.workDir).path), // FIXME: add other roots?
-        packages = listOf("find:"),
-        pythonRequires = ">=${project.interpreter.pythonVersion.number}"
-    )
+    val options: Options
+        get() = Options(
+            packageDir = mapOf("" to project.roots.sources.relativeTo(project.workDir).path),
+            packages = listOf("find:"),
+            pythonRequires = ">=${project.interpreter.pythonVersion.number}"
+        )
 
     fun create(file: File) {
         val lines = metadata.dump() + "\n" +
             options.dump() + "\n" +
             listOf(
                 "[options.packages.find]",
-                "where = ${project.roots.sources.first().relativeTo(project.workDir).path}"
+                "where = ${project.roots.sources.relativeTo(project.workDir).path}"
             )
         file.writeText(lines.joinToString("\n"))
     }

@@ -18,7 +18,7 @@ class MyPyTask(project: PaddleProject) : IncrementalTask(project) {
     override val group: String = TaskDefaultGroups.LINT
 
     override val inputs: List<Hashable>
-        get() = project.roots.sources.map { it.hashable() } + listOf(project.requirements, project.environment.venv.hashable())
+        get() = listOf(project.roots.sources.hashable(), project.requirements, project.environment.venv.hashable())
 
     override val dependencies: List<Task>
         get() = listOf(project.tasks.getOrFail("install"))
@@ -30,7 +30,7 @@ class MyPyTask(project: PaddleProject) : IncrementalTask(project) {
     }
 
     override fun act() {
-        val files = project.roots.sources.flatMap { it.walkTopDown().asSequence().filter { file -> file.absolutePath.endsWith(".py") } }
+        val files = project.roots.sources.walkTopDown().asSequence().filter { file -> file.absolutePath.endsWith(".py") }
         var anyFailed = false
         for (file in files) {
             project.environment.runModule("mypy", listOf(file.absolutePath)).orElseDo { anyFailed = true }

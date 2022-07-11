@@ -9,8 +9,7 @@ plugins:
     - python
 
 roots:
-  sources:
-    - src
+  sources: src
 
 environment:
   path: .venv

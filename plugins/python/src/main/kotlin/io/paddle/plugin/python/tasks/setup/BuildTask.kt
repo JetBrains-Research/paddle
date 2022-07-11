@@ -20,21 +20,16 @@ class BuildTask(project: PaddleProject) : IncrementalTask(project) {
     override val group: String = TaskDefaultGroups.BUILD
 
     override val inputs: List<Hashable>
-        get() = project.roots.sources.map { it.hashable() } + project.buildEnvironment
+        get() = listOf(project.roots.sources.hashable(), project.buildEnvironment)
     override val outputs: List<Hashable>
         get() = listOf(project.workDir.resolve("build").hashable())
 
     override val dependencies: List<Task>
-        get() = listOf(project.tasks.getOrFail("resolveInterpreter")) +
-            project.subprojects.getAllTasksById(this.id)
+        get() = listOf(project.tasks.getOrFail("install")) + project.subprojects.getAllTasksById(this.id)
 
     override fun initialize() {
         project.tasks.clean.locations.add(project.buildEnvironment.distDir)
-        val eggInfos = project.roots.sources.flatMap {
-            it.listFiles { entry -> entry.name.endsWith(".egg-info") }
-                ?.toList()
-                ?: emptyList()
-        }
+        val eggInfos = project.roots.sources.listFiles { entry -> entry.name.endsWith(".egg-info") }?.toList() ?: emptyList()
         for (eggInfo in eggInfos) {
             project.tasks.clean.locations.add(eggInfo)
         }
@@ -55,7 +50,7 @@ class BuildTask(project: PaddleProject) : IncrementalTask(project) {
             buildEnv.pyprojectToml.writeText(
                 listOf(
                     "[build-system]",
-                    "requires = [\"setuptools>=42\"]",
+                    "requires = [\"setuptools>=61.0\"]",
                     "build-backend = \"setuptools.build_meta\"",
                 ).joinToString("\n")
             )

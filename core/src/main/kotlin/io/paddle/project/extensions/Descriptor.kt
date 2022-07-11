@@ -13,7 +13,8 @@ class Descriptor(
     val author: String?,
     val authorEmail: String?,
     val description: String?,
-    val url: String?
+    val url: String?,
+    val classifiers: List<String>?
 ) {
     object Extension : PaddleProject.Extension<Descriptor> {
         override val key: Extendable.Key<Descriptor> = Extendable.Key()
@@ -26,6 +27,7 @@ class Descriptor(
                 val authorEmail: String? by string("author_email")
                 val description: String? by string("description")
                 val url: String? by string("url")
+                val classifiers: List<String>? by list("classifiers")
             }
 
             return Descriptor(
@@ -34,7 +36,8 @@ class Descriptor(
                 author = config.author,
                 authorEmail = config.authorEmail,
                 description = config.description,
-                url = config.url
+                url = config.url,
+                classifiers = config.classifiers
             )
         }
     }

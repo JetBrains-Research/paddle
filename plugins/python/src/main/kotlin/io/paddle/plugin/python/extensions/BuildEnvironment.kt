@@ -18,6 +18,10 @@ class BuildEnvironment(val project: PaddleProject) : Hashable {
     val setupCfg: File
         get() = project.workDir.resolve("setup.cfg")
 
+    val readme: File?
+        get() = project.workDir.resolve("README.md").takeIf { it.exists() }
+            ?: project.workDir.resolve("README").takeIf { it.exists() }
+
     object Extension : PaddleProject.Extension<BuildEnvironment> {
         override val key: Extendable.Key<BuildEnvironment> = Extendable.Key()
 

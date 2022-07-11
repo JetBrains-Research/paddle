@@ -8,21 +8,27 @@ import java.io.File
 val PaddleProject.roots: Roots
     get() = extensions.get(Roots.Extension.key)!!
 
-class Roots(val sources: MutableList<File>, val tests: List<File>, val resources: List<File>) {
+/**
+ * Project roots extension: sources, tests and resources.
+ *
+ * Note: it is supposed that each project has only one root of each type,
+ * but inside these folders there could be any number of python packages.
+ */
+class Roots(val sources: File, val tests: File, val resources: File) {
     object Extension : PaddleProject.Extension<Roots> {
         override val key: Extendable.Key<Roots> = Extendable.Key()
 
         override fun create(project: PaddleProject): Roots {
             val config = object : ConfigurationView("roots", project.config) {
-                val sources by list("sources", default = listOf("src"))
-                val tests by list("tests", default = listOf("tests"))
-                val resources by list("resources", default = listOf("resources"))
+                val sources by string("sources", default = "src")
+                val tests by string("tests", default = "tests")
+                val resources by string("resources", default = "resources")
             }
 
             return Roots(
-                sources = config.sources.map { File(project.workDir, it) }.toMutableList(),
-                tests = config.tests.map { File(project.workDir, it) }.toMutableList(),
-                resources = config.resources.map { File(project.workDir, it) }.toMutableList()
+                sources = File(project.workDir, config.sources),
+                tests = File(project.workDir, config.tests),
+                resources = File(project.workDir, config.resources)
             )
         }
     }

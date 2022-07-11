@@ -26,7 +26,7 @@ class Environment(val project: PaddleProject, val venv: VenvDir) : Hashable {
 
     val pythonPath: String
         get() {
-            val paths = project.roots.sources.map { it.canonicalPath } + project.subprojects.map { it.environment.pythonPath }
+            val paths = listOf(project.roots.sources.canonicalPath) + project.subprojects.map { it.environment.pythonPath }
             return paths.joinToString(System.getProperty("path.separator"))
         }
 

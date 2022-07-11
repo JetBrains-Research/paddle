@@ -6,10 +6,8 @@ subprojects:
   - dependency
 
 roots:
-  sources:
-    - src
-  tests:
-    - test
+  sources: src
+  tests: test
 
 plugins:
   enabled:

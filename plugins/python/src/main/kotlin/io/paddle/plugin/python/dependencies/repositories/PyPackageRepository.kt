@@ -76,7 +76,18 @@ class PyPackageRepository(val url: PyPackagesRepositoryUrl, val name: String, va
     val cacheFileName: String = "repo_" + StringHashable(url).hash() + ".json"
 
     suspend fun updateIndex() {
-        packagesNamesCache = PackedWordList(PyPackageRepositoryIndexer.downloadPackagesNames(this).toSet())
+        val names = try {
+            PyPackageRepositoryIndexer.downloadPackagesNames(this)
+        } catch (e: Throwable) {
+            throw IndexUpdateException("Failed to update index for repository ${urlSimple.getSecure()}.")
+        }
+        if (names.isEmpty()) {
+            throw IndexUpdateException(
+                "Downloaded index for repository ${urlSimple.getSecure()} is empty. " +
+                    "It is either unavailable at he moment or corrupted."
+            )
+        }
+        packagesNamesCache = PackedWordList(names.toSet())
     }
 
     fun loadCache(file: File) {
@@ -88,12 +99,17 @@ class PyPackageRepository(val url: PyPackagesRepositoryUrl, val name: String, va
     fun getPackagesNamesByPrefix(prefix: String): Sequence<PyPackageName> = packagesNamesCache.prefix(prefix)
 
     suspend fun findAvailableDistributionsByPackageName(packageName: PyPackageName, useCache: Boolean = true): List<PyDistributionInfo> {
-        val distributions = PyPackageRepositoryIndexer.downloadDistributionsList(packageName, this)
-        return if (useCache) {
-            distributionsCache.getOrPut(packageName) { distributions }
-        } else {
-            distributions
+        if (useCache && packageName in distributionsCache) {
+            return distributionsCache[packageName]!!
         }
+
+        val distributions = try {
+            PyPackageRepositoryIndexer.downloadDistributionsList(packageName, this)
+        } catch (e: Throwable) {
+            throw IndexUpdateException("Failed to download distributions list for package $packageName from repository ${urlSimple.getSecure()}.")
+        }
+
+        return distributions.also { if (useCache) distributionsCache[packageName] = it }
     }
 
     fun saveCache() {
@@ -111,3 +127,5 @@ class PyPackageRepository(val url: PyPackagesRepositoryUrl, val name: String, va
         return metadata == other.metadata
     }
 }
+
+class IndexUpdateException(reason: String) : Exception(reason)

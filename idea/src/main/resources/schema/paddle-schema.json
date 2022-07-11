@@ -28,25 +28,16 @@
       "type": "object",
       "properties": {
         "sources": {
-          "description": "Sources locations that should be used",
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
+          "description": "Sources location that should be used",
+          "type": "string"
         },
         "tests": {
-          "description": "Tests locations that should be used",
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
+          "description": "Tests location that should be used",
+          "type": "string"
         },
         "resources": {
-          "description": "Resources locations that should be used",
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
+          "description": "Resources location that should be used",
+          "type": "string"
         }
       }
     },

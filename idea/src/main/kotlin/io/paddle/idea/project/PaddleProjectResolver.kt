@@ -138,15 +138,10 @@ class PaddleProjectResolver : ExternalSystemProjectResolver<PaddleExecutionSetti
 
     private fun DataNode<*>.attachContentRoots(project: PaddleProject) {
         val rootData = ContentRootData(PaddleManager.ID, project.workDir.canonicalPath)
-        for (src in project.roots.sources) {
-            rootData.storePath(ExternalSystemSourceType.SOURCE, src.canonicalPath)
-        }
-        for (tests in project.roots.tests) {
-            rootData.storePath(ExternalSystemSourceType.TEST, tests.canonicalPath)
-        }
-        for (resources in project.roots.resources) {
-            rootData.storePath(ExternalSystemSourceType.RESOURCE, resources.canonicalPath)
-        }
+
+        rootData.storePath(ExternalSystemSourceType.SOURCE, project.roots.sources.canonicalPath)
+        rootData.storePath(ExternalSystemSourceType.TEST, project.roots.tests.canonicalPath)
+        rootData.storePath(ExternalSystemSourceType.RESOURCE, project.roots.resources.canonicalPath)
 
         rootData.storePath(ExternalSystemSourceType.EXCLUDED, project.workDir.resolve(".paddle").canonicalPath)
         if (project.hasPython) {

@@ -7,10 +7,8 @@ subprojects:
   - dependency
 
 roots:
-  sources:
-    - src/main
-  tests:
-    - src/test
+  sources: src/main
+  tests: src/test
 
 # https://github.com/pyenv/pyenv/wiki#suggested-build-environment
 environment:
@@ -26,6 +24,13 @@ repositories:
       type: netrc
       username: Oleg.Smirnov
 
+#  - name: pypi-test
+#    url: https://test.pypi.org/simple
+#    default: False
+#    auth:
+#      type: profile
+#      username: oesmirnov
+
 #  - name: paper-analyzer
 #    url: https://repo.labs.intellij.net/artifactory/api/pypi/paper-analyzer/simple/
 #    secondary: True # Thus, <grazie-ml> still would be the primary source. But without such flag, this repo would have precedence over <ml>
@@ -33,6 +38,7 @@ repositories:
 requirements:
   - name: redis
     version: <=3.5.3
+    # option: cpu
 
   - name: grazie-supar
     version: ~=1.2.1
@@ -56,6 +62,9 @@ tasks:
     - id: tests_main_suite
       targets:
         - src/test/test_sample.py
+
+#publish:
+#  repo: pypi-test
 
 #executor:
 #  type: docker
