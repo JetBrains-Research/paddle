@@ -1,0 +1,44 @@
+package io.paddle.plugin.python.extensions
+
+import io.paddle.plugin.python.dependencies.repositories.PyPackageRepository
+import io.paddle.project.PaddleProject
+import io.paddle.project.extensions.routeAsString
+import io.paddle.utils.ext.Extendable
+
+val PaddleProject.publishEnvironment: PublishEnvironment
+    get() = this.extensions.get(PublishEnvironment.Extension.key)!!
+
+class PublishEnvironment(val twine: TwineEnvironment, val repo: PyPackageRepository?, val project: PaddleProject) {
+    object Extension : PaddleProject.Extension<PublishEnvironment> {
+        override val key: Extendable.Key<PublishEnvironment> = Extendable.Key()
+
+        private fun getInstance(currentProject: PaddleProject): PublishEnvironment? {
+            val repoName = currentProject.config.get<String>("tasks.publish.repo") ?: return null
+            val repo = currentProject.repositories.resolved.findByName(repoName)
+                ?: error(
+                    "Could not find existing PyPI repository with name = $repoName for project ${currentProject.routeAsString}. " +
+                        "Please, make sure that you have specified it in the <repositories> section of ${currentProject.buildFile.path} " +
+                        "or in the <all.repositories> section of some parental project."
+                )
+
+            val skipExisting = currentProject.config.get<String>("tasks.publish.twine.skipExisting")?.toBoolean() ?: false
+            val verbose = currentProject.config.get<String>("tasks.publish.twine.verbose")?.toBoolean() ?: false
+
+            return PublishEnvironment(TwineEnvironment(skipExisting, verbose), repo, currentProject)
+        }
+
+        override fun create(project: PaddleProject): PublishEnvironment {
+            return getInstance(project)
+            // if null, try to infer the repo to publish from parental projects
+                ?: project.parents
+                    .mapNotNull { parent -> getInstance(parent) }
+                    .takeIf { repos -> repos.all { it == repos.first() } } // iff all the repos are the same
+                    ?.first()?.also {
+                        project.terminal.warn("Twine configuration for project ${project.routeAsString} was determined automatically: $it")
+                    }
+                ?: PublishEnvironment(TwineEnvironment(), null, project) // a lazy stub, it will fail if the user runs <publish> task later
+        }
+    }
+
+    data class TwineEnvironment(val skipExisting: Boolean = false, val verbose: Boolean = false)
+}

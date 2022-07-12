@@ -3,7 +3,7 @@ package io.paddle.plugin.python.extensions
 import io.paddle.plugin.python.dependencies.PyInterpreter
 import io.paddle.plugin.python.hasPython
 import io.paddle.project.PaddleProject
-import io.paddle.project.extensions.route
+import io.paddle.project.extensions.routeAsString
 import io.paddle.tasks.Task
 import io.paddle.utils.config.ConfigurationView
 import io.paddle.utils.ext.Extendable
@@ -24,7 +24,7 @@ class Interpreter(val project: PaddleProject, val pythonVersion: PyInterpreter.V
             checkInterpreterCompatibility()
             result = PyInterpreter.find(pythonVersion, project)
         }.also {
-            project.terminal.info("Finished: $it ms")
+            project.terminal.info("Finished resolving interpreter: $it ms")
         }
         result
     }
@@ -57,8 +57,8 @@ class Interpreter(val project: PaddleProject, val pythonVersion: PyInterpreter.V
         for (parent in project.parents) {
             if (parent.interpreter.pythonVersion != project.interpreter.pythonVersion) {
                 throw Task.ActException(
-                    "${parent.interpreter.pythonVersion.fullName} from ${":" + parent.route.joinToString(":")} " +
-                        "is not compatible with ${project.interpreter.pythonVersion.fullName} from ${":" + project.route.joinToString(":")}"
+                    "${parent.interpreter.pythonVersion.fullName} from ${parent.routeAsString} " +
+                        "is not compatible with ${project.interpreter.pythonVersion.fullName} from ${project.routeAsString}"
                 )
             }
         }

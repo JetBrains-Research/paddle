@@ -5,4 +5,5 @@ object TaskDefaultGroups {
     const val TEST = "test"
     const val BUILD = "build"
     const val RUN = "run"
+    const val PUBLISH = "publish"
 }

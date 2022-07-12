@@ -14,12 +14,12 @@ import kotlinx.serialization.*
 import java.io.File
 
 @Serializable
-class PyPackageRepository(val url: PyPackagesRepositoryUrl, val name: String, val authInfo: AuthInfo) {
-    constructor(metadata: Metadata) : this(metadata.url, metadata.name, metadata.authInfo)
-    constructor(descriptor: Repositories.Descriptor) : this(descriptor.url.removeSimple(), descriptor.name, descriptor.authInfo)
+class PyPackageRepository(val url: PyPackagesRepositoryUrl, val name: String, val authInfo: AuthInfo, val uploadUrl: PyPackagesRepositoryUrl) {
+    constructor(metadata: Metadata) : this(metadata.url, metadata.name, metadata.authInfo, metadata.uploadUrl)
+    constructor(descriptor: Repositories.Descriptor) : this(descriptor.url.removeSimple(), descriptor.name, descriptor.authInfo, descriptor.uploadUrl)
 
     @Serializable
-    data class Metadata(val url: PyPackagesRepositoryUrl, val name: String, val authInfo: AuthInfo) : Hashable {
+    data class Metadata(val url: PyPackagesRepositoryUrl, val name: String, val authInfo: AuthInfo, val uploadUrl: PyPackagesRepositoryUrl) : Hashable {
         override fun hash() = listOf(url, name, authInfo.username.toString(), authInfo.type.toString()).map { it.hashable() }.hashable().hash()
     }
 
@@ -59,10 +59,10 @@ class PyPackageRepository(val url: PyPackagesRepositoryUrl, val name: String, va
     val credentials: Credentials
         get() = AuthenticationProvider.resolveCredentials(url, authInfo)
 
-    val metadata = Metadata(url, name, authInfo)
+    val metadata = Metadata(url, name, authInfo, uploadUrl)
 
     companion object {
-        val PYPI_REPOSITORY = PyPackageRepository("https://pypi.org", "pypi", AuthInfo.NONE)
+        val PYPI_REPOSITORY = PyPackageRepository(Repositories.Descriptor.PYPI)
     }
 
     // Index is loaded from cache

@@ -1,5 +1,6 @@
 package io.paddle.plugin.python.tasks.lint
 
+import io.paddle.plugin.python.PyDevPackageDefaultVersions
 import io.paddle.plugin.python.dependencies.packages.PyPackageVersionSpecifier
 import io.paddle.plugin.python.extensions.*
 import io.paddle.plugin.standard.extensions.roots
@@ -24,8 +25,13 @@ class MyPyTask(project: PaddleProject) : IncrementalTask(project) {
         get() = listOf(project.tasks.getOrFail("install"))
 
     override fun initialize() {
-        val versionSpec = PyPackageVersionSpecifier.fromString(project.config.get<String>("tasks.linter.mypy.version") ?: "0.931")
-        project.requirements.descriptors.add(Requirements.Descriptor("mypy", versionSpec))
+        project.requirements.findByName("mypy")
+            ?: project.requirements.descriptors.add(
+                Requirements.Descriptor(
+                    name = "mypy",
+                    versionSpecifier = PyPackageVersionSpecifier.fromString(PyDevPackageDefaultVersions.MYPY)
+                )
+            )
         project.tasks.clean.locations.add(File(project.workDir, ".mypy_cache"))
     }
 

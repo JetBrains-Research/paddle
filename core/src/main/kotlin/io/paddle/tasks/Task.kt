@@ -1,7 +1,7 @@
 package io.paddle.tasks
 
 import io.paddle.project.PaddleProject
-import io.paddle.project.extensions.route
+import io.paddle.project.extensions.routeAsString
 import io.paddle.terminal.CommandOutput
 import io.paddle.utils.tasks.TaskDefaultGroups
 
@@ -51,14 +51,13 @@ abstract class Task(val project: PaddleProject) {
      * Decorated version of [act]: prints current state to project's terminal.
      */
     protected open fun execute() {
-        val taskRoute = ":" + project.route.joinToString(":") + ":$id"
+        val taskRoute = project.routeAsString + ":$id"
         project.terminal.commands.stdout(CommandOutput.Command.Task(taskRoute, CommandOutput.Command.Task.Status.EXECUTE))
 
         try {
             act()
         } catch (e: ActException) {
             e.message?.let { project.terminal.error(it) }
-            project.terminal.error(e.stackTraceToString())
             project.terminal.commands.stdout(CommandOutput.Command.Task(taskRoute, CommandOutput.Command.Task.Status.FAILED))
             throw e
         }

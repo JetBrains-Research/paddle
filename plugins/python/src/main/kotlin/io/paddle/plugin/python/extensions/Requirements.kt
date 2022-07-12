@@ -22,7 +22,7 @@ class Requirements(val project: PaddleProject, val descriptors: MutableList<Desc
         measureTimeMillis {
             result = PipResolver.resolve(project) + project.environment.venv.pyPackages
         }.also {
-            project.terminal.info("Finished: $it ms")
+            project.terminal.info("Finished resolving requirements: $it ms")
         }
         result
     }
@@ -51,6 +51,10 @@ class Requirements(val project: PaddleProject, val descriptors: MutableList<Desc
         }
 
         override fun toString(): String = "$name$versionSpecifier"
+    }
+
+    fun findByName(name: PyPackageName): Descriptor? {
+        return descriptors.find { it.name == name }
     }
 
     override fun hash(): String {

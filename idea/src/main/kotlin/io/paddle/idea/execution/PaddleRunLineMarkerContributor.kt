@@ -21,7 +21,8 @@ class PaddleRunLineMarkerContributor : RunLineMarkerContributor() {
         shouldRenderRunLineMarker = shouldRenderRunLineMarker ||
             (element.text.contains("id")
                 && element.getSuperParent(5)?.text?.startsWith("pytest") ?: false
-                && element.getSuperParent(7)?.text?.startsWith("tasks") ?: false)
+                && element.getSuperParent(7)?.text?.startsWith("test") ?: false
+                && element.getSuperParent(9)?.text?.startsWith("tasks") ?: false)
 
         if (shouldRenderRunLineMarker) {
             val actions = ExecutorAction.getActions(Integer.MAX_VALUE)

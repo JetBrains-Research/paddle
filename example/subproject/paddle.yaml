@@ -1,6 +1,6 @@
 descriptor:
   name: subproject
-  version: 0.1.0
+  version: 0.1.1
 
 subprojects:
   - dependency
@@ -25,9 +25,10 @@ tasks:
   run:
     - entrypoint: src/main.py
       id: main
-  pytest:
-    - id: some_tests
-      targets: # if not specified, then all test roots will be used
-        - test/test_app.py
-      keywords: "not this"
-      parameters: ""
+  test:
+    pytest:
+      - id: some_tests
+        targets: # if not specified, then all test roots will be used
+          - test/test_app.py
+        keywords: "not this"
+        parameters: ""

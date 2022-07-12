@@ -1,5 +1,6 @@
 package io.paddle.plugin.python.tasks.test
 
+import io.paddle.plugin.python.PyDevPackageDefaultVersions
 import io.paddle.plugin.python.dependencies.packages.PyPackageVersionSpecifier
 import io.paddle.plugin.python.extensions.*
 import io.paddle.plugin.standard.tasks.clean
@@ -12,7 +13,6 @@ import java.nio.file.Paths
 class PyTestTask(
     name: String,
     project: PaddleProject,
-    val versionSpec: PyPackageVersionSpecifier,
     val targets: List<File>,
     val keywords: String?,
     val additionalArgs: List<String>
@@ -21,12 +21,11 @@ class PyTestTask(
     companion object {
         @Suppress("UNCHECKED_CAST")
         fun from(project: PaddleProject): List<PyTestTask> {
-            val configurations = project.config.get<List<Map<String, Any>>?>("tasks.pytest") ?: return emptyList()
+            val configurations = project.config.get<List<Map<String, Any>>?>("tasks.test.pytest") ?: return emptyList()
             val tasks = ArrayList<PyTestTask>()
 
             for (configuration in configurations) {
                 val name = configuration["id"] as String
-                val versionSpec = PyPackageVersionSpecifier.fromString(configuration.getOrDefault("version", "7.1.2") as String)
                 val relativeTargets = configuration["targets"] as List<String>? ?: emptyList()
                 val targets = ArrayList<File>()
 
@@ -46,7 +45,7 @@ class PyTestTask(
                     ?.split(" ")
                     ?: emptyList()
 
-                tasks.add(PyTestTask(name, project, versionSpec, targets, keywords, additionalArgs))
+                tasks.add(PyTestTask(name, project, targets, keywords, additionalArgs))
             }
             return tasks
         }
@@ -60,7 +59,13 @@ class PyTestTask(
         get() = listOf(project.tasks.getOrFail("install"))
 
     override fun initialize() {
-        project.requirements.descriptors.add(Requirements.Descriptor("pytest", versionSpec))
+        project.requirements.findByName("pytest")
+            ?: project.requirements.descriptors.add(
+                Requirements.Descriptor(
+                    name = "pytest",
+                    versionSpecifier = PyPackageVersionSpecifier.fromString(PyDevPackageDefaultVersions.PYTEST)
+                )
+            )
         project.tasks.clean.locations.add(File(project.workDir, ".pytest_cache"))
     }
 

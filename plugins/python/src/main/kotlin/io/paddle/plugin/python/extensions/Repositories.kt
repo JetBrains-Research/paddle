@@ -3,11 +3,10 @@ package io.paddle.plugin.python.extensions
 import io.paddle.plugin.python.dependencies.authentication.AuthInfo
 import io.paddle.plugin.python.dependencies.authentication.AuthType
 import io.paddle.plugin.python.dependencies.repositories.PyPackageRepositories
-import io.paddle.plugin.python.utils.PyPackagesRepositoryUrl
+import io.paddle.plugin.python.utils.*
 import io.paddle.project.PaddleProject
 import io.paddle.utils.ext.Extendable
-import io.paddle.utils.hash.Hashable
-import io.paddle.utils.hash.hashable
+import io.paddle.utils.hash.*
 import kotlin.system.measureTimeMillis
 
 
@@ -22,7 +21,7 @@ class Repositories(val project: PaddleProject, val descriptors: List<Descriptor>
         measureTimeMillis {
             result = PyPackageRepositories.resolve(descriptors, project)
         }.also {
-            project.terminal.info("Finished: $it ms")
+            project.terminal.info("Finished resolving repositories: $it ms")
         }
         result
     }
@@ -39,12 +38,16 @@ class Repositories(val project: PaddleProject, val descriptors: List<Descriptor>
                 val type = AuthType.valueOf((authDescriptor["type"] ?: "none").uppercase())
                 val username = authDescriptor["username"]
 
+                val url = repo["url"]!! as String
+                val uploadUrl = repo["uploadUrl"] as String?
+
                 Descriptor(
-                    repo["name"]!! as String,
-                    repo["url"]!! as String,
-                    (repo["default"] as String?)?.toBoolean(),
-                    (repo["secondary"] as String?)?.toBoolean(),
-                    AuthInfo(type, username),
+                    name = repo["name"]!! as String,
+                    url = url,
+                    default = (repo["default"] as String?)?.toBoolean(),
+                    secondary = (repo["secondary"] as String?)?.toBoolean(),
+                    authInfo = AuthInfo(type, username),
+                    uploadUrl = uploadUrl ?: url.removeSimple().join("legacy")
                 )
             }
 
@@ -58,9 +61,10 @@ class Repositories(val project: PaddleProject, val descriptors: List<Descriptor>
         val default: Boolean?,
         val secondary: Boolean?,
         val authInfo: AuthInfo,
+        val uploadUrl: PyPackagesRepositoryUrl = url.removeSimple().join("legacy"),
     ) : Hashable {
         override fun hash(): String {
-            val hashables = mutableListOf(name.hashable(), url.hashable(), authInfo.toString().hashable())
+            val hashables = (listOf(name.hashable(), url.hashable()) + authInfo).toMutableList()
             default?.let { hashables.add(it.hashable()) }
             secondary?.let { hashables.add(it.hashable()) }
             return hashables.hashable().hash()
@@ -72,7 +76,8 @@ class Repositories(val project: PaddleProject, val descriptors: List<Descriptor>
                 url = "https://pypi.org",
                 default = true,
                 secondary = false,
-                authInfo = AuthInfo.NONE
+                authInfo = AuthInfo.NONE,
+                uploadUrl = "https://upload.pypi.org/legacy/"
             )
         }
     }

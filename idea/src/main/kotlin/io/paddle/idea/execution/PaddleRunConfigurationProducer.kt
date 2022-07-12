@@ -36,7 +36,7 @@ class PaddleRunConfigurationProducer : AbstractExternalSystemRunConfigurationPro
             when {
                 element.getSuperParent(5)?.text?.startsWith("pytest") ?: false -> "pytest$$taskId"
                 element.getSuperParent(5)?.text?.startsWith("run") ?: false -> "run$$taskId"
-                else -> throw IllegalStateException("Incorrect PSI element in YAML: $element")
+                else -> return false
             }
         )
         configuration.settings.externalProjectPath = module.basePath

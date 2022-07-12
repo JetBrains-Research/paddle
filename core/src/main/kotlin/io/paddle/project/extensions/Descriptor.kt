@@ -3,6 +3,8 @@ package io.paddle.project.extensions
 import io.paddle.project.PaddleProject
 import io.paddle.utils.config.ConfigurationView
 import io.paddle.utils.ext.Extendable
+import io.paddle.utils.hash.Hashable
+import io.paddle.utils.hash.hashable
 
 val PaddleProject.descriptor: Descriptor
     get() = extensions.get(Descriptor.Extension.key)!!
@@ -15,7 +17,7 @@ class Descriptor(
     val description: String?,
     val url: String?,
     val classifiers: List<String>?
-) {
+) : Hashable {
     object Extension : PaddleProject.Extension<Descriptor> {
         override val key: Extendable.Key<Descriptor> = Extendable.Key()
 
@@ -42,4 +44,7 @@ class Descriptor(
         }
     }
 
+    override fun hash(): String {
+        return (listOf(name, version, author, authorEmail, description, url) + classifiers).map { it.toString().hashable() }.hashable().hash()
+    }
 }
