@@ -1,7 +1,7 @@
 package io.paddle.plugin.python.dependencies.setup
 
-import io.paddle.plugin.python.extensions.buildEnvironment
-import io.paddle.plugin.python.extensions.interpreter
+import io.paddle.plugin.python.extensions.*
+import io.paddle.plugin.python.hasPython
 import io.paddle.plugin.python.utils.camelToSnakeCase
 import io.paddle.plugin.standard.extensions.roots
 import io.paddle.project.PaddleProject
@@ -18,13 +18,15 @@ data class SetupConfig(val project: PaddleProject) {
         val longDescription: String?,
         val longDescriptionContentType: String?,
         val url: String?,
+        val keywords: String?,
         val classifiers: List<String>?
     ) : Toml
 
     data class Options(
         val packageDir: Map<String, String>,
         val packages: List<String>,
-        val pythonRequires: String
+        val pythonRequires: String,
+        val installRequires: List<String>?
     ) : Toml
 
     interface Toml {
@@ -56,33 +58,26 @@ data class SetupConfig(val project: PaddleProject) {
     val metadata: Metadata
         get() = Metadata(
             name = project.descriptor.name,
-            version = project.descriptor.version,
-            author = project.descriptor.author ?: "Unknown Author".also {
-                project.terminal.warn("Author is not provided. Default value will be set: Unknown Author")
-            },
-            authorEmail = project.descriptor.authorEmail ?: (null).also {
-                project.terminal.warn("Author's email is not provided.")
-            },
-            description = project.descriptor.description ?: (null).also {
-                project.terminal.warn("Description is not provided.")
-            },
+            version = project.metadata.version,
+            author = project.metadata.author,
+            authorEmail = project.metadata.authorEmail,
+            description = project.metadata.description,
             longDescription = project.buildEnvironment.readme?.name?.let { "file: $it" } ?: (null).also {
-                project.terminal.warn("Long description (README or README.md file in the workDir) is not provided.")
+                project.terminal.warn("Long description (README or README.md file in the ${project.workDir.absolutePath}) is not provided.")
             },
             longDescriptionContentType = project.buildEnvironment.readme?.run { "text/markdown" },
-            url = project.descriptor.url ?: (null).also {
-                project.terminal.warn("Url is not provided.")
-            },
-            classifiers = project.descriptor.classifiers ?: (null).also {
-                project.terminal.warn("Classifiers are not provided.")
-            }
+            url = project.metadata.url,
+            keywords = project.metadata.keywords,
+            classifiers = project.metadata.classifiers
         )
 
     val options: Options
         get() = Options(
             packageDir = mapOf("" to project.roots.sources.relativeTo(project.workDir).path),
             packages = listOf("find:"),
-            pythonRequires = ">=${project.interpreter.pythonVersion.number}"
+            pythonRequires = ">=${project.interpreter.pythonVersion.number}",
+            installRequires = project.requirements.descriptors.map { it.toString() }       // user-defined requirements
+                + project.subprojects.filter { it.hasPython }.map { it.descriptor.name }   // subproject dependencies which also should be published
         )
 
     fun create(file: File) {

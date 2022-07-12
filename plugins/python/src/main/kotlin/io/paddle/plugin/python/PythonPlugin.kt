@@ -49,7 +49,8 @@ object PythonPlugin : Plugin {
             Interpreter.Extension,
             JsonSchema.Extension,
             BuildEnvironment.Extension,
-            PublishEnvironment.Extension
+            PublishEnvironment.Extension,
+            Metadata.Extension,
         ) as List<PaddleProject.Extension<Any>>
     }
 }

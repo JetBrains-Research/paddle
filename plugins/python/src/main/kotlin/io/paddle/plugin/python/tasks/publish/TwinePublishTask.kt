@@ -4,6 +4,7 @@ import io.paddle.plugin.python.PyDevPackageDefaultVersions
 import io.paddle.plugin.python.dependencies.packages.PyPackageVersionSpecifier
 import io.paddle.plugin.python.extensions.*
 import io.paddle.plugin.python.tasks.PythonPluginTaskGroups
+import io.paddle.plugin.standard.extensions.roots
 import io.paddle.project.PaddleProject
 import io.paddle.project.extensions.routeAsString
 import io.paddle.tasks.Task
@@ -19,7 +20,7 @@ class TwinePublishTask(project: PaddleProject) : IncrementalTask(project) {
     override val group: String = PythonPluginTaskGroups.PUBLISH
 
     override val inputs: List<Hashable>
-        get() = listOf(project.buildEnvironment.distDir.hashable())
+        get() = listOf(project.roots.dist.hashable())
 
     override val dependencies: List<Task>
         get() = listOf(project.tasks.getOrFail("build")) + project.subprojects.getAllTasksById(this.id)
@@ -40,7 +41,8 @@ class TwinePublishTask(project: PaddleProject) : IncrementalTask(project) {
                 "Could not infer a repository to publish from existing configuration for project ${project.routeAsString}. " +
                     "Please, specify it directly in the section <tasks.publish.repo> of ${project.buildFile.path}"
             )
-        val pathToDistribution = project.buildEnvironment.distDir.absolutePath.trimEnd(File.separatorChar) + File.separator + "*"
+        // TODO: adjust (all, latest, whl, tar.gz, ... mask)
+        val allDistributions = project.roots.dist.absolutePath.trimEnd(File.separatorChar) + File.separator + "*"
 
         val optionalArgs = mutableListOf<String>().apply {
             if (project.publishEnvironment.twine.skipExisting) add("--skip-existing")
@@ -49,7 +51,7 @@ class TwinePublishTask(project: PaddleProject) : IncrementalTask(project) {
 
         project.executor.execute(
             project.environment.interpreterPath.absolutePathString(),
-            listOf("-m", "twine", "upload", "--repository-url", repo.uploadUrl, pathToDistribution) + optionalArgs,
+            listOf("-m", "twine", "upload", "--repository-url", repo.uploadUrl, allDistributions) + optionalArgs,
             project.workDir,
             project.terminal,
             mapOf("TWINE_USERNAME" to repo.credentials.login, "TWINE_PASSWORD" to repo.credentials.password)

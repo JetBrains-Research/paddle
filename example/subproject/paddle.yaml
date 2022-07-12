@@ -1,6 +1,4 @@
-descriptor:
-  name: subproject
-  version: 0.1.1
+project: subproject
 
 subprojects:
   - dependency

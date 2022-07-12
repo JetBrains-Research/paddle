@@ -21,15 +21,15 @@ class BuildTask(project: PaddleProject) : IncrementalTask(project) {
     override val group: String = TaskDefaultGroups.BUILD
 
     override val inputs: List<Hashable>
-        get() = listOf(project.roots.sources.hashable(), project.buildEnvironment, project.descriptor)
+        get() = listOf(project.roots.sources.hashable(), project.buildEnvironment, project.descriptor, project.metadata)
     override val outputs: List<Hashable>
-        get() = listOf(project.workDir.resolve("build").hashable())
+        get() = listOf(project.roots.dist.hashable())
 
     override val dependencies: List<Task>
         get() = listOf(project.tasks.getOrFail("install")) + project.subprojects.getAllTasksById(this.id)
 
     override fun initialize() {
-        project.tasks.clean.locations.add(project.buildEnvironment.distDir)
+        project.tasks.clean.locations.add(project.roots.dist)
         val eggInfos = project.roots.sources.listFiles { entry -> entry.name.endsWith(".egg-info") }?.toList() ?: emptyList()
         for (eggInfo in eggInfos) {
             project.tasks.clean.locations.add(eggInfo)
@@ -66,7 +66,7 @@ class BuildTask(project: PaddleProject) : IncrementalTask(project) {
         ).then {
             project.executor.execute(
                 project.environment.interpreterPath.absolutePathString(),
-                listOf("-m", "build"),
+                listOf("-m", "build", "--outdir", project.roots.dist.absolutePath),
                 project.workDir,
                 project.terminal
             )

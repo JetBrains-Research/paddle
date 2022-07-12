@@ -87,3 +87,7 @@ fun String.camelToSnakeCase(): String {
         "_${it.value}"
     }.lowercase(Locale.getDefault())
 }
+
+fun <T> Iterable<T>.takeIfAllAreEqual(): Iterable<T>? {
+    return takeIf { all { it == first() } }
+}

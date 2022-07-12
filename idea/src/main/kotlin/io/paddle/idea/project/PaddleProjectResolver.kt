@@ -47,7 +47,6 @@ class PaddleProjectResolver : ExternalSystemProjectResolver<PaddleExecutionSetti
             /* linkedExternalProjectPath = */ rootDir.canonicalPath
         ).also {
             it.group = project.descriptor.name
-            it.version = project.descriptor.version
         }
 
         val projectDataNode = DataNode(ProjectKeys.PROJECT, projectData, null)
@@ -143,6 +142,7 @@ class PaddleProjectResolver : ExternalSystemProjectResolver<PaddleExecutionSetti
         rootData.storePath(ExternalSystemSourceType.TEST, project.roots.tests.canonicalPath)
         rootData.storePath(ExternalSystemSourceType.RESOURCE, project.roots.resources.canonicalPath)
 
+        rootData.storePath(ExternalSystemSourceType.EXCLUDED, project.roots.dist.canonicalPath)
         rootData.storePath(ExternalSystemSourceType.EXCLUDED, project.workDir.resolve(".paddle").canonicalPath)
         if (project.hasPython) {
             rootData.storePath(ExternalSystemSourceType.EXCLUDED, project.environment.venv.canonicalPath)

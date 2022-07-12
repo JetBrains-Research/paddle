@@ -9,9 +9,6 @@ val PaddleProject.buildEnvironment: BuildEnvironment
     get() = this.extensions.get(BuildEnvironment.Extension.key)!!
 
 class BuildEnvironment(val project: PaddleProject) : Hashable {
-    val distDir: File
-        get() = project.workDir.resolve("dist")
-
     val pyprojectToml: File
         get() = project.workDir.resolve("pyproject.toml")
 
