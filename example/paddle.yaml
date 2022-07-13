@@ -61,7 +61,7 @@ tasks:
     pytest:
       - id: tests_main_suite
         targets:
-          - src/test/test_sample.py
+          - test_sample.py
   publish:
     repo: test-pypi
     twine:

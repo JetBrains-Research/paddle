@@ -26,7 +26,8 @@ tasks:
   test:
     pytest:
       - id: some_tests
-        targets: # if not specified, then all test roots will be used
-          - test/test_app.py
+        targets: # if targets are not provided, Paddle runs all test from tests root
+          - bar/test_app.py::TestFoo::test_that
+          - test_example.py
         keywords: "not this"
         parameters: ""

@@ -4,6 +4,8 @@ import com.intellij.execution.Executor
 import com.intellij.execution.configurations.ConfigurationFactory
 import com.intellij.execution.configurations.RunProfileState
 import com.intellij.execution.runners.ExecutionEnvironment
+import com.intellij.notification.NotificationGroupManager
+import com.intellij.notification.NotificationType
 import com.intellij.openapi.externalSystem.service.execution.ExternalSystemRunConfiguration
 import com.intellij.openapi.externalSystem.service.execution.ExternalSystemRunnableState
 import com.intellij.openapi.project.Project
@@ -54,11 +56,28 @@ class PaddleRunConfiguration(project: Project, factory: ConfigurationFactory, na
 
         val paddleProject = PaddleProjectProvider.getInstance(rootDir).getProject(moduleDir)
         val task = paddleProject?.tasks?.get(taskName) ?: return null
-        val ctx = PaddleTaskRunProfileStateContext(moduleDir, rootDir, env, this)
+        val ctx = PaddleTaskRunProfileStateContext(moduleDir, rootDir, executor, env, this)
 
         return when (task) {
             is RunTask -> PaddleTaskRunProfileStateProvider.findInstance(PythonScriptCommandLineStateProvider::class.java)?.getState(task, ctx)
-            is PyTestTask -> PaddleTaskRunProfileStateProvider.findInstance(PyPyTestExecutionEnvironmentProvider::class.java)?.getState(task, ctx)
+            is PyTestTask -> {
+                if (task.targets.isEmpty()) {
+                    NotificationGroupManager.getInstance()
+                        .getNotificationGroup("Paddle")
+                        .createNotification(
+                            "At least one pytest target must be specified in <b>paddle.yaml</b>",
+                            NotificationType.ERROR
+                        ).notify(project)
+                    return null
+                }
+
+                if (task.targets.size == 1) {
+                    PaddleTaskRunProfileStateProvider.findInstance(PyPyTestExecutionEnvironmentProvider::class.java)?.getState(task, ctx)
+                }  else {
+                    PaddleTaskRunProfileStateProvider.findInstance(PyTestCompoundConfigurationStateProvider::class.java)?.getState(task, ctx)
+                }
+            }
+
             else -> ExternalSystemRunnableState(settings, project, ToolWindowId.DEBUG == executor.id, this, env)
         }
     }

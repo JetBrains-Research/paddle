@@ -13,13 +13,13 @@ class PaddleRunLineMarkerContributor : RunLineMarkerContributor() {
 
         // Run general task
         shouldRenderRunLineMarker = shouldRenderRunLineMarker ||
-            (element.text.contains("id")
+            (element.text.startsWith("id")
                 && element.getSuperParent(5)?.text?.startsWith("run") ?: false
                 && element.getSuperParent(7)?.text?.startsWith("tasks") ?: false)
 
         // Run PyTest
         shouldRenderRunLineMarker = shouldRenderRunLineMarker ||
-            (element.text.contains("id")
+            (element.text.startsWith("id")
                 && element.getSuperParent(5)?.text?.startsWith("pytest") ?: false
                 && element.getSuperParent(7)?.text?.startsWith("test") ?: false
                 && element.getSuperParent(9)?.text?.startsWith("tasks") ?: false)

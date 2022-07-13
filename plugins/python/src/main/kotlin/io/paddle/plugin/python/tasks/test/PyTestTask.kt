@@ -2,18 +2,18 @@ package io.paddle.plugin.python.tasks.test
 
 import io.paddle.plugin.python.PyDevPackageDefaultVersions
 import io.paddle.plugin.python.dependencies.packages.PyPackageVersionSpecifier
+import io.paddle.plugin.python.dependencies.pytest.PyTestTarget
 import io.paddle.plugin.python.extensions.*
 import io.paddle.plugin.standard.tasks.clean
 import io.paddle.project.PaddleProject
 import io.paddle.tasks.Task
 import io.paddle.utils.tasks.TaskDefaultGroups
 import java.io.File
-import java.nio.file.Paths
 
 class PyTestTask(
     name: String,
     project: PaddleProject,
-    val targets: List<File>,
+    val targets: List<PyTestTarget>,
     val keywords: String?,
     val additionalArgs: List<String>
 ) : Task(project) {
@@ -26,16 +26,12 @@ class PyTestTask(
 
             for (configuration in configurations) {
                 val name = configuration["id"] as String
-                val relativeTargets = configuration["targets"] as List<String>? ?: emptyList()
-                val targets = ArrayList<File>()
-
-                for (relativeTarget in relativeTargets) {
-                    if (Paths.get(relativeTarget).isAbsolute) {
-                        targets.add(File(relativeTarget))
+                val targets = (configuration["targets"] as List<String>? ?: listOf("/")).map {
+                    try {
+                        PyTestTarget.from(it, project)
+                    } catch (e: PyTestTarget.PyTestTargetParseException) {
+                        error("Failed to parse pytest targets in ${project.buildFile}: ${e.message ?: "unknown error"}")
                     }
-                    val absoluteTarget = project.workDir.resolve(relativeTarget).takeIf { it.exists() }
-                        ?: throw ActException("Pytest target $relativeTarget was not found at ${project.workDir.absolutePath}")
-                    targets.add(absoluteTarget)
                 }
 
                 val keywords = (configuration["keywords"] as String?)
@@ -79,7 +75,7 @@ class PyTestTask(
 
         val args = additionalArgs.toMutableList()
         keywords?.let { args.apply { add("-k"); add(it) } }
-        targets.map { it.absolutePath }.forEach { args.add(it) }
+        targets.forEach { args.add(it.cliArgument) }
 
         project.environment.runModule("pytest", args).orElse {
             throw ActException("Pytest tests has failed.")
