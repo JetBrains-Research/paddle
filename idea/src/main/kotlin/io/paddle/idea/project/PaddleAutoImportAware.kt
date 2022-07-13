@@ -9,6 +9,7 @@ import com.intellij.openapi.util.io.FileUtil
 import com.intellij.util.SmartList
 import io.paddle.idea.PaddleManager
 import io.paddle.idea.settings.PaddleSettings
+import io.paddle.plugin.python.extensions.AuthConfig
 import io.paddle.utils.isPaddle
 import java.io.File
 import java.io.IOException
@@ -18,7 +19,7 @@ class PaddleAutoImportAware : ExternalSystemAutoImportAware {
     private val LOG: Logger = Logger.getInstance(PaddleAutoImportAware::class.java)
 
     override fun getAffectedExternalProjectPath(changedFileOrDirPath: String, project: Project): String? {
-        if (!changedFileOrDirPath.endsWith("paddle.yaml")) {
+        if (!changedFileOrDirPath.endsWith("paddle.yaml") && !changedFileOrDirPath.endsWith(AuthConfig.FILENAME)) {
             return null
         }
 
@@ -64,7 +65,7 @@ class PaddleAutoImportAware : ExternalSystemAutoImportAware {
             ProgressManager.checkCanceled()
             try {
                 File(path).walkTopDown()
-                    .filter { it.isFile && it.isPaddle }
+                    .filter { it.isFile && (it.isPaddle or it.name.endsWith(AuthConfig.FILENAME)) }
                     .forEach { files.add(it) }
             } catch (e: IOException) {
                 LOG.debug(e)

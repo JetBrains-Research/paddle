@@ -14,13 +14,13 @@ import kotlinx.serialization.*
 import java.io.File
 
 @Serializable
-class PyPackageRepository(val url: PyPackagesRepositoryUrl, val name: String, val authInfo: AuthInfo, val uploadUrl: PyPackagesRepositoryUrl) {
-    constructor(metadata: Metadata) : this(metadata.url, metadata.name, metadata.authInfo, metadata.uploadUrl)
-    constructor(descriptor: Repositories.Descriptor) : this(descriptor.url.removeSimple(), descriptor.name, descriptor.authInfo, descriptor.uploadUrl)
+class PyPackageRepository(val url: PyPackagesRepositoryUrl, val name: String, val authInfos: List<AuthInfo>, val uploadUrl: PyPackagesRepositoryUrl) {
+    constructor(metadata: Metadata) : this(metadata.url, metadata.name, metadata.authInfos, metadata.uploadUrl)
+    constructor(descriptor: Repositories.Descriptor) : this(descriptor.url.removeSimple(), descriptor.name, descriptor.authInfos, descriptor.uploadUrl)
 
     @Serializable
-    data class Metadata(val url: PyPackagesRepositoryUrl, val name: String, val authInfo: AuthInfo, val uploadUrl: PyPackagesRepositoryUrl) : Hashable {
-        override fun hash() = listOf(url, name, authInfo.username.toString(), authInfo.type.toString()).map { it.hashable() }.hashable().hash()
+    data class Metadata(val url: PyPackagesRepositoryUrl, val name: String, val authInfos: List<AuthInfo>, val uploadUrl: PyPackagesRepositoryUrl) : Hashable {
+        override fun hash() = listOf(url.hashable(), name.hashable(), authInfos.hashable()).hashable().hash()
     }
 
     /**
@@ -57,9 +57,9 @@ class PyPackageRepository(val url: PyPackagesRepositoryUrl, val name: String, va
         get() = credentials.authenticate(urlSimple)
 
     val credentials: Credentials
-        get() = AuthenticationProvider.resolveCredentials(url, authInfo)
+        get() = AuthenticationProvider.resolveCredentials(url, authInfos)
 
-    val metadata = Metadata(url, name, authInfo, uploadUrl)
+    val metadata = Metadata(url, name, authInfos, uploadUrl)
 
     companion object {
         val PYPI_REPOSITORY = PyPackageRepository(Repositories.Descriptor.PYPI)

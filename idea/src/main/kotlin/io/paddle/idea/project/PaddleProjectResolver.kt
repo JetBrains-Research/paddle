@@ -9,15 +9,18 @@ import com.intellij.openapi.module.ModuleTypeManager
 import io.paddle.idea.PaddleManager
 import io.paddle.idea.settings.PaddleExecutionSettings
 import io.paddle.idea.utils.IDEACommandOutput
+import io.paddle.plugin.python.extensions.authConfig
 import io.paddle.plugin.python.extensions.environment
 import io.paddle.plugin.python.hasPython
 import io.paddle.plugin.python.tasks.resolve.ResolveRequirementsTask
+import io.paddle.plugin.python.utils.PaddleLogger
 import io.paddle.plugin.python.utils.deepResolve
 import io.paddle.plugin.standard.extensions.roots
 import io.paddle.project.PaddleProject
 import io.paddle.project.PaddleProjectProvider
 import io.paddle.project.extensions.descriptor
 import io.paddle.project.extensions.route
+import io.paddle.terminal.Terminal
 import java.io.File
 import java.io.FileFilter
 
@@ -38,6 +41,7 @@ class PaddleProjectResolver : ExternalSystemProjectResolver<PaddleExecutionSetti
 
         // Resolve requirements, interpreter, repositories (== load model to RAM)
         project.output = IDEACommandOutput(id, listener)
+        PaddleLogger.terminal = Terminal(project.output)
         ResolveRequirementsTask(project).run()
 
         val projectData = ProjectData(
@@ -146,6 +150,7 @@ class PaddleProjectResolver : ExternalSystemProjectResolver<PaddleExecutionSetti
         rootData.storePath(ExternalSystemSourceType.EXCLUDED, project.workDir.resolve(".paddle").canonicalPath)
         if (project.hasPython) {
             rootData.storePath(ExternalSystemSourceType.EXCLUDED, project.environment.venv.canonicalPath)
+            rootData.storePath(ExternalSystemSourceType.EXCLUDED, project.authConfig.file.canonicalPath)
         }
 
         createChild(ProjectKeys.CONTENT_ROOT, rootData)

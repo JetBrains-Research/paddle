@@ -43,6 +43,7 @@ object PythonPlugin : Plugin {
     @Suppress("UNCHECKED_CAST")
     override fun extensions(project: PaddleProject): List<PaddleProject.Extension<Any>> {
         return listOf(
+            AuthConfig.Extension,
             Requirements.Extension,
             Repositories.Extension,
             Environment.Extension,

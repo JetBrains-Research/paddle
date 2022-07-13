@@ -1,5 +1,6 @@
 package io.paddle.plugin.python.utils
 
+import io.paddle.terminal.Terminal
 import kotlinx.coroutines.*
 import java.io.File
 import java.net.URL
@@ -90,4 +91,8 @@ fun String.camelToSnakeCase(): String {
 
 fun <T> Iterable<T>.takeIfAllAreEqual(): Iterable<T>? {
     return takeIf { all { it == first() } }
+}
+
+object PaddleLogger {
+    var terminal: Terminal = Terminal.MOCK
 }

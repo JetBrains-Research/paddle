@@ -1,3 +1,5 @@
 *.venv
 *.paddle
 *.iml
+
+paddle.auth.yaml

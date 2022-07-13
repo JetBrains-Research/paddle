@@ -1,12 +1,12 @@
 package io.paddle.plugin.python.extensions
 
 import io.paddle.plugin.python.dependencies.authentication.AuthInfo
-import io.paddle.plugin.python.dependencies.authentication.AuthType
 import io.paddle.plugin.python.dependencies.repositories.PyPackageRepositories
 import io.paddle.plugin.python.utils.*
 import io.paddle.project.PaddleProject
 import io.paddle.utils.ext.Extendable
-import io.paddle.utils.hash.*
+import io.paddle.utils.hash.Hashable
+import io.paddle.utils.hash.hashable
 import kotlin.system.measureTimeMillis
 
 
@@ -26,7 +26,6 @@ class Repositories(val project: PaddleProject, val descriptors: List<Descriptor>
         result
     }
 
-    @Suppress("UNCHECKED_CAST")
     object Extension : PaddleProject.Extension<Repositories> {
         override val key: Extendable.Key<Repositories> = Extendable.Key()
 
@@ -34,19 +33,28 @@ class Repositories(val project: PaddleProject, val descriptors: List<Descriptor>
             val reposConfig = project.config.get<List<Map<String, Any>>>("repositories") ?: emptyList()
 
             val descriptors = reposConfig.map { repo ->
-                val authDescriptor: Map<String, String> = repo["auth"] as? Map<String, String> ?: emptyMap()
-                val type = AuthType.valueOf((authDescriptor["type"] ?: "none").uppercase())
-                val username = authDescriptor["username"]
-
-                val url = repo["url"]!! as String
+                val repoName = checkNotNull(repo["name"]) {
+                    "Failed to parse ${project.buildFile.canonicalPath}: <name> must be specified for each repository."
+                } as String
+                val url = checkNotNull(repo["url"]) {
+                    "Failed to parse ${project.buildFile.canonicalPath}: <url> must be specified for each repository."
+                } as String
                 val uploadUrl = repo["uploadUrl"] as String?
 
+                val authInfos = project.authConfig.findAuthInfos(repoName).takeIf { it.isNotEmpty() }
+                    ?: listOf(AuthInfo.NONE).also {
+                        project.terminal.info(
+                            "Authentication method for PyPI repo $repoName is not provided " +
+                                "in ${project.authConfig.file.canonicalPath}, proceeding..."
+                        )
+                    }
+
                 Descriptor(
-                    name = repo["name"]!! as String,
+                    name = repoName,
                     url = url,
                     default = (repo["default"] as String?)?.toBoolean(),
                     secondary = (repo["secondary"] as String?)?.toBoolean(),
-                    authInfo = AuthInfo(type, username),
+                    authInfos = authInfos,
                     uploadUrl = uploadUrl ?: url.removeSimple().join("legacy")
                 )
             }
@@ -60,14 +68,14 @@ class Repositories(val project: PaddleProject, val descriptors: List<Descriptor>
         val url: PyPackagesRepositoryUrl,
         val default: Boolean?,
         val secondary: Boolean?,
-        val authInfo: AuthInfo,
+        val authInfos: List<AuthInfo>,
         val uploadUrl: PyPackagesRepositoryUrl = url.removeSimple().join("legacy"),
     ) : Hashable {
         override fun hash(): String {
-            val hashables = (listOf(name.hashable(), url.hashable()) + authInfo).toMutableList()
+            val hashables = mutableListOf(name.hashable(), url.hashable())
             default?.let { hashables.add(it.hashable()) }
             secondary?.let { hashables.add(it.hashable()) }
-            return hashables.hashable().hash()
+            return listOf(hashables.hashable(), authInfos.hashable()).hashable().hash()
         }
 
         companion object {
@@ -76,7 +84,7 @@ class Repositories(val project: PaddleProject, val descriptors: List<Descriptor>
                 url = "https://pypi.org",
                 default = true,
                 secondary = false,
-                authInfo = AuthInfo.NONE,
+                authInfos = listOf(AuthInfo.NONE),
                 uploadUrl = "https://upload.pypi.org/legacy/"
             )
         }

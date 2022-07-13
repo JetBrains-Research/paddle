@@ -34,7 +34,7 @@ class Requirements(val project: PaddleProject, val descriptors: MutableList<Desc
             val config = project.config.get<List<Map<String, String>>>("requirements") ?: emptyList()
             val descriptors = config.map { req ->
                 Descriptor(
-                    name = req["name"]!!,
+                    name = checkNotNull(req["name"]) { "Failed to parse ${project.buildFile.canonicalPath}: <name> must be provided for every requirement." },
                     versionSpecifier = req["version"]?.let { PyPackageVersionSpecifier.fromString(it) }
                 )
             }.toMutableList()
@@ -50,7 +50,7 @@ class Requirements(val project: PaddleProject, val descriptors: MutableList<Desc
             return hashables.hashable().hash()
         }
 
-        override fun toString(): String = "$name$versionSpecifier"
+        override fun toString(): String = versionSpecifier?.let { "$name$versionSpecifier" } ?: name
     }
 
     fun findByName(name: PyPackageName): Descriptor? {
