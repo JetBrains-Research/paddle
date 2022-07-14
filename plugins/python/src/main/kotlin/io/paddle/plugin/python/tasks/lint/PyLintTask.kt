@@ -29,7 +29,8 @@ class PyLintTask(project: PaddleProject) : IncrementalTask(project) {
             ?: project.requirements.descriptors.add(
                 Requirements.Descriptor(
                     name = "pylint",
-                    versionSpecifier = PyPackageVersionSpecifier.fromString(PyDevPackageDefaultVersions.PYLINT)
+                    versionSpecifier = PyPackageVersionSpecifier.fromString(PyDevPackageDefaultVersions.PYLINT),
+                    type = Requirements.Descriptor.Type.DEV
                 )
             )
         project.tasks.clean.locations.add(File(project.workDir, ".pylint_cache"))

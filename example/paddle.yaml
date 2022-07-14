@@ -1,8 +1,8 @@
 project: example
 
 metadata:
-  version: 0.1.3
-  description: Now reqs should be specified.
+  version: 0.1.4
+  description: Now only <main> reqs should be provided in wheel.
   author: Oleg Smirnov
   authorEmail: oleg.smirnov@jetbrains.com
   url: jetbrains.com
@@ -25,22 +25,22 @@ environment:
 repositories:
   - name: grazie-ml
     url: https://packages.jetbrains.team/pypi/p/grazi/grazie-ml/simple
-    default: False # If True, this would disable the global PyPI repo, and make <ml> the default fallback source
+    default: False # If True, this would disable the global PyPI repo, and make <grazie-ml> the default fallback source
 
   - name: test-pypi
     url: https://packages.jetbrains.team/pypi/p/paddle/test-pypi/simple
     uploadUrl: https://packages.jetbrains.team/pypi/p/paddle/test-pypi/legacy/
-
-#  - name: paper-analyzer
-#    url: https://repo.labs.intellij.net/artifactory/api/pypi/paper-analyzer/simple/
-#    secondary: True # Thus, <grazie-ml> still would be the primary source. But without such flag, this repo would have precedence over <ml>
+#    secondary: True # Thus, <grazie-ml> still would be the primary source. But without such flag, this repo would have precedence over <grazie-ml>
 
 requirements:
-  - name: redis
-    version: <=3.5.3
-
-  - name: grazie-supar
-    version: ~=1.2.1
+  main:
+    - name: redis
+      version: <=3.5.3
+    - name: grazie-supar
+      version: ~=1.2.1
+  dev:
+    - name: pytest
+    - name: twine
 
 plugins:
   enabled:

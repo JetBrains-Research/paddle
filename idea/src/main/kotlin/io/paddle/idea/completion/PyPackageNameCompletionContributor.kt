@@ -15,8 +15,8 @@ class PyPackageNameCompletionContributor : CompletionContributor() {
             psiElement()
                 .inFile(psiFile().withName(string().equalTo("paddle.yaml")))
                 .withSuperParent(2, psiElement().withText(string().startsWith("name:")))
-                .withSuperParent(6, psiElement().withText(string().startsWith("requirements:")))
-                .withSuperParent(8, YAMLDocument::class.java),
+                .withSuperParent(8, psiElement().withText(string().startsWith("requirements:")))
+                .withSuperParent(10, YAMLDocument::class.java),
             PyPackageNameCompletionProvider()
         )
     }

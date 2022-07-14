@@ -29,7 +29,8 @@ class MyPyTask(project: PaddleProject) : IncrementalTask(project) {
             ?: project.requirements.descriptors.add(
                 Requirements.Descriptor(
                     name = "mypy",
-                    versionSpecifier = PyPackageVersionSpecifier.fromString(PyDevPackageDefaultVersions.MYPY)
+                    versionSpecifier = PyPackageVersionSpecifier.fromString(PyDevPackageDefaultVersions.MYPY),
+                    type = Requirements.Descriptor.Type.DEV
                 )
             )
         project.tasks.clean.locations.add(File(project.workDir, ".mypy_cache"))

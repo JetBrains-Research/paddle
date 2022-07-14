@@ -26,7 +26,7 @@ class VenvTask(project: PaddleProject) : IncrementalTask(project) {
 
     override fun initialize() {
         val versionSpec = PyPackageVersionSpecifier.fromString("0.36.2")
-        project.requirements.descriptors.add(Requirements.Descriptor("wheel", versionSpec))
+        project.requirements.descriptors.add(Requirements.Descriptor("wheel", versionSpec, Requirements.Descriptor.Type.DEV))
         project.tasks.clean.locations.add(project.environment.venv)
     }
 

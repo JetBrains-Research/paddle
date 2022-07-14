@@ -14,8 +14,8 @@ class PyPackageVersionCompletionContributor : CompletionContributor() {
             PlatformPatterns.psiElement()
                 .inFile(PlatformPatterns.psiFile().withName(PlatformPatterns.string().equalTo("paddle.yaml")))
                 .withSuperParent(2, PlatformPatterns.psiElement().withText(PlatformPatterns.string().startsWith("version:")))
-                .withSuperParent(6, PlatformPatterns.psiElement().withText(PlatformPatterns.string().startsWith("requirements:")))
-                .withSuperParent(8, YAMLDocument::class.java),
+                .withSuperParent(8, PlatformPatterns.psiElement().withText(PlatformPatterns.string().startsWith("requirements:")))
+                .withSuperParent(10, YAMLDocument::class.java),
             PyPackageVersionCompletionProvider()
         )
     }

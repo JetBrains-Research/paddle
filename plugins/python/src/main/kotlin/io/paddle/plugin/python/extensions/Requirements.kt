@@ -31,21 +31,41 @@ class Requirements(val project: PaddleProject, val descriptors: MutableList<Desc
         override val key: Extendable.Key<Requirements> = Extendable.Key()
 
         override fun create(project: PaddleProject): Requirements {
-            val config = project.config.get<List<Map<String, String>>>("requirements") ?: emptyList()
-            val descriptors = config.map { req ->
-                Descriptor(
-                    name = checkNotNull(req["name"]) { "Failed to parse ${project.buildFile.canonicalPath}: <name> must be provided for every requirement." },
-                    versionSpecifier = req["version"]?.let { PyPackageVersionSpecifier.fromString(it) }
-                )
-            }.toMutableList()
-            return Requirements(project, descriptors)
+            val config = project.config.get<Map<String, List<Map<String, String>>>>("requirements") ?: emptyMap()
+
+            val mainRequirements = config["main"] ?: emptyList()
+            val devRequirements = config["dev"] ?: emptyList()
+
+            val descriptors =
+                mainRequirements.map { req ->
+                    Descriptor(
+                        name = checkNotNull(req["name"]) {
+                            "Failed to parse ${project.buildFile.canonicalPath}: <name> must be provided for every requirement."
+                        },
+                        versionSpecifier = req["version"]?.let { PyPackageVersionSpecifier.fromString(it) },
+                        type = Descriptor.Type.MAIN
+                    )
+                } + devRequirements.map { req ->
+                    Descriptor(
+                        name = checkNotNull(req["name"]) {
+                            "Failed to parse ${project.buildFile.canonicalPath}: <name> must be provided for every requirement."
+                        },
+                        versionSpecifier = req["version"]?.let { PyPackageVersionSpecifier.fromString(it) },
+                        type = Descriptor.Type.DEV
+                    )
+                }
+
+            return Requirements(project, descriptors.toMutableList())
         }
     }
 
-    data class Descriptor(val name: PyPackageName, val versionSpecifier: PyPackageVersionSpecifier? = null) :
-        Hashable {
+    data class Descriptor(val name: PyPackageName, val versionSpecifier: PyPackageVersionSpecifier? = null, val type: Type = Type.MAIN) : Hashable {
+        enum class Type {
+            MAIN, DEV
+        }
+
         override fun hash(): String {
-            val hashables = mutableListOf(name.hashable())
+            val hashables = mutableListOf(name.hashable(), type.toString().hashable())
             versionSpecifier?.let { hashables.add(versionSpecifier.toString().hashable()) }
             return hashables.hashable().hash()
         }

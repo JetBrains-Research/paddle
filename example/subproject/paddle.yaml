@@ -12,8 +12,9 @@ plugins:
     - python
 
 requirements:
-  - name: aioredis
-    version: 2.0.0
+  main:
+    - name: aioredis
+      version: 2.0.0
 
 environment:
   path: .venv

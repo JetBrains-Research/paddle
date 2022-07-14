@@ -8,7 +8,6 @@ import io.paddle.plugin.standard.tasks.clean
 import io.paddle.project.PaddleProject
 import io.paddle.tasks.Task
 import io.paddle.utils.tasks.TaskDefaultGroups
-import java.io.File
 
 class PyTestTask(
     name: String,
@@ -59,10 +58,14 @@ class PyTestTask(
             ?: project.requirements.descriptors.add(
                 Requirements.Descriptor(
                     name = "pytest",
-                    versionSpecifier = PyPackageVersionSpecifier.fromString(PyDevPackageDefaultVersions.PYTEST)
+                    versionSpecifier = PyPackageVersionSpecifier.fromString(PyDevPackageDefaultVersions.PYTEST),
+                    type = Requirements.Descriptor.Type.DEV
                 )
             )
-        project.tasks.clean.locations.add(File(project.workDir, ".pytest_cache"))
+        project.tasks.clean.locations.addAll(
+            project.workDir.walkTopDown()
+                .filter { it.isDirectory && it.name == ".pytest_cache" }
+        )
     }
 
     override fun act() {

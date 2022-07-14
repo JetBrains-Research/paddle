@@ -25,7 +25,6 @@ data class SetupConfig(val project: PaddleProject) {
     data class Options(
         val packageDir: Map<String, String>,
         val packages: List<String>,
-        val pythonRequires: String,
         val installRequires: List<String>?
     ) : Toml
 
@@ -75,8 +74,9 @@ data class SetupConfig(val project: PaddleProject) {
         get() = Options(
             packageDir = mapOf("" to project.roots.sources.relativeTo(project.workDir).path),
             packages = listOf("find:"),
-            pythonRequires = ">=${project.interpreter.pythonVersion.number}",
-            installRequires = project.requirements.descriptors.map { it.toString() }       // user-defined requirements
+            installRequires = project.requirements.descriptors                             // user-defined requirements
+                .filter { it.type == Requirements.Descriptor.Type.MAIN }
+                .map { it.toString() }
                 + project.subprojects.filter { it.hasPython }.map { it.descriptor.name }   // subproject dependencies which also should be published
         )
 

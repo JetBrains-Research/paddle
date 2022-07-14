@@ -30,7 +30,8 @@ class TwinePublishTask(project: PaddleProject) : IncrementalTask(project) {
             ?: project.requirements.descriptors.add(
                 Requirements.Descriptor(
                     name = "twine",
-                    versionSpecifier = PyPackageVersionSpecifier.fromString(PyDevPackageDefaultVersions.TWINE)
+                    versionSpecifier = PyPackageVersionSpecifier.fromString(PyDevPackageDefaultVersions.TWINE),
+                    type = Requirements.Descriptor.Type.DEV
                 )
             )
     }
