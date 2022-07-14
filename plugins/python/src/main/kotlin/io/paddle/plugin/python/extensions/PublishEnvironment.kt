@@ -2,9 +2,11 @@ package io.paddle.plugin.python.extensions
 
 import io.paddle.plugin.python.dependencies.repositories.PyPackageRepository
 import io.paddle.plugin.python.utils.takeIfAllAreEqual
+import io.paddle.plugin.standard.extensions.roots
 import io.paddle.project.PaddleProject
 import io.paddle.project.extensions.routeAsString
 import io.paddle.utils.ext.Extendable
+import java.io.File
 
 val PaddleProject.publishEnvironment: PublishEnvironment
     get() = this.extensions.get(PublishEnvironment.Extension.key)!!
@@ -13,7 +15,7 @@ class PublishEnvironment(val twine: TwineEnvironment, val repo: PyPackageReposit
     object Extension : PaddleProject.Extension<PublishEnvironment> {
         override val key: Extendable.Key<PublishEnvironment> = Extendable.Key()
 
-        private fun getInstance(currentProject: PaddleProject): PublishEnvironment? {
+        private fun getInstance(currentProject: PaddleProject, originalProject: PaddleProject): PublishEnvironment? {
             val repoName = currentProject.config.get<String>("tasks.publish.repo") ?: return null
             val repo = currentProject.repositories.resolved.findByName(repoName)
                 ?: error(
@@ -25,12 +27,16 @@ class PublishEnvironment(val twine: TwineEnvironment, val repo: PyPackageReposit
             val skipExisting = currentProject.config.get<String>("tasks.publish.twine.skipExisting")?.toBoolean() ?: false
             val verbose = currentProject.config.get<String>("tasks.publish.twine.verbose")?.toBoolean() ?: false
 
-            return PublishEnvironment(TwineEnvironment(skipExisting, verbose), repo, currentProject)
+            val targets = currentProject.config.get<List<String>>("tasks.publish.twine.targets")
+                ?.map { originalProject.roots.dist.resolve(it).relativeTo(currentProject.workDir).path }
+                ?: listOf(originalProject.roots.dist.absolutePath.trimEnd(File.separatorChar) + File.separator + "*")
+
+            return PublishEnvironment(TwineEnvironment(skipExisting, verbose, targets), repo, currentProject)
         }
 
         override fun create(project: PaddleProject): PublishEnvironment {
-            return getInstance(project)
-                ?: project.parents.mapNotNull { getInstance(it) }.takeIfAllAreEqual()
+            return getInstance(project, project)
+                ?: project.parents.mapNotNull { getInstance(it, project) }.takeIfAllAreEqual()
                     ?.firstOrNull()?.also {
                         project.terminal.warn("Twine configuration for project ${project.routeAsString} was determined automatically: $it")
                     }
@@ -38,5 +44,5 @@ class PublishEnvironment(val twine: TwineEnvironment, val repo: PyPackageReposit
         }
     }
 
-    data class TwineEnvironment(val skipExisting: Boolean = false, val verbose: Boolean = false)
+    data class TwineEnvironment(val skipExisting: Boolean = false, val verbose: Boolean = false, val targets: List<String> = emptyList())
 }

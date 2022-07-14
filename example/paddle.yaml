@@ -1,7 +1,7 @@
 project: example
 
 metadata:
-  version: 0.1.4
+  version: 0.1.6
   description: Now only <main> reqs should be provided in wheel.
   author: Oleg Smirnov
   authorEmail: oleg.smirnov@jetbrains.com
@@ -67,6 +67,7 @@ tasks:
     twine:
       skipExisting: True
       verbose: True
+#      targets: # file paths relative to dist root. if not provided, "dist/*" is used
 
 #executor:
 #  type: docker

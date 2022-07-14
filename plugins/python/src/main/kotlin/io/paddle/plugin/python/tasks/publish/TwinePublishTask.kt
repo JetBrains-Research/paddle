@@ -11,7 +11,6 @@ import io.paddle.tasks.Task
 import io.paddle.tasks.incremental.IncrementalTask
 import io.paddle.utils.hash.Hashable
 import io.paddle.utils.hash.hashable
-import java.io.File
 import kotlin.io.path.absolutePathString
 
 class TwinePublishTask(project: PaddleProject) : IncrementalTask(project) {
@@ -42,8 +41,6 @@ class TwinePublishTask(project: PaddleProject) : IncrementalTask(project) {
                 "Could not infer a repository to publish from existing configuration for project ${project.routeAsString}. " +
                     "Please, specify it directly in the section <tasks.publish.repo> of ${project.buildFile.path}"
             )
-        // TODO: adjust (all, latest, whl, tar.gz, ... mask)
-        val allDistributions = project.roots.dist.absolutePath.trimEnd(File.separatorChar) + File.separator + "*"
 
         val optionalArgs = mutableListOf<String>().apply {
             if (project.publishEnvironment.twine.skipExisting) add("--skip-existing")
@@ -52,7 +49,7 @@ class TwinePublishTask(project: PaddleProject) : IncrementalTask(project) {
 
         project.executor.execute(
             project.environment.interpreterPath.absolutePathString(),
-            listOf("-m", "twine", "upload", "--repository-url", repo.uploadUrl, allDistributions) + optionalArgs,
+            listOf("-m", "twine", "upload", "--repository-url", repo.uploadUrl) + project.publishEnvironment.twine.targets + optionalArgs,
             project.workDir,
             project.terminal,
             mapOf("TWINE_USERNAME" to repo.credentials.login, "TWINE_PASSWORD" to repo.credentials.password)
