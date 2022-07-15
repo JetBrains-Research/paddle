@@ -5,6 +5,7 @@ import com.intellij.execution.lineMarker.RunLineMarkerContributor
 import com.intellij.icons.AllIcons
 import com.intellij.psi.PsiElement
 import io.paddle.idea.utils.getSuperParent
+import io.paddle.idea.utils.isLeaf
 
 class PaddleRunLineMarkerContributor : RunLineMarkerContributor() {
     override fun getInfo(element: PsiElement): Info? {
@@ -30,6 +31,9 @@ class PaddleRunLineMarkerContributor : RunLineMarkerContributor() {
                 && element.getSuperParent(3)?.text?.startsWith("publish") ?: false
                 && element.getSuperParent(5)?.text?.startsWith("tasks") ?: false)
 
+        // Install
+        shouldRenderRunLineMarker = shouldRenderRunLineMarker ||
+            (element.text.startsWith("requirements") && element.isLeaf)
 
         if (shouldRenderRunLineMarker) {
             val actions = ExecutorAction.getActions(Integer.MAX_VALUE)
