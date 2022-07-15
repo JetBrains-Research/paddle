@@ -73,7 +73,10 @@ class PyPackageRepository(val url: PyPackagesRepositoryUrl, val name: String, va
     private val distributionsCache: MutableMap<PyPackageName, List<PyDistributionInfo>> = HashMap()
 
     @Transient
-    val cacheFileName: String = "repo_" + StringHashable(url).hash() + ".json"
+    val uid: String = "repo_" + StringHashable(url).hash()
+
+    @Transient
+    val cacheFileName: String = "$uid.json"
 
     suspend fun updateIndex() {
         val names = try {

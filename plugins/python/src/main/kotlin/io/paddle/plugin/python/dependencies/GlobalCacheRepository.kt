@@ -41,7 +41,7 @@ object GlobalCacheRepository {
 
     private fun getPathToCachedPackage(pkg: PyPackage): Path =
         PyLocations.packagesDir.deepResolve(
-            pkg.repo.cacheFileName,
+            pkg.repo.uid,
             pkg.name,
             pkg.version
         )
