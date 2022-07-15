@@ -45,27 +45,31 @@ class BuildTask(project: PaddleProject) : IncrementalTask(project) {
     }
 
     private fun build(buildEnv: BuildEnvironment): ExecutionResult {
-        project.terminal.info("Creating ${buildEnv.pyprojectToml.relativeTo(project.workDir).path} file...")
-        buildEnv.pyprojectToml.createNewFile()
-        buildEnv.pyprojectToml.writeText(
-            listOf(
-                "[build-system]",
-                "requires = [\"setuptools>=61.0\"]",
-                "build-backend = \"setuptools.build_meta\"",
-            ).joinToString("\n")
-        )
+        if (!buildEnv.pyprojectToml.exists()) {
+            project.terminal.info("Creating ${buildEnv.pyprojectToml.relativeTo(project.workDir).path} file...")
+            buildEnv.pyprojectToml.createNewFile()
+            buildEnv.pyprojectToml.writeText(
+                listOf(
+                    "[build-system]",
+                    "requires = [\"setuptools>=61.0\"]",
+                    "build-backend = \"setuptools.build_meta\"",
+                ).joinToString("\n")
+            )
+        }
 
-        project.terminal.info("Creating ${buildEnv.setupCfg.relativeTo(project.workDir).path} file...")
-        SetupConfig(project).also { it.create(buildEnv.setupCfg) }
+        if (!buildEnv.setupCfg.exists()) {
+            project.terminal.info("Creating ${buildEnv.setupCfg.relativeTo(project.workDir).path} file...")
+            SetupConfig(project).also { it.create(buildEnv.setupCfg) }
+        }
 
         return project.executor.execute(
-            project.environment.interpreterPath.absolutePathString(),
+            project.environment.localInterpreterPath.absolutePathString(),
             listOf("-m", "pip", "install", "--upgrade", "build"),
             project.workDir,
             project.terminal
         ).then {
             project.executor.execute(
-                project.environment.interpreterPath.absolutePathString(),
+                project.environment.localInterpreterPath.absolutePathString(),
                 listOf("-m", "build", "--outdir", project.roots.dist.absolutePath),
                 project.workDir,
                 project.terminal

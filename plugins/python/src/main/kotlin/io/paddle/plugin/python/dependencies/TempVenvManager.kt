@@ -38,7 +38,7 @@ class TempVenvManager private constructor(val venv: VenvDir, val project: Paddle
 
         private fun createTempVenv(project: PaddleProject, venv: VenvDir, options: List<String> = emptyList(), verbose: Boolean = true): ExecutionResult {
             return project.executor.execute(
-                command = project.environment.interpreterPath.absolutePathString(),
+                command = project.environment.localInterpreterPath.absolutePathString(),
                 args = listOf("-m", "venv") + options + PyLocations.venvsDir.resolve(project.id).toString(),
                 workingDir = PyLocations.paddleHome.toFile(),
                 terminal = Terminal.MOCK,

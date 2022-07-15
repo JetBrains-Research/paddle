@@ -34,6 +34,9 @@ data class CachedPyPackage(val pkg: PyPackage, val srcPath: Path) : IResolvedPyP
         }
     }
 
-    val sources: List<File>
+    /**
+     * E.g., listOf("BIN", "PYCACHE", "package_name", "package_name-1.2.3.dist-info")
+     */
+    val topLevelSources: List<File>
         get() = srcPath.toFile().listFiles()?.toList() ?: emptyList()
 }

@@ -4,6 +4,7 @@ import com.intellij.codeInsight.completion.*
 import com.intellij.codeInsight.lookup.LookupElementBuilder
 import com.intellij.patterns.PlatformPatterns
 import com.intellij.util.ProcessingContext
+import io.paddle.plugin.python.dependencies.packages.PyPackageVersionRelation
 import io.paddle.plugin.python.extensions.repositories
 import org.jetbrains.yaml.psi.YAMLDocument
 
@@ -25,7 +26,14 @@ class PyPackageVersionCompletionProvider : CompletionProvider<CompletionParamete
     override fun addCompletions(parameters: CompletionParameters, context: ProcessingContext, result: CompletionResultSet) {
         val paddleProject = parameters.extractPaddleProject() ?: return
 
-        val prefix = parameters.position.text.trim().removeSuffix(CompletionUtilCore.DUMMY_IDENTIFIER_TRIMMED)
+        var prefix = parameters.position.text.trim().removeSuffix(CompletionUtilCore.DUMMY_IDENTIFIER_TRIMMED)
+        for (it in PyPackageVersionRelation.values()) {
+            if (prefix.startsWith(it.operator)) {
+                prefix = prefix.removePrefix(it.operator)
+                break
+            }
+        }
+
         val packageName = parameters.originalPosition?.parent?.parent?.prevSibling?.prevSibling?.prevSibling?.lastChild?.text ?: return
         val variants = paddleProject.repositories.resolved.findAvailableDistributionsByPackageName(packageName)
 

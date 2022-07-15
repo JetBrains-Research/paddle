@@ -36,6 +36,7 @@ class PaddleRunConfigurationProducer : AbstractExternalSystemRunConfigurationPro
             when {
                 element.getSuperParent(5)?.text?.startsWith("pytest") ?: false -> "pytest$$taskId"
                 element.getSuperParent(5)?.text?.startsWith("run") ?: false -> "run$$taskId"
+                element.text.startsWith("twine") -> "twine"
                 else -> return false
             }
         )
@@ -60,6 +61,7 @@ class PaddleRunConfigurationProducer : AbstractExternalSystemRunConfigurationPro
 
         return when (taskNames.first()) {
             "run$$taskId", "pytest$$taskId" -> true
+            "twine" -> context.location?.psiElement?.text?.startsWith("twine") ?: false
             else -> false
         }
     }

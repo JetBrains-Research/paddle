@@ -10,7 +10,7 @@ import com.jetbrains.python.configuration.PyConfigurableInterpreterList
 import com.jetbrains.python.sdk.PythonSdkType
 import com.jetbrains.python.sdk.pythonSdk
 import io.paddle.plugin.python.extensions.environment
-import io.paddle.plugin.python.extensions.interpreter
+import io.paddle.plugin.python.extensions.globalInterpreter
 import io.paddle.project.extensions.descriptor
 import kotlin.io.path.absolutePathString
 
@@ -21,7 +21,7 @@ object PaddlePythonSdkUtil {
         var foundExistingSdk = false
         for (existingSdk in existingSdks) {
             if (existingSdk !is ProjectJdkImpl || existingSdk.homePath == null) continue
-            if (pythonBasePathEquals(existingSdk.homePath!!, paddleProject.environment.interpreterPath.absolutePathString())) {
+            if (pythonBasePathEquals(existingSdk.homePath!!, paddleProject.environment.localInterpreterPath.absolutePathString())) {
                 ApplicationManager.getApplication().invokeLater {
                     module.pythonSdk = existingSdk
                 }
@@ -32,12 +32,12 @@ object PaddlePythonSdkUtil {
         if (!foundExistingSdk) {
             val sdk = SdkConfigurationUtil.createSdk(
                 existingSdks.asList(),
-                paddleProject.environment.interpreterPath.absolutePathString(),
+                paddleProject.environment.localInterpreterPath.absolutePathString(),
                 PythonSdkType.getInstance(),
                 null,
-                paddleProject.interpreter.pythonVersion.fullName + " :" + paddleProject.descriptor.name
+                paddleProject.globalInterpreter.pythonVersion.fullName + " :" + paddleProject.descriptor.name
             ).apply {
-                versionString = paddleProject.interpreter.pythonVersion.number
+                versionString = paddleProject.globalInterpreter.pythonVersion.number
             }
             val jdkTable = ProjectJdkTable.getInstance()
 

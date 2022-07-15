@@ -60,6 +60,11 @@ abstract class Task(val project: PaddleProject) {
             e.message?.let { project.terminal.error(it) }
             project.terminal.commands.stdout(CommandOutput.Command.Task(taskRoute, CommandOutput.Command.Task.Status.FAILED))
             throw e
+        } catch (e: Throwable) {
+            e.message?.let { project.terminal.error(it) }
+            project.terminal.error(e.stackTraceToString())
+            project.terminal.commands.stdout(CommandOutput.Command.Task(taskRoute, CommandOutput.Command.Task.Status.FAILED))
+            throw e
         }
 
         project.terminal.commands.stdout(CommandOutput.Command.Task(taskRoute, CommandOutput.Command.Task.Status.DONE))

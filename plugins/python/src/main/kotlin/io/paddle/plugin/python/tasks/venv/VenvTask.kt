@@ -17,7 +17,7 @@ class VenvTask(project: PaddleProject) : IncrementalTask(project) {
     override val group: String = PythonPluginTaskGroups.VENV
 
     override val inputs: List<Hashable>
-        get() = listOf(project.interpreter)
+        get() = listOf(project.globalInterpreter)
     override val outputs: List<Hashable>
         get() = listOf(project.environment.venv.resolve("pyvenv.cfg").hashable())
 

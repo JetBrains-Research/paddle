@@ -31,6 +31,17 @@ class InstalledPackageInfoDir(val dir: File, val type: Type, val name: PyPackage
                 ?: throw Task.ActException("Neither .dist-info nor .egg-info directory was found in $parentDir for package $name==$version.")
         }
 
+        fun findByNameOrNull(parentDir: File, name: PyPackageName): InstalledPackageInfoDir? {
+            val infoDir = findInfoDirWithPredicateOrNull(parentDir) {
+                it.isDirectory &&
+                    (it.name.startsWith("$name-") ||
+                        it.name.lowercase().startsWith("${name.normalize()}-"))
+            } ?: return null
+            val type = if (infoDir.name.endsWith(".dist-info")) Type.DIST else Type.LEGACY
+            val version = infoDir.nameWithoutExtension.substringAfterLast('-')
+            return InstalledPackageInfoDir(infoDir, type, name, version)
+        }
+
         fun findIfSingle(parentDir: File): InstalledPackageInfoDir {
             val infoDir = findInfoDirWithPredicateOrNull(parentDir) { true }
                 ?: throw Task.ActException("Neither .dist-info nor .egg-info directory was found in $parentDir for package.")
@@ -63,15 +74,18 @@ class InstalledPackageInfoDir(val dir: File, val type: Type, val name: PyPackage
     val files: List<File>
         get() = when (type) {
             Type.DIST -> {
-                dir.resolve("RECORD").readLines()
-                    .map { it.split(",")[0] }
-                    .mapNotNull { dir.parentFile.resolveRelative(it).takeIf { f -> f.exists() } }
+                dir.resolve("RECORD").takeIf { it.exists() }
+                    ?.readLines()
+                    ?.map { it.split(",")[0] }
+                    ?.mapNotNull { dir.parentFile.resolveRelative(it).takeIf { f -> f.exists() } }
             }
+
             Type.LEGACY -> {
-                dir.resolve("installed-files.txt").readLines()
-                    .mapNotNull { dir.resolveRelative(it).takeIf { f -> f.exists() } }
+                dir.resolve("installed-files.txt").takeIf { it.exists() }
+                    ?.readLines()
+                    ?.mapNotNull { dir.resolveRelative(it).takeIf { f -> f.exists() } }
             }
-        }
+        } ?: emptyList()
 
     fun addFile(name: String, content: String) {
         val targetFile = dir.resolve(name)
@@ -82,6 +96,7 @@ class InstalledPackageInfoDir(val dir: File, val type: Type, val name: PyPackage
                     it.write(dir.name + File.separatorChar + name)
                 }
             }
+
             Type.LEGACY -> {
                 FileOutputStream(dir.resolve("installed-files.txt"), true).bufferedWriter().use {
                     it.write(name)

@@ -1,6 +1,6 @@
 package io.paddle.plugin.python.tasks.resolve
 
-import io.paddle.plugin.python.extensions.interpreter
+import io.paddle.plugin.python.extensions.globalInterpreter
 import io.paddle.plugin.python.tasks.PythonPluginTaskGroups
 import io.paddle.project.PaddleProject
 import io.paddle.tasks.Task
@@ -15,6 +15,6 @@ class ResolveInterpreterTask(project: PaddleProject) : IncrementalTask(project) 
         get() = project.subprojects.getAllTasksById(this.id)
 
     override fun act() {
-        project.interpreter.resolved
+        project.globalInterpreter.resolved
     }
 }

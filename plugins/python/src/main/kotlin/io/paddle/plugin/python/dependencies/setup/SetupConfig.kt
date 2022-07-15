@@ -74,10 +74,11 @@ data class SetupConfig(val project: PaddleProject) {
         get() = Options(
             packageDir = mapOf("" to project.roots.sources.relativeTo(project.workDir).path),
             packages = listOf("find:"),
-            installRequires = project.requirements.descriptors                             // user-defined requirements
+            installRequires = project.requirements.descriptors
                 .filter { it.type == Requirements.Descriptor.Type.MAIN }
-                .map { it.toString() }
-                + project.subprojects.filter { it.hasPython }.map { it.descriptor.name }   // subproject dependencies which also should be published
+                .map { it.toString() }                                     // user-defined requirements
+                + project.subprojects.filter { it.hasPython }
+                .map { "${it.descriptor.name}==${it.metadata.version}" }   // subproject dependencies which also should be published
         )
 
     fun create(file: File) {

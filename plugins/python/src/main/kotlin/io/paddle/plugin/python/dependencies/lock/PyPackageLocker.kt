@@ -31,7 +31,7 @@ object PyPackageLocker {
                 )
             }
             val lockFile = PyLockFile(
-                interpreterVersion = project.interpreter.resolved.version.number,
+                interpreterVersion = project.globalInterpreter.resolved.version.number,
                 lockedPackages = lockedPackages.toSet()
             )
             lockFile.save(project.workDir.toPath())
@@ -42,22 +42,16 @@ object PyPackageLocker {
         val pyLockFile = PyLockFile.fromFile(project.workDir.resolve(PyLockFile.FILENAME))
 
         val lockedInterpreter = PyInterpreter.find(PyInterpreter.Version(pyLockFile.interpreterVersion), project)
-        if (lockedInterpreter.version != project.interpreter.resolved.version) {
+        if (lockedInterpreter.version != project.globalInterpreter.resolved.version) {
             throw Task.ActException(
                 "Locked interpreter version (${lockedInterpreter.version.number}) is not consistent with " +
-                    "current interpreter version ${project.interpreter.resolved.version}."
+                    "current interpreter version ${project.globalInterpreter.resolved.version}."
             )
         }
 
         val packages = extractPyPackages(pyLockFile, project)
         for (pkg in packages) {
             project.environment.install(pkg)
-        }
-
-        for (subproject in project.subprojects) {
-            for (pkg in subproject.requirements.resolved) {
-                project.environment.install(pkg)
-            }
         }
     }
 

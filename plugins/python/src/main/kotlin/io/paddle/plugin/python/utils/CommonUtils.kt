@@ -96,3 +96,10 @@ fun <T> Iterable<T>.takeIfAllAreEqual(): Iterable<T>? {
 object PaddleLogger {
     var terminal: Terminal = Terminal.MOCK
 }
+
+fun Path.isEmpty(): Boolean {
+    if (Files.isDirectory(this)) {
+        Files.newDirectoryStream(this).use { directory -> return !directory.iterator().hasNext() }
+    }
+    return false
+}

@@ -24,6 +24,13 @@ class PaddleRunLineMarkerContributor : RunLineMarkerContributor() {
                 && element.getSuperParent(7)?.text?.startsWith("test") ?: false
                 && element.getSuperParent(9)?.text?.startsWith("tasks") ?: false)
 
+        // Run twine
+        shouldRenderRunLineMarker = shouldRenderRunLineMarker ||
+            (element.text.startsWith("twine")
+                && element.getSuperParent(3)?.text?.startsWith("publish") ?: false
+                && element.getSuperParent(5)?.text?.startsWith("tasks") ?: false)
+
+
         if (shouldRenderRunLineMarker) {
             val actions = ExecutorAction.getActions(Integer.MAX_VALUE)
             return Info(AllIcons.RunConfigurations.TestState.Run, actions) { e ->

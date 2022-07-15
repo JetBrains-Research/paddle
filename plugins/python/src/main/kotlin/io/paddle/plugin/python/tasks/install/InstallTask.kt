@@ -30,9 +30,6 @@ class InstallTask(project: PaddleProject) : IncrementalTask(project) {
             for (pkg in project.requirements.resolved) {
                 project.environment.install(pkg)
             }
-            for (pkg in project.subprojects.flatMap { it.requirements.resolved }) {
-                project.environment.install(pkg)
-            }
         }
         project.terminal.info("Finished: ${duration}ms")
     }

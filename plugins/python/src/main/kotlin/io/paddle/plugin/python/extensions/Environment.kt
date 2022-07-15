@@ -21,7 +21,7 @@ val PaddleProject.environment: Environment
 
 class Environment(val project: PaddleProject, val venv: VenvDir) : Hashable {
 
-    val interpreterPath: Path
+    val localInterpreterPath: Path
         get() = venv.getInterpreterPath(project)
 
     val pythonPath: String
@@ -44,14 +44,14 @@ class Environment(val project: PaddleProject, val venv: VenvDir) : Hashable {
 
     fun initialize(): ExecutionResult {
         return project.executor.execute(
-            project.interpreter.resolved.path.toString(),
+            project.globalInterpreter.resolved.path.toString(),
             listOf("-m", "venv", venv.absolutePath),
             project.workDir,
             project.terminal
         ).then {
             project.executor.execute(
-                interpreterPath.absolutePathString(),
-                listOf("-m", "pip", "install", PipResolver.PIP_RESOLVER_URL),
+                localInterpreterPath.absolutePathString(),
+                listOf("-m", "pip", "install", "pip-autoremove", PipResolver.PIP_RESOLVER_URL),
                 project.workDir,
                 project.terminal
             )
@@ -60,7 +60,7 @@ class Environment(val project: PaddleProject, val venv: VenvDir) : Hashable {
 
     fun runModule(module: String, arguments: List<String> = emptyList()): ExecutionResult {
         return project.executor.execute(
-            interpreterPath.absolutePathString(),
+            localInterpreterPath.absolutePathString(),
             listOf("-m", module, *arguments.toTypedArray()),
             project.workDir,
             project.terminal,
@@ -70,7 +70,7 @@ class Environment(val project: PaddleProject, val venv: VenvDir) : Hashable {
 
     fun runScript(file: String, arguments: List<String> = emptyList()): ExecutionResult {
         return project.executor.execute(
-            interpreterPath.absolutePathString(),
+            localInterpreterPath.absolutePathString(),
             listOf(file, *arguments.toTypedArray()),
             project.workDir,
             project.terminal,
@@ -79,9 +79,30 @@ class Environment(val project: PaddleProject, val venv: VenvDir) : Hashable {
     }
 
     fun install(pkg: PyPackage) {
+        // Exactly the same package has been already installed
         if (venv.hasInstalledPackage(pkg)) return
-        val cachedPkg = GlobalCacheRepository.findPackage(pkg, project)
+
+        // The package with the same name (but different version) had been installed previously and should be removed now
+        venv.findPackageWithNameOrNull(pkg.name)?.let { uninstall(it) }
+
+        val cachedPkg = GlobalCacheRepository.findOrInstallPackage(pkg, project)
         GlobalCacheRepository.createSymlinkToPackage(cachedPkg, venv)
+    }
+
+    fun uninstall(pkg: PyPackage) {
+        project.executor.execute(
+            command = venv.bin.resolve("pip-autoremove").canonicalPath,
+            args = listOf(pkg.name, "-y"),
+            workingDir = project.workDir,
+            terminal = project.terminal
+        ).expose(
+            onSuccess = {
+                project.terminal.info("Successfully removed the old version of package: ${pkg.name}==${pkg.version}")
+            },
+            onFail = {
+                project.terminal.error("Failed to remove the old version of package: ${pkg.name}==${pkg.version}")
+            }
+        )
     }
 
     override fun hash(): String {

@@ -3,9 +3,8 @@ package io.paddle.plugin.python.dependencies
 import io.paddle.plugin.python.dependencies.packages.CachedPyPackage.Companion.PYPACKAGE_CACHE_FILENAME
 import io.paddle.plugin.python.dependencies.packages.IResolvedPyPackage
 import io.paddle.plugin.python.dependencies.packages.PyPackage
-import io.paddle.plugin.python.extensions.interpreter
-import io.paddle.plugin.python.utils.RegexCache
-import io.paddle.plugin.python.utils.jsonParser
+import io.paddle.plugin.python.extensions.globalInterpreter
+import io.paddle.plugin.python.utils.*
 import io.paddle.project.PaddleProject
 import io.paddle.tasks.Task
 import kotlinx.serialization.decodeFromString
@@ -33,17 +32,30 @@ class VenvDir(private val directory: File) : File(directory.path) {
         get() = sitePackages.resolve("__pycache__")
 
     val pyPackageFiles: List<File>
-        get() = sitePackages.walkTopDown().asSequence().filter { it.name == PYPACKAGE_CACHE_FILENAME }.toList()
+        get() = sitePackages.walkTopDown().filter { it.name == PYPACKAGE_CACHE_FILENAME }.toList()
 
     val pyPackages: List<PyPackage>
         get() = pyPackageFiles.map { jsonParser.decodeFromString(it.readText()) }
 
     fun getInterpreterPath(project: PaddleProject): Path {
-        return bin.resolve(project.interpreter.resolved.version.executableName).toPath()
+        return bin.resolve(project.globalInterpreter.resolved.version.executableName).toPath()
     }
 
     fun hasInstalledPackage(pkg: IResolvedPyPackage): Boolean {
         val infoDir = InstalledPackageInfoDir.findByNameAndVersionOrNull(sitePackages, pkg.name, pkg.version)
         return infoDir?.pkg?.repo == pkg.repo // name and version already matched
+    }
+
+    fun findPackageWithNameOrNull(name: PyPackageName): PyPackage? {
+        val infoDir = InstalledPackageInfoDir.findByNameOrNull(sitePackages, name)
+        return infoDir?.pkg
+    }
+
+    fun removePackage(pkg: PyPackage) {
+        val affectedDirs = mutableSetOf<File>()
+        InstalledPackageInfoDir.findByNameAndVersion(sitePackages, pkg.name, pkg.version).files
+            .onEach { if (it.parentFile.isDirectory && it.parentFile != sitePackages && it.parentFile != bin) affectedDirs += it.parentFile }
+            .forEach { it.delete() }
+        affectedDirs.filter { it.toPath().isEmpty() }.forEach { it.delete() }
     }
 }

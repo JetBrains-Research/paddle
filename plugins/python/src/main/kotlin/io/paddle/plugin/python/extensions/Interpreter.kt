@@ -9,24 +9,16 @@ import io.paddle.utils.config.ConfigurationView
 import io.paddle.utils.ext.Extendable
 import io.paddle.utils.hash.Hashable
 import io.paddle.utils.hash.hashable
-import kotlin.system.measureTimeMillis
 
 
-val PaddleProject.interpreter: Interpreter
+val PaddleProject.globalInterpreter: Interpreter
     get() = extensions.get(Interpreter.Extension.key)!!
 
 class Interpreter(val project: PaddleProject, val pythonVersion: PyInterpreter.Version) : Hashable {
 
     val resolved: PyInterpreter by lazy {
-        project.terminal.info("Resolving interpreter...")
-        val result: PyInterpreter
-        measureTimeMillis {
-            checkInterpreterCompatibility()
-            result = PyInterpreter.find(pythonVersion, project)
-        }.also {
-            project.terminal.info("Finished resolving interpreter: $it ms")
-        }
-        result
+        checkInterpreterCompatibility()
+        PyInterpreter.find(pythonVersion, project)
     }
 
     object Extension : PaddleProject.Extension<Interpreter> {
@@ -55,10 +47,10 @@ class Interpreter(val project: PaddleProject, val pythonVersion: PyInterpreter.V
             return
         }
         for (parent in project.parents) {
-            if (parent.interpreter.pythonVersion != project.interpreter.pythonVersion) {
+            if (parent.globalInterpreter.pythonVersion != project.globalInterpreter.pythonVersion) {
                 throw Task.ActException(
-                    "${parent.interpreter.pythonVersion.fullName} from ${parent.routeAsString} " +
-                        "is not compatible with ${project.interpreter.pythonVersion.fullName} from ${project.routeAsString}"
+                    "${parent.globalInterpreter.pythonVersion.fullName} from ${parent.routeAsString} " +
+                        "is not compatible with ${project.globalInterpreter.pythonVersion.fullName} from ${project.routeAsString}"
                 )
             }
         }

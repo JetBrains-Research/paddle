@@ -48,7 +48,7 @@ class TwinePublishTask(project: PaddleProject) : IncrementalTask(project) {
         }
 
         project.executor.execute(
-            project.environment.interpreterPath.absolutePathString(),
+            project.environment.localInterpreterPath.absolutePathString(),
             listOf("-m", "twine", "upload", "--repository-url", repo.uploadUrl) + project.publishEnvironment.twine.targets + optionalArgs,
             project.workDir,
             project.terminal,

@@ -7,7 +7,6 @@ import io.paddle.project.PaddleProject
 import io.paddle.utils.ext.Extendable
 import io.paddle.utils.hash.Hashable
 import io.paddle.utils.hash.hashable
-import kotlin.system.measureTimeMillis
 
 
 val PaddleProject.repositories: Repositories
@@ -16,14 +15,7 @@ val PaddleProject.repositories: Repositories
 class Repositories(val project: PaddleProject, val descriptors: List<Descriptor>) : Hashable {
 
     val resolved: PyPackageRepositories by lazy {
-        project.terminal.info("Resolving repositories...")
-        val result: PyPackageRepositories
-        measureTimeMillis {
-            result = PyPackageRepositories.resolve(descriptors, project)
-        }.also {
-            project.terminal.info("Finished resolving repositories: $it ms")
-        }
-        result
+        PyPackageRepositories.resolve(descriptors, project)
     }
 
     object Extension : PaddleProject.Extension<Repositories> {
