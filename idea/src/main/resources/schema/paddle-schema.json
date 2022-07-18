@@ -1,26 +1,49 @@
 {
-  "title": "Paddle.build",
+  "title": "paddle.yaml",
   "description": "Configuration of Paddle build",
   "type": "object",
   "required": [
-    "descriptor"
+    "project"
   ],
   "properties": {
-    "descriptor": {
+    "project": {
+      "description": "Name of the project",
+      "type": "string"
+    },
+    "metadata": {
       "type": "object",
       "required": [
-        "name",
         "version"
       ],
       "properties": {
-        "name": {
-          "description": "Name of the project",
-          "type": "string"
-        },
         "version": {
           "description": "Version of the project",
           "type": "string"
+        },
+        "author": {
+          "description": "Author of the project",
+          "type": "string"
+        },
+        "authorEmail": {
+          "description": "Author's email",
+          "type": "string"
+        },
+        "description": {
+          "description": "Short description of the project",
+          "type": "string"
+        },
+        "url": {
+          "description": "Homepage of the project",
+          "type": "string"
         }
+      }
+    },
+    "subprojects": {
+      "description": "A list of dependent subprojects of the project",
+      "type": "array",
+      "items": {
+        "description": "Name of the dependency (subproject)",
+        "type": "string"
       }
     },
     "roots": {
@@ -28,21 +51,25 @@
       "type": "object",
       "properties": {
         "sources": {
-          "description": "Sources location that should be used",
+          "description": "A directory to place source code files",
           "type": "string"
         },
         "tests": {
-          "description": "Tests location that should be used",
+          "description": "A directory to place test files",
           "type": "string"
         },
         "resources": {
-          "description": "Resources location that should be used",
+          "description": "A directory to place different resources",
+          "type": "string"
+        },
+        "dist": {
+          "description": "A build directory where distribution package will be created",
           "type": "string"
         }
       }
     },
     "executor": {
-      "description": "Executor to be used by Paddle to execute build commands",
+      "description": "Executor to be used by Paddle to execute tasks",
       "properties": {
         "type": {
           "type": "string",
@@ -66,19 +93,19 @@
       ]
     },
     "environment": {
-      "description": "Environment that should be used by Paddle for Python build process",
+      "description": "Environment that should be used by Paddle to build Python projects",
       "properties": {
         "required": [
           "path",
           "python"
         ],
         "path": {
-          "description": "Path to the virtual environment location",
+          "description": "Path to the virtual environment location (.venv by default)",
           "type": "string"
         },
         "python": {
-          "description": "Version of Python interpreter to be used",
-          "type": "string"
+          "description": "Version of the Python interpreter to be used",
+          "type": "number"
         }
       }
     },
@@ -108,7 +135,7 @@
           }
         },
         "dev": {
-          "description": "Dev requirements to run tests/linters/etc.",
+          "description": "Development requirements to run tests/linters/etc.",
           "type": "array",
           "items": {
             "type": "object",
@@ -128,7 +155,7 @@
       }
     },
     "repositories": {
-      "description": "List of the available PyPI repositories",
+      "description": "List of the available PyPI repositories. Any custom repository will have precedence over pypi.org",
       "type": "array",
       "items": {
         "type": "object",
@@ -138,126 +165,140 @@
         ],
         "properties": {
           "name": {
+            "description": "Unique name (used by Paddle) to identify this PyPI repository",
             "type": "string"
           },
           "url": {
+            "description": "URL of the PyPI repository index, e.g. https://pypi.org/simple/",
+            "type": "string"
+          },
+          "uploadUrl": {
+            "description": "URL of the JSON API endpoint to upload new packages, e.g. https://upload.pypi.org/legacy/",
             "type": "string"
           },
           "default": {
+            "description": "If True, this would disable the global PyPI repo, and make this repo the default fallback source",
             "type": "boolean"
           },
           "secondary": {
+            "description": "If True, pypi.org (or other user-defined repo, if it was specified) still would be the primary index source",
             "type": "boolean"
-          },
-          "auth": {
-            "description": "The way how credentials for authentication will be provided",
-            "type": "object",
-            "required": [
-              "type"
-            ],
-            "properties": {
-              "type": {
-                "type": "string",
-                "enum": [
-                  "keyring",
-                  "netrc",
-                  "profile",
-                  "none"
-                ]
-              }
-            },
-            "allOf": [
-              {
-                "if": {
-                  "properties": {
-                    "type": {
-                      "enum": [
-                        "keyring",
-                        "profile"
-                      ]
-                    }
-                  }
-                },
-                "then": {
-                  "properties": {
-                    "username": {
-                      "type": "string"
-                    }
-                  }
-                }
-              }
-            ]
           }
         }
       }
     },
     "plugins": {
+      "description": "List of Paddle plugins to be used",
       "type": "object",
       "properties": {
         "enabled": {
-          "description": "Array of enabled plugins identifiers",
+          "description": "List of enabled plugins identifiers",
           "type": "array",
           "items": {
-            "type": "string",
-            "enum": []
+            "description": "Name of the plugin (id)",
+            "type": "string"
           }
         },
         "jars": {
-          "description": "Array of paths to jars with custom plugins",
+          "description": "List of paths to jars with custom plugins",
           "type": "array",
           "items": {
+            "description": "Relative path to the custom plugin (JAR file)",
             "type": "string"
           }
         }
       }
     },
     "tasks": {
+      "description": "Configuration of the available Paddle tasks",
       "type": "object",
       "properties": {
-        "linter": {
-          "type": "object",
-          "properties": {
-            "mypy": {
-              "type": "object",
-              "properties": {
-                "version": {
-                  "type": "string"
-                }
-              }
-            },
-            "pylint": {
-              "type": "object",
-              "properties": {
-                "version": {
-                  "type": "string"
-                }
-              }
-            }
-          }
-        },
-        "tests": {
+        "test": {
+          "description": "Tasks to run tests",
           "type": "object",
           "properties": {
             "pytest": {
-              "type": "object",
-              "properties": {
-                "version": {
-                  "type": "string"
+              "description": "Configuration of the pytest framework",
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": [
+                  "id"
+                ],
+                "properties": {
+                  "id": {
+                    "description": "Unique identifier of the task",
+                    "type": "string"
+                  },
+                  "targets": {
+                    "description": "A list of pytest targets to run",
+                    "type": "array",
+                    "items": {
+                      "description": "A file, a directory or node id (concrete method or class, see pytest docs)",
+                      "type": "string"
+                    }
+                  },
+                  "keywords": {
+                    "description": "Run tests using given string expression",
+                    "type": "string"
+                  },
+                  "parameters": {
+                    "description": "Additional parameters passed to pytest",
+                    "type": "string"
+                  }
                 }
               }
             }
           }
         },
         "run": {
+          "description": "Tasks to run scripts or modules",
           "type": "array",
           "items": {
             "type": "object",
             "properties": {
               "id": {
+                "description": "Unique identifier of the task",
                 "type": "string"
               },
               "entrypoint": {
+                "description": "Path to target file/module to run (relative to <roots.sources>)",
                 "type": "string"
+              }
+            }
+          }
+        },
+        "publish": {
+          "description": "Tasks to publish Python packages",
+          "type": "object",
+          "required": [
+            "repo"
+          ],
+          "properties": {
+            "repo": {
+              "description": "Name of the PyPI repo to publish package to",
+              "type": "string"
+            },
+            "twine": {
+              "description": "Configuration of the twine util",
+              "type": "object",
+              "properties": {
+                "skipExisting": {
+                  "description": "If True, twine will skip already published packages silently",
+                  "type": "boolean"
+                },
+                "verbose": {
+                  "description": "If True, twine will log more details about publishing process",
+                  "type": "boolean"
+                },
+                "targets": {
+                  "description": "Relative paths to the publish targets (<roots.dist>/* by default)",
+                  "type": "array",
+                  "items": {
+                    "description": "Relative path to target (relative to <roots.dist>)",
+                    "type": "string"
+                  }
+                }
               }
             }
           }

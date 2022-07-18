@@ -1,9 +1,11 @@
 package io.paddle.plugin.python.tasks.run
 
 import io.paddle.plugin.python.extensions.environment
+import io.paddle.plugin.standard.extensions.roots
 import io.paddle.project.PaddleProject
 import io.paddle.tasks.Task
 import io.paddle.utils.tasks.TaskDefaultGroups
+import java.io.File
 
 class RunTask(val name: String, val entrypoint: String, val arguments: List<String>, project: PaddleProject) : Task(project) {
     val isModuleMode: Boolean
@@ -14,10 +16,17 @@ class RunTask(val name: String, val entrypoint: String, val arguments: List<Stri
             val configurations = project.config.get<List<Map<String, Any>>?>("tasks.run") ?: return emptyList()
             val tasks = ArrayList<RunTask>()
             for (configuration in configurations) {
+                val entrypointPath = project.roots.sources.resolve(configuration["entrypoint"] as String).relativeTo(project.workDir).path
+                val entrypoint =
+                    if (entrypointPath.endsWith(".py"))
+                        entrypointPath
+                    else
+                        entrypointPath.replace(File.separatorChar, '.')
+
                 tasks.add(
                     RunTask(
                         configuration["id"] as String,
-                        configuration["entrypoint"] as String,
+                        entrypoint,
                         configuration.getOrDefault("args", emptyList<String>()) as List<String>,
                         project
                     )

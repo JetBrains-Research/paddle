@@ -22,7 +22,7 @@ environment:
 
 tasks:
   run:
-    - entrypoint: src/main.py
+    - entrypoint: main.py
       id: main
   test:
     pytest:
