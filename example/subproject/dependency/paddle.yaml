@@ -12,4 +12,3 @@ roots:
 
 environment:
   path: .venv
-  python: 3.9

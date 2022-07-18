@@ -17,8 +17,7 @@
       ],
       "properties": {
         "version": {
-          "description": "Version of the project",
-          "type": "string"
+          "description": "Version of the project"
         },
         "author": {
           "description": "Author of the project",
@@ -104,8 +103,7 @@
           "type": "string"
         },
         "python": {
-          "description": "Version of the Python interpreter to be used",
-          "type": "number"
+          "description": "Version of the Python interpreter to be used"
         }
       }
     },

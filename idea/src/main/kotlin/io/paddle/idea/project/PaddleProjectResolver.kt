@@ -150,7 +150,7 @@ class PaddleProjectResolver : ExternalSystemProjectResolver<PaddleExecutionSetti
         rootData.storePath(ExternalSystemSourceType.EXCLUDED, project.workDir.resolve(".paddle").canonicalPath)
         if (project.hasPython) {
             rootData.storePath(ExternalSystemSourceType.EXCLUDED, project.environment.venv.canonicalPath)
-            rootData.storePath(ExternalSystemSourceType.EXCLUDED, project.authConfig.file.canonicalPath)
+            project.authConfig.file?.let { rootData.storePath(ExternalSystemSourceType.EXCLUDED, it.canonicalPath) }
         }
 
         createChild(ProjectKeys.CONTENT_ROOT, rootData)

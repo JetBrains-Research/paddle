@@ -1,6 +1,6 @@
 package io.paddle.plugin.python.tasks.publish
 
-import io.paddle.plugin.python.PyDevPackageDefaultVersions
+import io.paddle.plugin.python.PyDefaultVersions
 import io.paddle.plugin.python.extensions.*
 import io.paddle.plugin.python.tasks.PythonPluginTaskGroups
 import io.paddle.plugin.standard.extensions.roots
@@ -28,7 +28,7 @@ class TwinePublishTask(project: PaddleProject) : IncrementalTask(project) {
             ?: project.requirements.descriptors.add(
                 Requirements.Descriptor(
                     name = "twine",
-                    versionSpecifier = PyDevPackageDefaultVersions.TWINE,
+                    versionSpecifier = PyDefaultVersions.TWINE,
                     type = Requirements.Descriptor.Type.DEV
                 )
             )

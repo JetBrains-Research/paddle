@@ -71,9 +71,14 @@ object PipResolver {
         val satisfiedRequirements = HashSet<PyPackage>()
         for (line in output) {
             SATISFIED_REQUIREMENT_REGEX.find(line.trim('\n'))?.let { matchResult ->
-                val name = matchResult.groups["name"]?.value!!
+                val name = matchResult.groups["name"]?.value
+                    ?: throw Task.ActException("Failed to parse pip-resolver output: could not extract package name from $line")
                 val pkg = project.environment.venv.findPackageWithNameOrNull(name)
-                    ?: throw Task.ActException("Failed to parse pip-resolver output: $line")
+                    ?: throw Task.ActException(
+                        "Could not find existing package $name in ${project.environment.venv.path}: " +
+                            "most probably, it does not contain PyPackage.json file in its .dist-info folder to be indexed. " +
+                            "Please, consider re-installing this package using Paddle."
+                    )
                 satisfiedRequirements.add(pkg)
             }
         }

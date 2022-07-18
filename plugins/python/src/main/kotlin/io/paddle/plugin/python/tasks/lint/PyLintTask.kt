@@ -1,6 +1,6 @@
 package io.paddle.plugin.python.tasks.lint
 
-import io.paddle.plugin.python.PyDevPackageDefaultVersions
+import io.paddle.plugin.python.PyDefaultVersions
 import io.paddle.plugin.python.extensions.*
 import io.paddle.plugin.standard.extensions.roots
 import io.paddle.plugin.standard.tasks.clean
@@ -28,7 +28,7 @@ class PyLintTask(project: PaddleProject) : IncrementalTask(project) {
             ?: project.requirements.descriptors.add(
                 Requirements.Descriptor(
                     name = "pylint",
-                    versionSpecifier = PyDevPackageDefaultVersions.PYLINT,
+                    versionSpecifier = PyDefaultVersions.PYLINT,
                     type = Requirements.Descriptor.Type.DEV
                 )
             )
@@ -36,7 +36,9 @@ class PyLintTask(project: PaddleProject) : IncrementalTask(project) {
     }
 
     override fun act() {
-        val files = project.roots.sources.walkTopDown().asSequence().filter { file -> file.absolutePath.endsWith(".py") }
+        val files = (project.subprojects.map { it.roots.sources } + project.roots.sources).flatMap { src ->
+            src.walkTopDown().asSequence().filter { file -> file.absolutePath.endsWith(".py") }
+        }
         var anyFailed = false
         for (file in files) {
             project.environment.runModule("pylint", listOf(file.absolutePath)).orElseDo { anyFailed = true }

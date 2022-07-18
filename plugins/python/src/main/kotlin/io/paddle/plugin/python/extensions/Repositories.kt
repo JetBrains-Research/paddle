@@ -35,10 +35,13 @@ class Repositories(val project: PaddleProject, val descriptors: List<Descriptor>
 
                 val authInfos = project.authConfig.findAuthInfos(repoName).takeIf { it.isNotEmpty() }
                     ?: listOf(AuthInfo.NONE).also {
-                        project.terminal.info(
-                            "Authentication method for PyPI repo $repoName is not provided " +
-                                "in ${project.authConfig.file.canonicalPath}, proceeding..."
-                        )
+                        project.authConfig.file?.canonicalPath?.let {
+                            project.terminal.info(
+                                "Authentication method for PyPI repo $repoName is not provided in $it, proceeding..."
+                            )
+                        } ?: run {
+                            project.terminal.info("${AuthConfig.FILENAME} was not found, proceeding...")
+                        }
                     }
 
                 Descriptor(

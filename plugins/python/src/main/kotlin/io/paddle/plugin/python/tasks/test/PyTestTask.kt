@@ -1,6 +1,6 @@
 package io.paddle.plugin.python.tasks.test
 
-import io.paddle.plugin.python.PyDevPackageDefaultVersions
+import io.paddle.plugin.python.PyDefaultVersions
 import io.paddle.plugin.python.dependencies.pytest.PyTestTarget
 import io.paddle.plugin.python.extensions.*
 import io.paddle.plugin.standard.tasks.clean
@@ -57,7 +57,7 @@ class PyTestTask(
             ?: project.requirements.descriptors.add(
                 Requirements.Descriptor(
                     name = "pytest",
-                    versionSpecifier = PyDevPackageDefaultVersions.PYTEST,
+                    versionSpecifier = PyDefaultVersions.PYTEST,
                     type = Requirements.Descriptor.Type.DEV
                 )
             )

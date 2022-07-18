@@ -10,7 +10,7 @@ import java.io.File
 val PaddleProject.authConfig: AuthConfig
     get() = extensions.get(AuthConfig.Extension.key)!!
 
-class AuthConfig private constructor(val project: PaddleProject, val file: File, private val authInfosByRepoName: Map<String, List<AuthInfo>>) {
+class AuthConfig private constructor(val project: PaddleProject, val file: File?, private val authInfosByRepoName: Map<String, List<AuthInfo>>) {
     companion object {
         const val FILENAME = "paddle.auth.yaml"
     }
@@ -19,7 +19,8 @@ class AuthConfig private constructor(val project: PaddleProject, val file: File,
         override val key: Extendable.Key<AuthConfig> = Extendable.Key()
 
         override fun create(project: PaddleProject): AuthConfig {
-            val authConfigFile = project.rootDir.resolve(FILENAME)
+            val authConfigFile = project.rootDir.resolve(FILENAME).takeIf { it.exists() }
+                ?: return AuthConfig(project, null, emptyMap())
             val config = object : ConfigurationView("repositories", from(authConfigFile)) {
                 val authInfos by list<Map<String, String>>(name = "", default = emptyList())
             }

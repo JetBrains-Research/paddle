@@ -1,5 +1,6 @@
 package io.paddle.plugin.python.extensions
 
+import io.paddle.plugin.python.PyDefaultVersions
 import io.paddle.plugin.python.dependencies.PyInterpreter
 import io.paddle.plugin.python.hasPython
 import io.paddle.project.PaddleProject
@@ -27,14 +28,19 @@ class Interpreter(val project: PaddleProject, val pythonVersion: PyInterpreter.V
         override fun create(project: PaddleProject): Interpreter {
             val config = object : ConfigurationView("environment", project.config) {
                 // 3.8 is Double, but 3.8.1 is String
-                val pythonVersion: String = try {
-                    this.get<String>("python") ?: "3.8"
+                val pythonVersion: String? = try {
+                    this.get<String>("python")
                 } catch (e: ClassCastException) {
-                    this.get<Double>("python")?.toString() ?: "3.8"
+                    this.get<Double>("python")?.toString()
                 }
             }
 
-            return Interpreter(project, PyInterpreter.Version(config.pythonVersion))
+            return Interpreter(
+                project = project,
+                pythonVersion = config.pythonVersion?.let { PyInterpreter.Version(it) }
+                    ?: project.parents.firstOrNull()?.globalInterpreter?.pythonVersion
+                    ?: PyDefaultVersions.PYTHON
+            )
         }
     }
 
