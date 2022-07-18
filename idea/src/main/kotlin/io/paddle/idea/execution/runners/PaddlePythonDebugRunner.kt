@@ -9,6 +9,9 @@ class PaddlePythonDebugRunner : PyDebugRunner() {
     override fun getRunnerId(): String = "PaddlePythonDebugRunner"
 
     override fun canRun(executorId: String, profile: RunProfile): Boolean {
-        return profile is PaddleRunConfiguration && DefaultDebugExecutor.EXECUTOR_ID == executorId
+        if (profile !is PaddleRunConfiguration) return false
+        val taskName = profile.settings.taskNames.first()
+        return DefaultDebugExecutor.EXECUTOR_ID == executorId
+            && PaddleRunConfiguration.DEBUGGABLE_TASK_NAMES.any { taskName.startsWith(it) }
     }
 }

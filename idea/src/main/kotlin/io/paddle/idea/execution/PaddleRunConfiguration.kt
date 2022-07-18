@@ -22,6 +22,10 @@ import java.util.*
 class PaddleRunConfiguration(project: Project, factory: ConfigurationFactory, name: String) :
     ExternalSystemRunConfiguration(PaddleManager.ID, project, factory, name) {
 
+    companion object {
+        val DEBUGGABLE_TASK_NAMES = setOf("run", "pytest", "test", "twine", "publish")
+    }
+
     init {
         isDebugServerProcess = true
         isReattachDebugProcess = true
@@ -73,7 +77,7 @@ class PaddleRunConfiguration(project: Project, factory: ConfigurationFactory, na
 
                 if (task.targets.size == 1) {
                     PaddleTaskRunProfileStateProvider.findInstance(PyPyTestExecutionEnvironmentProvider::class.java)?.getState(task, ctx)
-                }  else {
+                } else {
                     PaddleTaskRunProfileStateProvider.findInstance(PyTestCompoundConfigurationStateProvider::class.java)?.getState(task, ctx)
                 }
             }
