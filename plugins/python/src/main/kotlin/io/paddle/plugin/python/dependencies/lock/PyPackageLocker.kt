@@ -49,10 +49,8 @@ object PyPackageLocker {
             )
         }
 
-        val packages = extractPyPackages(pyLockFile, project)
-        for (pkg in packages) {
-            project.environment.install(pkg)
-        }
+        extractPyPackages(pyLockFile, project)
+            .forEach { project.environment.install(it) }
     }
 
     private suspend fun extractPyPackages(pyLockFile: PyLockFile, project: PaddleProject): Collection<PyPackage> {

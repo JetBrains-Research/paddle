@@ -1,16 +1,22 @@
 package io.paddle.plugin.python.extensions
 
 import io.paddle.execution.ExecutionResult
-import io.paddle.plugin.python.dependencies.GlobalCacheRepository
-import io.paddle.plugin.python.dependencies.VenvDir
+import io.paddle.plugin.python.dependencies.*
+import io.paddle.plugin.python.dependencies.index.PyPackageRepositoryIndexer
+import io.paddle.plugin.python.dependencies.index.distributions.WheelPyDistributionInfo
+import io.paddle.plugin.python.dependencies.packages.CachedPyPackage
 import io.paddle.plugin.python.dependencies.packages.PyPackage
+import io.paddle.plugin.python.dependencies.repositories.PyPackageRepository
 import io.paddle.plugin.python.dependencies.resolvers.PipResolver
+import io.paddle.plugin.python.utils.jsonParser
 import io.paddle.plugin.standard.extensions.roots
 import io.paddle.project.PaddleProject
 import io.paddle.utils.config.ConfigurationView
 import io.paddle.utils.ext.Extendable
 import io.paddle.utils.hash.Hashable
 import io.paddle.utils.hash.hashable
+import kotlinx.coroutines.runBlocking
+import kotlinx.serialization.encodeToString
 import java.io.File
 import java.nio.file.Path
 import kotlin.io.path.absolutePathString
@@ -49,6 +55,21 @@ class Environment(val project: PaddleProject, val venv: VenvDir) : Hashable {
             project.workDir,
             project.terminal
         ).then {
+            // Need to create PyPackage.json for automatically installed setuptools package
+            venv.sitePackages.listFiles()
+                ?.firstOrNull { it.name.startsWith("setuptools") && it.name.endsWith(".dist-info") && it.isDirectory }
+                ?.let {
+                    val version = it.name.substringAfter("setuptools-").substringBefore(".dist-info")
+                    val distributionUrl = runBlocking {
+                        PyPackageRepositoryIndexer.getDistributionUrl(
+                            WheelPyDistributionInfo.fromString("setuptools-$version-py3-none-any.whl")!!,
+                            PyPackageRepository.PYPI_REPOSITORY
+                        )
+                    } ?: error("Could not find setuptools==$version in PyPI repository.")
+                    val pkg = PyPackage("setuptools", version, PyPackageRepository.PYPI_REPOSITORY, distributionUrl)
+                    val infoDir = InstalledPackageInfoDir(it, InstalledPackageInfoDir.Companion.Type.DIST, "setuptools", version)
+                    infoDir.addFile(CachedPyPackage.PYPACKAGE_CACHE_FILENAME, jsonParser.encodeToString(pkg))
+                }
             project.executor.execute(
                 localInterpreterPath.absolutePathString(),
                 listOf("-m", "pip", "install", "pip-autoremove", PipResolver.PIP_RESOLVER_URL),

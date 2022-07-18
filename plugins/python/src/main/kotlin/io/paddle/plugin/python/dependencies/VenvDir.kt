@@ -34,8 +34,8 @@ class VenvDir(private val directory: File) : File(directory.path) {
     val pyPackageFiles: List<File>
         get() = sitePackages.walkTopDown().filter { it.name == PYPACKAGE_CACHE_FILENAME }.toList()
 
-    val pyPackages: List<PyPackage>
-        get() = pyPackageFiles.map { jsonParser.decodeFromString(it.readText()) }
+    val pyPackages: Set<PyPackage>
+        get() = pyPackageFiles.map { jsonParser.decodeFromString<PyPackage>(it.readText()) }.toSet()
 
     fun getInterpreterPath(project: PaddleProject): Path {
         return bin.resolve(project.globalInterpreter.resolved.version.executableName).toPath()
@@ -46,6 +46,9 @@ class VenvDir(private val directory: File) : File(directory.path) {
         return infoDir?.pkg?.repo == pkg.repo // name and version already matched
     }
 
+    /**
+     * Within a single virtual environment there could be only one version of each package, so it is possible to search by name only.
+     */
     fun findPackageWithNameOrNull(name: PyPackageName): PyPackage? {
         val infoDir = InstalledPackageInfoDir.findByNameOrNull(sitePackages, name)
         return infoDir?.pkg

@@ -1,7 +1,6 @@
 package io.paddle.plugin.python.tasks.lint
 
 import io.paddle.plugin.python.PyDevPackageDefaultVersions
-import io.paddle.plugin.python.dependencies.packages.PyPackageVersionSpecifier
 import io.paddle.plugin.python.extensions.*
 import io.paddle.plugin.standard.extensions.roots
 import io.paddle.plugin.standard.tasks.clean
@@ -29,7 +28,7 @@ class PyLintTask(project: PaddleProject) : IncrementalTask(project) {
             ?: project.requirements.descriptors.add(
                 Requirements.Descriptor(
                     name = "pylint",
-                    versionSpecifier = PyPackageVersionSpecifier.fromString(PyDevPackageDefaultVersions.PYLINT),
+                    versionSpecifier = PyDevPackageDefaultVersions.PYLINT,
                     type = Requirements.Descriptor.Type.DEV
                 )
             )

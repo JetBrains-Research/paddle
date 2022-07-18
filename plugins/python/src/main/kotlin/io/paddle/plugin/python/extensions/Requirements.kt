@@ -4,7 +4,6 @@ import io.paddle.plugin.python.dependencies.packages.PyPackage
 import io.paddle.plugin.python.dependencies.packages.PyPackageVersionSpecifier
 import io.paddle.plugin.python.dependencies.resolvers.PipResolver
 import io.paddle.plugin.python.utils.PyPackageName
-import io.paddle.plugin.python.utils.canonicalize
 import io.paddle.project.PaddleProject
 import io.paddle.utils.ext.Extendable
 import io.paddle.utils.hash.Hashable
@@ -16,29 +15,15 @@ val PaddleProject.requirements: Requirements
 
 class Requirements(val project: PaddleProject, val descriptors: MutableList<Descriptor>) : Hashable {
 
-    /**
-     * To get the current snapshot of relevant requirements:
-     *    - All requirements for current project and its subprojects are resolved by [PipResolver]
-     *    - Those who are already installed in local .venv should be filtered:
-     *      - They should be marked as "satisfied" by [PipResolver]
-     *      - And also they can not be overridden by some new requirement with the same name and another version
-     *    - Newly resolved packages are always included
-     */
     val resolved: Collection<PyPackage> by lazy {
         val installedPackages = project.environment.venv.pyPackages
-        val newPackages = PipResolver.resolve(project)
-        val satisfiedPackageNames = PipResolver.getSatisfiedRequirementNames(project)
+        val resolvedPackages = PipResolver.resolve(project)
 
-        val relevantInstalledPackages = installedPackages.filter { installedPkg ->
-            installedPkg.name.canonicalize() in satisfiedPackageNames
-                && newPackages.all { it.name != installedPkg.name }
-        }
-
-        // Remove irrelevant packages
-        val irrelevantPackages = installedPackages.toSet().minus(relevantInstalledPackages.toSet())
+        // Uninstall packages which were removed from requirements of the project
+        val irrelevantPackages = installedPackages.minus(resolvedPackages) // FIXME: looks like it drops Pytest because of uppercase here
         irrelevantPackages.forEach { project.environment.uninstall(it) }
 
-        relevantInstalledPackages + newPackages
+        resolvedPackages
     }
 
     object Extension : PaddleProject.Extension<Requirements> {

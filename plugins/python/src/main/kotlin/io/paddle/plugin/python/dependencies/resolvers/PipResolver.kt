@@ -1,18 +1,20 @@
 package io.paddle.plugin.python.dependencies.resolvers
 
 import io.paddle.execution.ExecutionResult
+import io.paddle.plugin.python.PyLocations
 import io.paddle.plugin.python.dependencies.index.PyPackageRepositoryIndexer
 import io.paddle.plugin.python.dependencies.index.distributions.ArchivePyDistributionInfo
 import io.paddle.plugin.python.dependencies.index.distributions.WheelPyDistributionInfo
 import io.paddle.plugin.python.dependencies.packages.PyPackage
-import io.paddle.plugin.python.dependencies.packages.PyPackageVersionRelation
 import io.paddle.plugin.python.dependencies.repositories.PyPackageRepository
 import io.paddle.plugin.python.extensions.*
 import io.paddle.plugin.python.utils.*
 import io.paddle.project.PaddleProject
 import io.paddle.project.extensions.routeAsString
 import io.paddle.tasks.Task
+import io.paddle.utils.hash.hashable
 import kotlinx.coroutines.runBlocking
+import kotlinx.serialization.builtins.*
 import org.codehaus.plexus.util.cli.CommandLineUtils
 import org.codehaus.plexus.util.cli.Commandline
 import java.io.ByteArrayInputStream
@@ -23,38 +25,37 @@ import kotlin.io.path.absolutePathString
  * TODO: rework pip-resolver later to provide <repoUrl> for "already satisfied" requirements
  */
 object PipResolver {
-    const val PIP_RESOLVER_URL = "https://github.com/SmirnovOleg/pip/releases/download/22.1.dev0-beta/pip_resolver-22.1.dev0-py3-none-any.whl"
+    const val PIP_RESOLVER_URL = "https://github.com/SmirnovOleg/pip/releases/download/22.2.dev0-beta/pip_resolver-22.2.dev0-py3-none-any.whl"
     private const val PACKAGE_PROPERTIES_NUM = 7
 
-    fun resolve(project: PaddleProject): Set<PyPackage> {
-        val output = doResolve(project)
-        return parse(output, project)
-    }
+    private val SATISFIED_REQUIREMENT_REGEX = Regex("^Requirement already satisfied: (?<name>(.*?)?)(==| |<=|>=|<|>|~=|===|!=)(.*)in .*$")
 
-    fun getSatisfiedRequirementNames(project: PaddleProject): Set<PyPackageName> {
-        return doResolve(project)
-            .asSequence().filter { it.startsWith("Requirement already satisfied:") }
-            .map { it.substringAfter("Requirement already satisfied: ").substringBefore(" in ") }
-            .map { req ->
-                PyPackageVersionRelation.values().minByOrNull { req.indexOf(it.operator).takeIf { it != -1 } ?: Int.MAX_VALUE }
-                    ?.let { req.substringBefore(it.operator) } ?: req
-            }
-            .map { it.canonicalize() }
-            .toSet()
-    }
-
-    private fun doResolve(project: PaddleProject): List<String> {
+    fun resolve(project: PaddleProject): Set<PyPackage> = cached(
+        storage = PyLocations.pipResolverCachePath.toFile(),
+        serializer = MapSerializer(String.serializer(), SetSerializer(PyPackage.serializer()))
+    ) {
         val requirementsAsPipArgs =
             project.requirements.descriptors.map { it.toString() } +
                 project.subprojects.flatMap { subproject -> subproject.requirements.resolved.map { it.toString() } }
         val pipResolveArgs = listOf("-m", "pip", "resolve") + requirementsAsPipArgs + project.repositories.resolved.asPipArgs
+        val executable = project.environment.localInterpreterPath.absolutePathString()
+        val input = (pipResolveArgs + executable).map { it.hashable() }.hashable().hash()
 
+        return@cached getFromCache(input) ?: run {
+            val output = doResolve(project, executable, pipResolveArgs.toTypedArray())
+            val packages = parse(output, project)
+            updateCache(input, packages)
+            packages
+        }
+    }
+
+    private fun doResolve(project: PaddleProject, executable: String, arguments: Array<String>): List<String> {
         val output = ArrayList<String>()
         return ExecutionResult(
             CommandLineUtils.executeCommandLine(
                 Commandline().apply {
-                    executable = project.environment.localInterpreterPath.absolutePathString()
-                    addArguments(pipResolveArgs.toTypedArray())
+                    this.executable = executable
+                    addArguments(arguments)
                 },
                 ByteArrayInputStream("\n\n".encodeToByteArray()),
                 { output.add(it); project.terminal.stdout(it) },
@@ -67,6 +68,16 @@ object PipResolver {
     }
 
     private fun parse(output: List<String>, project: PaddleProject): Set<PyPackage> {
+        val satisfiedRequirements = HashSet<PyPackage>()
+        for (line in output) {
+            SATISFIED_REQUIREMENT_REGEX.find(line.trim('\n'))?.let { matchResult ->
+                val name = matchResult.groups["name"]?.value!!
+                val pkg = project.environment.venv.findPackageWithNameOrNull(name)
+                    ?: throw Task.ActException("Failed to parse pip-resolver output: $line")
+                satisfiedRequirements.add(pkg)
+            }
+        }
+
         val startIdx = output.indexOfFirst { it == "--- RESOLVED-BEGIN ---" }
         val endIdx = output.indexOfLast { it == "--- RESOLVED-END ---" }
         if (startIdx == -1 || endIdx == -1) {
@@ -124,6 +135,6 @@ object PipResolver {
             }
         }
 
-        return comesFromUrlByPackage.keys
+        return comesFromUrlByPackage.keys + satisfiedRequirements
     }
 }
