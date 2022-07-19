@@ -6,6 +6,7 @@ import com.intellij.patterns.PlatformPatterns
 import com.intellij.util.ProcessingContext
 import io.paddle.plugin.python.dependencies.packages.PyPackageVersionRelation
 import io.paddle.plugin.python.extensions.repositories
+import io.paddle.plugin.python.hasPython
 import org.jetbrains.yaml.psi.YAMLDocument
 
 class PyPackageVersionCompletionContributor : CompletionContributor() {
@@ -25,6 +26,7 @@ class PyPackageVersionCompletionContributor : CompletionContributor() {
 class PyPackageVersionCompletionProvider : CompletionProvider<CompletionParameters>() {
     override fun addCompletions(parameters: CompletionParameters, context: ProcessingContext, result: CompletionResultSet) {
         val paddleProject = parameters.extractPaddleProject() ?: return
+        if (!paddleProject.hasPython) return
 
         var prefix = parameters.position.text.trim().removeSuffix(CompletionUtilCore.DUMMY_IDENTIFIER_TRIMMED)
         for (it in PyPackageVersionRelation.values()) {
@@ -39,13 +41,18 @@ class PyPackageVersionCompletionProvider : CompletionProvider<CompletionParamete
             ?: return
         val variants = paddleProject.repositories.resolved.findAvailableDistributionsByPackageName(packageName)
 
-        for ((distribution, repo) in variants) {
-            if (!distribution.version.startsWith(prefix)) continue
-            result.addElement(
-                LookupElementBuilder.create(distribution.version)
-                    .withTailText("  ${distribution.ext}", true)
-                    .withTypeText(repo.name, true)
-            )
-        }
+        variants.keys.toList()
+            .filter { it.version.startsWith(prefix) }
+            .reversed()
+            .forEachIndexed { idx, distribution ->
+                result.addElement(
+                    PrioritizedLookupElement.withPriority(
+                        LookupElementBuilder.create(distribution.version)
+                            .withTailText("  ${distribution.ext}", true)
+                            .withTypeText(variants[distribution]?.name, true),
+                        idx.toDouble()
+                    )
+                )
+            }
     }
 }

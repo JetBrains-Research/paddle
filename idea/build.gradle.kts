@@ -38,7 +38,7 @@ intellij {
         )
     )
 
-    // updateSinceUntilBuild.set(false)
+    updateSinceUntilBuild.set(false)
 }
 
 tasks {
