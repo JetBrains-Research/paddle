@@ -9,7 +9,7 @@ import io.paddle.utils.hash.Hashable
 import io.paddle.utils.hash.hashable
 
 val PaddleProject.metadata: Metadata
-    get() = extensions.get(Metadata.Extension.key)!!
+    get() = checkNotNull(extensions.get(Metadata.Extension.key)) { "Could not load extension Metadata for project $routeAsString" }
 
 class Metadata private constructor(val project: PaddleProject, private val config: MetadataConfigurationView) : Hashable {
     val version: String by lazy {

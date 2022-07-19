@@ -5,12 +5,13 @@ import io.paddle.plugin.repository.SingleJarPluginsRepository
 import io.paddle.plugin.repository.StandardPluginsRepository
 import io.paddle.plugin.standard.StandardPlugin
 import io.paddle.project.PaddleProject
+import io.paddle.project.extensions.routeAsString
 import io.paddle.utils.config.ConfigurationView
 import io.paddle.utils.ext.Extendable
 import java.io.File
 
 val PaddleProject.plugins: Plugins
-    get() = extensions.get(Plugins.Extension.key)!!
+    get() = checkNotNull(extensions.get(Plugins.Extension.key)) { "Could not load extension Plugins for project $routeAsString" }
 
 class Plugins(val enabled: List<Plugin>, val namesOfAvailable: List<String>) {
     object Extension : PaddleProject.Extension<Plugins> {

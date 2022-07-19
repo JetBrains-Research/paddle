@@ -1,12 +1,13 @@
 package io.paddle.plugin.standard.extensions
 
 import io.paddle.project.PaddleProject
+import io.paddle.project.extensions.routeAsString
 import io.paddle.utils.config.ConfigurationView
 import io.paddle.utils.ext.Extendable
 import java.io.File
 
 val PaddleProject.roots: Roots
-    get() = extensions.get(Roots.Extension.key)!!
+    get() = checkNotNull(extensions.get(Roots.Extension.key)) { "Could not load extension Roots for project $routeAsString" }
 
 /**
  * Project roots extension: sources, tests and resources.
