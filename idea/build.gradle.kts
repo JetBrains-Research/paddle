@@ -27,7 +27,7 @@ intellij {
     pluginName.set("Paddle")
 
     type.set("PC")
-    version.set("PC-2022.1.1")
+    version.set("PC-2022.1")
 
     downloadSources.set(true)
 

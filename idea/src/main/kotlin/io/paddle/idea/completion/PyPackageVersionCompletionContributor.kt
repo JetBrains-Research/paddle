@@ -34,7 +34,9 @@ class PyPackageVersionCompletionProvider : CompletionProvider<CompletionParamete
             }
         }
 
-        val packageName = parameters.originalPosition?.parent?.parent?.prevSibling?.prevSibling?.prevSibling?.lastChild?.text ?: return
+        val packageName = parameters.originalPosition?.parent?.parent?.parent?.children
+            ?.firstOrNull { it.text.startsWith("name") }?.lastChild?.text
+            ?: return
         val variants = paddleProject.repositories.resolved.findAvailableDistributionsByPackageName(packageName)
 
         for ((distribution, repo) in variants) {
