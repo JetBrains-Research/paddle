@@ -1,72 +1,72 @@
 project: example
-
-metadata:
-  version: 0.1.6
-  description: Now only <main> reqs should be provided in wheel.
-  author: Oleg Smirnov
-  authorEmail: oleg.smirnov@jetbrains.com
-  url: jetbrains.com
+#
+#metadata:
+#  version: 0.1.6
+#  description: Now only <main> reqs should be provided in wheel.
+#  author: Oleg Smirnov
+#  authorEmail: oleg.smirnov@jetbrains.com
+#  url: jetbrains.com
 
 subprojects:
   - subproject
   - dependency
-
-roots:
-  sources: src/main
-  tests: src/test
-  dist: src/dist
-
-# Prerequisites: https://github.com/pyenv/pyenv/wiki#suggested-build-environment
-environment:
-  path: .venv
-  python: 3.9.13
-
-# By default, any custom repository will have precedence over PyPI (secondary == False)
-repositories:
-  - name: grazie-ml
-    url: https://packages.jetbrains.team/pypi/p/grazi/grazie-ml/simple
-    default: False # If True, this would disable the global PyPI repo, and make <grazie-ml> the default fallback source
-
-  - name: test-pypi
-    url: https://packages.jetbrains.team/pypi/p/paddle/test-pypi/simple
-    uploadUrl: https://packages.jetbrains.team/pypi/p/paddle/test-pypi/legacy/
-#    secondary: True # Thus, <grazie-ml> still would be the primary source. But without such flag, this repo would have precedence over <grazie-ml>
-
-requirements:
-  main:
-    - version: ==4.1.2
-      name: redis
-    - name: grazie-supar
-      version: ~=1.2.1
-  dev:
-    - name: pytest
-    - name: twine
-
-plugins:
-  enabled:
-    - python
-    - docker
-    - ssh
-#    - example-test
-#  jars:
-#    - ".../paddle/example/plugins/test-plugin-0.1.0.jar"
-
-tasks:
-  run:
-    - id: main
-      entrypoint: main.py
-    - id: main_as_module
-      entrypoint: main
-  test:
-    pytest:
-      - id: tests_main_suite
-        targets:
-          - test_sample.py
-  publish:
-    repo: test-pypi
-    twine:
-      skipExisting: True
-      verbose: True
+#
+#roots:
+#  sources: src/main
+#  tests: src/test
+#  dist: src/dist
+#
+## Prerequisites: https://github.com/pyenv/pyenv/wiki#suggested-build-environment
+#environment:
+#  path: .venv
+#  python: 3.9
+#
+## By default, any custom repository will have precedence over PyPI (secondary == False)
+#repositories:
+#  - name: grazie-ml
+#    url: https://packages.jetbrains.team/pypi/p/grazi/grazie-ml/simple
+#    default: False # If True, this would disable the global PyPI repo, and make <grazie-ml> the default fallback source
+#
+#  - name: test-pypi
+#    url: https://packages.jetbrains.team/pypi/p/paddle/test-pypi/simple
+#    uploadUrl: https://packages.jetbrains.team/pypi/p/paddle/test-pypi/legacy/
+##    secondary: True # Thus, <grazie-ml> still would be the primary source. But without such flag, this repo would have precedence over <grazie-ml>
+#
+#requirements:
+#  main:
+#    - version: ==4.1.2
+#      name: redis
+#    - name: grazie-supar
+#      version: ~=1.2.1
+#  dev:
+#    - name: pytest
+#    - name: twine
+#
+#plugins:
+#  enabled:
+#    - python
+#    - docker
+#    - ssh
+##    - example-test
+##  jars:
+##    - ".../paddle/example/plugins/test-plugin-0.1.0.jar"
+#
+#tasks:
+#  run:
+#    - id: main
+#      entrypoint: main.py
+#    - id: main_as_module
+#      entrypoint: main
+#  test:
+#    pytest:
+#      - id: tests_main_suite
+#        targets:
+#          - test_sample.py
+#  publish:
+#    repo: test-pypi
+#    twine:
+#      skipExisting: True
+#      verbose: True
 #      targets: # file paths relative to dist root. if not provided, "dist/*" is used
 
 #executor:
