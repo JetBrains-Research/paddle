@@ -17,7 +17,6 @@ object StandardPlugin: Plugin {
         return listOf(
             CleanTask(project),
             CleanAllTask(project),
-            CleanImlFilesTask(project)
         )
     }
 

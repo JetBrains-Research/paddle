@@ -27,12 +27,9 @@ class InstallTask(project: PaddleProject) : IncrementalTask(project) {
         project.terminal.info("Installing requirements...")
         val duration = measureTimeMillis {
             GlobalCacheRepository.updateCache()
-            for (pkg in project.requirements.resolved) {
-                project.environment.install(pkg)
-            }
-            for (pkg in project.subprojects.flatMap { it.requirements.resolved }) {
-                project.environment.install(pkg)
-            }
+            project.requirements.resolved
+                .minus(project.environment.venv.pyPackages)
+                .forEach { project.environment.install(it) }
         }
         project.terminal.info("Finished: ${duration}ms")
     }

@@ -1,6 +1,6 @@
 package io.paddle.plugin.python.tasks.lint
 
-import io.paddle.plugin.python.dependencies.packages.PyPackageVersionSpecifier
+import io.paddle.plugin.python.PyDefaultVersions
 import io.paddle.plugin.python.extensions.*
 import io.paddle.plugin.standard.extensions.roots
 import io.paddle.plugin.standard.tasks.clean
@@ -18,19 +18,27 @@ class PyLintTask(project: PaddleProject) : IncrementalTask(project) {
     override val group: String = TaskDefaultGroups.LINT
 
     override val inputs: List<Hashable>
-        get() = project.roots.sources.map { it.hashable() }
+        get() = listOf(project.roots.sources.hashable())
 
     override val dependencies: List<Task>
         get() = listOf(project.tasks.getOrFail("install"))
 
     override fun initialize() {
-        val versionSpec = PyPackageVersionSpecifier.fromString(project.config.get<String>("tasks.linter.pylint.version") ?: "2.12.2")
-        project.requirements.descriptors.add(Requirements.Descriptor("pylint", versionSpec))
+        project.requirements.findByName("pylint")
+            ?: project.requirements.descriptors.add(
+                Requirements.Descriptor(
+                    name = "pylint",
+                    versionSpecifier = PyDefaultVersions.PYLINT,
+                    type = Requirements.Descriptor.Type.DEV
+                )
+            )
         project.tasks.clean.locations.add(File(project.workDir, ".pylint_cache"))
     }
 
     override fun act() {
-        val files = project.roots.sources.flatMap { it.walkTopDown().asSequence().filter { file -> file.absolutePath.endsWith(".py") } }
+        val files = (project.subprojects.map { it.roots.sources } + project.roots.sources).flatMap { src ->
+            src.walkTopDown().asSequence().filter { file -> file.absolutePath.endsWith(".py") }
+        }
         var anyFailed = false
         for (file in files) {
             project.environment.runModule("pylint", listOf(file.absolutePath)).orElseDo { anyFailed = true }

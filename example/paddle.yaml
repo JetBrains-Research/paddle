@@ -1,18 +1,22 @@
-descriptor:
-  name: example
-  version: 0.1.0
+project: example
+
+metadata:
+  version: 0.1.6
+  description: Now only <main> reqs should be provided in wheel.
+  author: Oleg Smirnov
+  authorEmail: oleg.smirnov@jetbrains.com
+  url: jetbrains.com
 
 subprojects:
   - subproject
   - dependency
 
 roots:
-  sources:
-    - src/main
-  tests:
-    - src/test
+  sources: src/main
+  tests: src/test
+  dist: src/dist
 
-# https://github.com/pyenv/pyenv/wiki#suggested-build-environment
+# Prerequisites: https://github.com/pyenv/pyenv/wiki#suggested-build-environment
 environment:
   path: .venv
   python: 3.9
@@ -21,21 +25,22 @@ environment:
 repositories:
   - name: grazie-ml
     url: https://packages.jetbrains.team/pypi/p/grazi/grazie-ml/simple
-    default: False # If True, this would disable the global PyPI repo, and make <ml> the default fallback source
-    auth:
-      type: netrc
-      username: Oleg.Smirnov
+    default: False # If True, this would disable the global PyPI repo, and make <grazie-ml> the default fallback source
 
-#  - name: paper-analyzer
-#    url: https://repo.labs.intellij.net/artifactory/api/pypi/paper-analyzer/simple/
-#    secondary: True # Thus, <grazie-ml> still would be the primary source. But without such flag, this repo would have precedence over <ml>
+  - name: test-pypi
+    url: https://packages.jetbrains.team/pypi/p/paddle/test-pypi/simple
+    uploadUrl: https://packages.jetbrains.team/pypi/p/paddle/test-pypi/legacy/
+#    secondary: True # Thus, <grazie-ml> still would be the primary source. But without such flag, this repo would have precedence over <grazie-ml>
 
 requirements:
-  - name: redis
-    version: <=3.5.3
-
-  - name: grazie-supar
-    version: ~=1.2.1
+  main:
+#    - name: redis
+#      version: ==4.1.2
+    - name: grazie-supar
+      version: ~=1.2.1
+  dev:
+    - name: pytest
+    - name: twine
 
 plugins:
   enabled:
@@ -49,18 +54,25 @@ plugins:
 tasks:
   run:
     - id: main
-      entrypoint: src/main/main.py
+      entrypoint: main.py
     - id: main_as_module
-      entrypoint: src.main.main
-  pytest:
-    - id: tests_main_suite
-      targets:
-        - src/test/test_sample.py
+      entrypoint: main
+  test:
+    pytest:
+      - id: tests_main_suite
+        targets:
+          - test_sample.py
+  publish:
+    repo: test-pypi
+    twine:
+      skipExisting: True
+      verbose: True
+#      targets: # file paths relative to dist root. if not provided, "dist/*" is used
 
 #executor:
 #  type: docker
 #  image: python:3.9-slim
-
+#
 #executor:
 #  type: ssh
 #  user: admin

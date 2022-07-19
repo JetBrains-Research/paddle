@@ -14,13 +14,13 @@ import kotlinx.serialization.*
 import java.io.File
 
 @Serializable
-class PyPackageRepository(val url: PyPackagesRepositoryUrl, val name: String, val authInfo: AuthInfo) {
-    constructor(metadata: Metadata) : this(metadata.url, metadata.name, metadata.authInfo)
-    constructor(descriptor: Repositories.Descriptor) : this(descriptor.url.removeSimple(), descriptor.name, descriptor.authInfo)
+class PyPackageRepository(val url: PyPackagesRepositoryUrl, val name: String, val authInfos: List<AuthInfo>, val uploadUrl: PyPackagesRepositoryUrl) {
+    constructor(metadata: Metadata) : this(metadata.url, metadata.name, metadata.authInfos, metadata.uploadUrl)
+    constructor(descriptor: Repositories.Descriptor) : this(descriptor.url.removeSimple(), descriptor.name, descriptor.authInfos, descriptor.uploadUrl)
 
     @Serializable
-    data class Metadata(val url: PyPackagesRepositoryUrl, val name: String, val authInfo: AuthInfo) : Hashable {
-        override fun hash() = listOf(url, name, authInfo.username.toString(), authInfo.type.toString()).map { it.hashable() }.hashable().hash()
+    data class Metadata(val url: PyPackagesRepositoryUrl, val name: String, val authInfos: List<AuthInfo>, val uploadUrl: PyPackagesRepositoryUrl) : Hashable {
+        override fun hash() = listOf(url.hashable(), name.hashable(), authInfos.hashable()).hashable().hash()
     }
 
     /**
@@ -57,12 +57,12 @@ class PyPackageRepository(val url: PyPackagesRepositoryUrl, val name: String, va
         get() = credentials.authenticate(urlSimple)
 
     val credentials: Credentials
-        get() = AuthenticationProvider.resolveCredentials(url, authInfo)
+        get() = AuthenticationProvider.resolveCredentials(url, authInfos)
 
-    val metadata = Metadata(url, name, authInfo)
+    val metadata = Metadata(url, name, authInfos, uploadUrl)
 
     companion object {
-        val PYPI_REPOSITORY = PyPackageRepository("https://pypi.org", "pypi", AuthInfo.NONE)
+        val PYPI_REPOSITORY = PyPackageRepository(Repositories.Descriptor.PYPI)
     }
 
     // Index is loaded from cache
@@ -73,10 +73,24 @@ class PyPackageRepository(val url: PyPackagesRepositoryUrl, val name: String, va
     private val distributionsCache: MutableMap<PyPackageName, List<PyDistributionInfo>> = HashMap()
 
     @Transient
-    val cacheFileName: String = "repo_" + StringHashable(url).hash() + ".json"
+    val uid: String = "repo_" + StringHashable(url).hash()
+
+    @Transient
+    val cacheFileName: String = "$uid.json"
 
     suspend fun updateIndex() {
-        packagesNamesCache = PackedWordList(PyPackageRepositoryIndexer.downloadPackagesNames(this).toSet())
+        val names = try {
+            PyPackageRepositoryIndexer.downloadPackagesNames(this)
+        } catch (e: Throwable) {
+            throw IndexUpdateException("Failed to update index for repository ${urlSimple.getSecure()}.")
+        }
+        if (names.isEmpty()) {
+            throw IndexUpdateException(
+                "Downloaded index for repository ${urlSimple.getSecure()} is empty. " +
+                    "It is either unavailable at he moment or corrupted."
+            )
+        }
+        packagesNamesCache = PackedWordList(names.toSet())
     }
 
     fun loadCache(file: File) {
@@ -88,12 +102,17 @@ class PyPackageRepository(val url: PyPackagesRepositoryUrl, val name: String, va
     fun getPackagesNamesByPrefix(prefix: String): Sequence<PyPackageName> = packagesNamesCache.prefix(prefix)
 
     suspend fun findAvailableDistributionsByPackageName(packageName: PyPackageName, useCache: Boolean = true): List<PyDistributionInfo> {
-        val distributions = PyPackageRepositoryIndexer.downloadDistributionsList(packageName, this)
-        return if (useCache) {
-            distributionsCache.getOrPut(packageName) { distributions }
-        } else {
-            distributions
+        if (useCache && packageName in distributionsCache) {
+            return distributionsCache[packageName]!!
         }
+
+        val distributions = try {
+            PyPackageRepositoryIndexer.downloadDistributionsList(packageName, this)
+        } catch (e: Throwable) {
+            throw IndexUpdateException("Failed to download distributions list for package $packageName from repository ${urlSimple.getSecure()}.")
+        }
+
+        return distributions.also { if (useCache) distributionsCache[packageName] = it }
     }
 
     fun saveCache() {
@@ -111,3 +130,5 @@ class PyPackageRepository(val url: PyPackagesRepositoryUrl, val name: String, va
         return metadata == other.metadata
     }
 }
+
+class IndexUpdateException(reason: String) : Exception(reason)

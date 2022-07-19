@@ -5,6 +5,7 @@ import com.intellij.execution.lineMarker.RunLineMarkerContributor
 import com.intellij.icons.AllIcons
 import com.intellij.psi.PsiElement
 import io.paddle.idea.utils.getSuperParent
+import io.paddle.idea.utils.isLeaf
 
 class PaddleRunLineMarkerContributor : RunLineMarkerContributor() {
     override fun getInfo(element: PsiElement): Info? {
@@ -13,15 +14,26 @@ class PaddleRunLineMarkerContributor : RunLineMarkerContributor() {
 
         // Run general task
         shouldRenderRunLineMarker = shouldRenderRunLineMarker ||
-            (element.text.contains("id")
+            (element.text.startsWith("id")
                 && element.getSuperParent(5)?.text?.startsWith("run") ?: false
                 && element.getSuperParent(7)?.text?.startsWith("tasks") ?: false)
 
         // Run PyTest
         shouldRenderRunLineMarker = shouldRenderRunLineMarker ||
-            (element.text.contains("id")
+            (element.text.startsWith("id")
                 && element.getSuperParent(5)?.text?.startsWith("pytest") ?: false
-                && element.getSuperParent(7)?.text?.startsWith("tasks") ?: false)
+                && element.getSuperParent(7)?.text?.startsWith("test") ?: false
+                && element.getSuperParent(9)?.text?.startsWith("tasks") ?: false)
+
+        // Run twine
+        shouldRenderRunLineMarker = shouldRenderRunLineMarker ||
+            (element.text.startsWith("twine")
+                && element.getSuperParent(3)?.text?.startsWith("publish") ?: false
+                && element.getSuperParent(5)?.text?.startsWith("tasks") ?: false)
+
+        // Install
+        shouldRenderRunLineMarker = shouldRenderRunLineMarker ||
+            (element.text.startsWith("requirements") && element.isLeaf)
 
         if (shouldRenderRunLineMarker) {
             val actions = ExecutorAction.getActions(Integer.MAX_VALUE)

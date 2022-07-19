@@ -12,7 +12,6 @@ import java.nio.file.*
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.concurrent.schedule
-import kotlin.io.path.deleteIfExists
 import kotlin.io.path.name
 
 /**
@@ -42,14 +41,13 @@ object GlobalCacheRepository {
 
     private fun getPathToCachedPackage(pkg: PyPackage): Path =
         PyLocations.packagesDir.deepResolve(
-            pkg.repo.cacheFileName,
+            pkg.repo.uid,
             pkg.name,
             pkg.version
         )
 
-    fun findPackage(pkg: PyPackage, project: PaddleProject): CachedPyPackage {
-        return cachedPackages.find { it.pkg == pkg && it.srcPath.exists() }
-            ?: installToCache(pkg, project)
+    fun findOrInstallPackage(pkg: PyPackage, project: PaddleProject): CachedPyPackage {
+        return cachedPackages.find { it.pkg == pkg && it.srcPath.exists() } ?: installToCache(pkg, project)
     }
 
     private fun installToCache(pkg: PyPackage, project: PaddleProject): CachedPyPackage {
@@ -88,11 +86,13 @@ object GlobalCacheRepository {
                     val suffix = it.path.substringAfter(venvManager.venv.bin.path).trim(sep)
                     targetPathToCache.resolve("BIN").deepResolve(*suffix.split(sep).toTypedArray()).toFile()
                 }
+
                 commonPathPyCache.name == "__pycache__" -> {
                     // If common path prefix ends with "__pycache__", copy it to "PYCACHE" folder
                     val suffix = it.path.substringAfter(venvManager.venv.pycache.path).trim(sep)
                     targetPathToCache.resolve("PYCACHE").deepResolve(*suffix.split(sep).toTypedArray()).toFile()
                 }
+
                 else -> {
                     // Otherwise, it is general file from site-packages folder which should be copied as is
                     val suffix = it.path.substringAfter(venvManager.venv.sitePackages.path).trim(sep)
@@ -105,19 +105,36 @@ object GlobalCacheRepository {
     }
 
     fun createSymlinkToPackage(cachedPkg: CachedPyPackage, venv: VenvDir) {
-        cachedPkg.sources.forEach { src ->
-            when (src.name) {
+        for (topLevelSourceDir in cachedPkg.topLevelSources) {
+            when (topLevelSourceDir.name) {
                 "BIN", "PYCACHE" -> {
-                    src.listFiles()?.forEach { file ->
-                        val link = venv.bin.resolve(file.name).also { it.mkdirs() }
-                        link.toPath().deleteIfExists()
-                        Files.createSymbolicLink(link.toPath(), file.toPath())
+                    topLevelSourceDir.walkBottomUp().forEach { cachedEntry ->
+                        val link = venv.bin.resolve(cachedEntry.relativeTo(topLevelSourceDir).path)
+                        if (link.exists()) {
+                            when {
+                                link.isDirectory -> return@forEach
+                                link.isFile -> link.delete()
+                            }
+                        } else {
+                            link.parentFile.mkdirs()
+                        }
+                        Files.createSymbolicLink(link.toPath(), cachedEntry.toPath())
                     }
                 }
+
                 else -> {
-                    val link = venv.sitePackages.resolve(src.name)
-                    link.toPath().deleteIfExists()
-                    Files.createSymbolicLink(link.toPath(), src.toPath())
+                    topLevelSourceDir.walkBottomUp().forEach { cachedEntry ->
+                        val link = venv.sitePackages.resolve(cachedEntry.relativeTo(topLevelSourceDir.parentFile).path)
+                        if (link.exists()) {
+                            when {
+                                link.isDirectory -> return@forEach
+                                link.isFile -> link.delete()
+                            }
+                        } else {
+                            link.parentFile.mkdirs()
+                        }
+                        Files.createSymbolicLink(link.toPath(), cachedEntry.toPath())
+                    }
                 }
             }
         }

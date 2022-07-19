@@ -1,17 +1,14 @@
-descriptor:
-  name: dependency
-  version: 0.1.0
-  author: Oleg Smirnov
-  author_email: oleg.smirnov@jetbrains.com
+project: dependency
+
+metadata:
+  description: Some dependency. Don't mind
 
 plugins:
   enabled:
     - python
 
 roots:
-  sources:
-    - src
+  sources: src
 
 environment:
   path: .venv
-  python: 3.9

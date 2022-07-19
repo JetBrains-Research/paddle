@@ -17,3 +17,6 @@ fun PsiElement.getSuperParent(level: Int): PsiElement? {
     repeat(level) { current = current.parent }
     return current
 }
+
+val PsiElement.isLeaf: Boolean
+    get() = children.isEmpty()

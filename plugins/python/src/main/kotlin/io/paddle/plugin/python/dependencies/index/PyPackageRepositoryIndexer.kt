@@ -56,7 +56,7 @@ object PyPackageRepositoryIndexer {
     }
 
     suspend fun downloadMetadata(pkg: PyPackage, terminal: Terminal): JsonPackageMetadataInfo? {
-        val metadataJsonUrl = pkg.repo.url.join("pypi", pkg.name, pkg.version, "json")
+        val metadataJsonUrl = pkg.repo.url.join("pypi", pkg.name, "json")
         val client = CachedHttpClient.getInstance(pkg.repo.credentials)
         val response: HttpResponse = client.request(metadataJsonUrl)
         return when (response.status) {

@@ -1,5 +1,6 @@
 package io.paddle.plugin.python.utils
 
+import io.paddle.terminal.Terminal
 import kotlinx.coroutines.*
 import java.io.File
 import java.net.URL
@@ -86,4 +87,19 @@ fun String.camelToSnakeCase(): String {
     return camelRegex.replace(this) {
         "_${it.value}"
     }.lowercase(Locale.getDefault())
+}
+
+fun <T> Iterable<T>.takeIfAllAreEqual(): Iterable<T>? {
+    return takeIf { all { it == first() } }
+}
+
+object PaddleLogger {
+    var terminal: Terminal = Terminal.MOCK
+}
+
+fun Path.isEmpty(): Boolean {
+    if (Files.isDirectory(this)) {
+        Files.newDirectoryStream(this).use { directory -> return !directory.iterator().hasNext() }
+    }
+    return false
 }

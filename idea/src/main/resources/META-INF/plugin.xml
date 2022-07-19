@@ -28,6 +28,7 @@
     <extensions defaultExtensionNs="io.paddle.idea">
         <runProfileStateProvider implementation="io.paddle.idea.execution.state.PythonScriptCommandLineStateProvider"/>
         <runProfileStateProvider implementation="io.paddle.idea.execution.state.PyPyTestExecutionEnvironmentProvider"/>
+        <runProfileStateProvider implementation="io.paddle.idea.execution.state.PyTestCompoundConfigurationStateProvider"/>
     </extensions>
 
     <extensions defaultExtensionNs="com.intellij">

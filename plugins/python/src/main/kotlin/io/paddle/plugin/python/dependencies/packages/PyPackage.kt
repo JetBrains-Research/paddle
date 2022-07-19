@@ -2,7 +2,8 @@ package io.paddle.plugin.python.dependencies.packages
 
 import io.paddle.plugin.python.dependencies.repositories.PyPackageRepoMetadataSerializer
 import io.paddle.plugin.python.dependencies.repositories.PyPackageRepository
-import io.paddle.plugin.python.utils.*
+import io.paddle.plugin.python.utils.PyPackageName
+import io.paddle.plugin.python.utils.PyPackageUrl
 import kotlinx.serialization.Serializable
 
 /**
@@ -40,5 +41,9 @@ class PyPackage(
         ) return false
 
         return true
+    }
+
+    override fun toString(): String {
+        return "$name==$version"
     }
 }

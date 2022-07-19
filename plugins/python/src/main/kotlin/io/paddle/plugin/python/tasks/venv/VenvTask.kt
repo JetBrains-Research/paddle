@@ -1,6 +1,6 @@
 package io.paddle.plugin.python.tasks.venv
 
-import io.paddle.plugin.python.dependencies.packages.PyPackageVersionSpecifier
+import io.paddle.plugin.python.PyDefaultVersions
 import io.paddle.plugin.python.extensions.*
 import io.paddle.plugin.python.tasks.PythonPluginTaskGroups
 import io.paddle.plugin.standard.tasks.clean
@@ -17,7 +17,7 @@ class VenvTask(project: PaddleProject) : IncrementalTask(project) {
     override val group: String = PythonPluginTaskGroups.VENV
 
     override val inputs: List<Hashable>
-        get() = listOf(project.interpreter)
+        get() = listOf(project.globalInterpreter)
     override val outputs: List<Hashable>
         get() = listOf(project.environment.venv.resolve("pyvenv.cfg").hashable())
 
@@ -25,8 +25,13 @@ class VenvTask(project: PaddleProject) : IncrementalTask(project) {
         get() = listOf(project.tasks.getOrFail("resolveInterpreter")) + project.subprojects.getAllTasksById(this.id)
 
     override fun initialize() {
-        val versionSpec = PyPackageVersionSpecifier.fromString("0.36.2")
-        project.requirements.descriptors.add(Requirements.Descriptor("wheel", versionSpec))
+        project.requirements.descriptors.add(
+            Requirements.Descriptor(
+                name = "wheel",
+                versionSpecifier = PyDefaultVersions.WHEEL,
+                type = Requirements.Descriptor.Type.DEV
+            )
+        )
         project.tasks.clean.locations.add(project.environment.venv)
     }
 

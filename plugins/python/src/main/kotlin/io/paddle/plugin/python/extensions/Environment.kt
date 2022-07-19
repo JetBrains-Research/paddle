@@ -1,16 +1,22 @@
 package io.paddle.plugin.python.extensions
 
 import io.paddle.execution.ExecutionResult
-import io.paddle.plugin.python.dependencies.GlobalCacheRepository
-import io.paddle.plugin.python.dependencies.VenvDir
+import io.paddle.plugin.python.dependencies.*
+import io.paddle.plugin.python.dependencies.index.PyPackageRepositoryIndexer
+import io.paddle.plugin.python.dependencies.index.distributions.WheelPyDistributionInfo
+import io.paddle.plugin.python.dependencies.packages.CachedPyPackage
 import io.paddle.plugin.python.dependencies.packages.PyPackage
+import io.paddle.plugin.python.dependencies.repositories.PyPackageRepository
 import io.paddle.plugin.python.dependencies.resolvers.PipResolver
+import io.paddle.plugin.python.utils.jsonParser
 import io.paddle.plugin.standard.extensions.roots
 import io.paddle.project.PaddleProject
 import io.paddle.utils.config.ConfigurationView
 import io.paddle.utils.ext.Extendable
 import io.paddle.utils.hash.Hashable
 import io.paddle.utils.hash.hashable
+import kotlinx.coroutines.runBlocking
+import kotlinx.serialization.encodeToString
 import java.io.File
 import java.nio.file.Path
 import kotlin.io.path.absolutePathString
@@ -21,12 +27,12 @@ val PaddleProject.environment: Environment
 
 class Environment(val project: PaddleProject, val venv: VenvDir) : Hashable {
 
-    val interpreterPath: Path
+    val localInterpreterPath: Path
         get() = venv.getInterpreterPath(project)
 
     val pythonPath: String
         get() {
-            val paths = project.roots.sources.map { it.canonicalPath } + project.subprojects.map { it.environment.pythonPath }
+            val paths = listOf(project.roots.sources.canonicalPath) + project.subprojects.map { it.environment.pythonPath }
             return paths.joinToString(System.getProperty("path.separator"))
         }
 
@@ -44,14 +50,29 @@ class Environment(val project: PaddleProject, val venv: VenvDir) : Hashable {
 
     fun initialize(): ExecutionResult {
         return project.executor.execute(
-            project.interpreter.resolved.path.toString(),
+            project.globalInterpreter.resolved.path.toString(),
             listOf("-m", "venv", venv.absolutePath),
             project.workDir,
             project.terminal
         ).then {
+            // Need to create PyPackage.json for automatically installed setuptools package
+            venv.sitePackages.listFiles()
+                ?.firstOrNull { it.name.startsWith("setuptools") && it.name.endsWith(".dist-info") && it.isDirectory }
+                ?.let {
+                    val version = it.name.substringAfter("setuptools-").substringBefore(".dist-info")
+                    val distributionUrl = runBlocking {
+                        PyPackageRepositoryIndexer.getDistributionUrl(
+                            WheelPyDistributionInfo.fromString("setuptools-$version-py3-none-any.whl")!!,
+                            PyPackageRepository.PYPI_REPOSITORY
+                        )
+                    } ?: error("Could not find setuptools==$version in PyPI repository.")
+                    val pkg = PyPackage("setuptools", version, PyPackageRepository.PYPI_REPOSITORY, distributionUrl)
+                    val infoDir = InstalledPackageInfoDir(it, InstalledPackageInfoDir.Companion.Type.DIST, "setuptools", version)
+                    infoDir.addFile(CachedPyPackage.PYPACKAGE_CACHE_FILENAME, jsonParser.encodeToString(pkg))
+                }
             project.executor.execute(
-                interpreterPath.absolutePathString(),
-                listOf("-m", "pip", "install", PipResolver.PIP_RESOLVER_URL),
+                localInterpreterPath.absolutePathString(),
+                listOf("-m", "pip", "install", "pip-autoremove", PipResolver.PIP_RESOLVER_URL),
                 project.workDir,
                 project.terminal
             )
@@ -60,7 +81,7 @@ class Environment(val project: PaddleProject, val venv: VenvDir) : Hashable {
 
     fun runModule(module: String, arguments: List<String> = emptyList()): ExecutionResult {
         return project.executor.execute(
-            interpreterPath.absolutePathString(),
+            localInterpreterPath.absolutePathString(),
             listOf("-m", module, *arguments.toTypedArray()),
             project.workDir,
             project.terminal,
@@ -70,7 +91,7 @@ class Environment(val project: PaddleProject, val venv: VenvDir) : Hashable {
 
     fun runScript(file: String, arguments: List<String> = emptyList()): ExecutionResult {
         return project.executor.execute(
-            interpreterPath.absolutePathString(),
+            localInterpreterPath.absolutePathString(),
             listOf(file, *arguments.toTypedArray()),
             project.workDir,
             project.terminal,
@@ -79,9 +100,30 @@ class Environment(val project: PaddleProject, val venv: VenvDir) : Hashable {
     }
 
     fun install(pkg: PyPackage) {
+        // Exactly the same package has been already installed
         if (venv.hasInstalledPackage(pkg)) return
-        val cachedPkg = GlobalCacheRepository.findPackage(pkg, project)
+
+        // The package with the same name (but different version) had been installed previously and should be removed now
+        venv.findPackageWithNameOrNull(pkg.name)?.let { uninstall(it) }
+
+        val cachedPkg = GlobalCacheRepository.findOrInstallPackage(pkg, project)
         GlobalCacheRepository.createSymlinkToPackage(cachedPkg, venv)
+    }
+
+    fun uninstall(pkg: PyPackage) {
+        project.executor.execute(
+            command = venv.bin.resolve("pip-autoremove").canonicalPath,
+            args = listOf(pkg.name, "-y"),
+            workingDir = project.workDir,
+            terminal = project.terminal
+        ).expose(
+            onSuccess = {
+                project.terminal.info("Successfully removed the old version of package: ${pkg.name}==${pkg.version}")
+            },
+            onFail = {
+                project.terminal.error("Failed to remove the old version of package: ${pkg.name}==${pkg.version}")
+            }
+        )
     }
 
     override fun hash(): String {

@@ -114,7 +114,7 @@ class PyInterpreter(val path: Path, val version: Version) {
             unpackTarGZip(workDir.resolve(archiveDistName), extractDir)
             project.terminal.info("Unpacking finished")
 
-            installPrerequisites(project)
+            tryInstallingPrerequisites(project)
 
             // TODO: support Win?
             project.terminal.info("Installing interpreter...")
@@ -171,18 +171,16 @@ class PyInterpreter(val path: Path, val version: Version) {
             return PyInterpreter(path, matchedVersion)
         }
 
-        private fun installPrerequisites(project: PaddleProject) {
+        private fun tryInstallingPrerequisites(project: PaddleProject) {
             if (Os.isFamily(Os.FAMILY_MAC)) {
                 project.executor.execute(
-                    command = "brew",
+                    command = "/usr/local/bin/brew",
                     args = "install openssl readline sqlite3 xz zlib tcl-tk".split(" "),
                     workingDir = project.rootDir,
                     terminal = project.terminal
-                ).orElse {
-                    throw Task.ActException("Failed to install prerequisites. Run this command: 'brew install openssl readline sqlite3 xz zlib tcl-tk'")
-                }
+                )
             } else {
-                // TODO
+                // TODO()
             }
         }
 
@@ -191,6 +189,7 @@ class PyInterpreter(val path: Path, val version: Version) {
                 when {
                     httpResponse.status == HttpStatusCode.NotFound ->
                         throw Task.ActException("The specified interpreter was not found at $url: ${httpResponse.status}")
+
                     httpResponse.status != HttpStatusCode.OK ->
                         throw Task.ActException("Problems with network access: $url, status: $httpResponse.status")
                 }
@@ -269,6 +268,8 @@ class PyInterpreter(val path: Path, val version: Version) {
             return when (userDefinedVersion.number.count { it == '.' }) {
                 0 -> major == userDefinedVersion.major
                 1 -> number.startsWith(userDefinedVersion.number)
+                    && userDefinedVersion.number.substringAfter('.') == number.substringAfter('.').substringBefore('.')
+
                 2 -> number == userDefinedVersion.number
                 else -> throw IllegalStateException("Invalid python version specified.")
             }

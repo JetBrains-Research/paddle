@@ -10,6 +10,7 @@ import io.paddle.plugin.python.dependencies.repositories.PyPackageRepository
 import io.paddle.plugin.python.extensions.*
 import io.paddle.plugin.python.utils.*
 import io.paddle.project.PaddleProject
+import io.paddle.project.extensions.routeAsString
 import io.paddle.tasks.Task
 import io.paddle.utils.hash.hashable
 import kotlinx.coroutines.runBlocking
@@ -19,50 +20,69 @@ import org.codehaus.plexus.util.cli.Commandline
 import java.io.ByteArrayInputStream
 import kotlin.io.path.absolutePathString
 
+/**
+ * Note: I turned off caching everywhere here since it seems to be broken for updates.
+ * TODO: rework pip-resolver later to provide <repoUrl> for "already satisfied" requirements
+ */
 object PipResolver {
-    const val PIP_RESOLVER_URL = "https://github.com/SmirnovOleg/pip/releases/download/22.1.dev0-beta/pip_resolver-22.1.dev0-py3-none-any.whl"
+    const val PIP_RESOLVER_URL = "https://github.com/SmirnovOleg/pip/releases/download/22.2.dev0-beta/pip_resolver-22.2.dev0-py3-none-any.whl"
     private const val PACKAGE_PROPERTIES_NUM = 7
 
-    private val SATISFIED_REQUIREMENT_REGEX = Regex(
-        "^Requirement already satisfied: " +
-            "(?<name>.*?)" +
-            "(==|>=|<=|>|<|~=|===)" +
-            ".* (\\(from (?<comesFromName>.*?) (?<comesFromVersion>[\\w\\-_.*+!]+?)\\))? " +
-            "\\((?<version>[\\w\\-_.*+!]+?)\\)"
-    )
+    private val SATISFIED_REQUIREMENT_REGEX = Regex("^Requirement already satisfied: (?<name>(.*?)?)(==| |<=|>=|<|>|~=|===|!=)(.*)in .*$")
 
-    fun resolve(project: PaddleProject): Set<PyPackage> =
-        cached(
-            storage = PyLocations.pipResolverCachePath.toFile(),
-            serializer = MapSerializer(String.serializer(), ListSerializer(String.serializer()))
-        ) {
-            // Collect requirements which repo is not specified directly (or specified as PyPi)
-            val generalRequirementsArgs = project.requirements.descriptors.map { it.toString() }
-            val pipResolveArgs = listOf("-m", "pip", "resolve") + generalRequirementsArgs + project.repositories.resolved.asPipArgs
-            val cacheInput = pipResolveArgs.map { it.hashable() }.hashable().hash()
+    fun resolve(project: PaddleProject): Set<PyPackage> = cached(
+        storage = PyLocations.pipResolverCachePath.toFile(),
+        serializer = MapSerializer(String.serializer(), SetSerializer(PyPackage.serializer()))
+    ) {
+        val requirementsAsPipArgs =
+            project.requirements.descriptors.map { it.toString() } +
+                project.subprojects.flatMap { subproject -> subproject.requirements.resolved.map { it.toString() } }
+        val pipResolveArgs = listOf("-m", "pip", "resolve") + requirementsAsPipArgs + project.repositories.resolved.asPipArgs
+        val executable = project.environment.localInterpreterPath.absolutePathString()
+        val input = (pipResolveArgs + executable).map { it.hashable() }.hashable().hash()
 
-            val output = ArrayList<String>()
-            getFromCache(cacheInput)?.let { output.addAll(it) } ?: ExecutionResult(
-                CommandLineUtils.executeCommandLine(
-                    Commandline().apply {
-                        executable = project.environment.interpreterPath.absolutePathString()
-                        addArguments(pipResolveArgs.toTypedArray())
-                    },
-                    ByteArrayInputStream("\n\n".encodeToByteArray()),
-                    { output.add(it); project.terminal.stdout(it) },
-                    { project.terminal.stderr(it) }
-                )
-            )
-
+        return@cached getFromCache(input) ?: run {
+            val output = doResolve(project, executable, pipResolveArgs.toTypedArray())
             val packages = parse(output, project)
-            if (packages.isNotEmpty()) {
-                updateCache(cacheInput, output)
-            }
-
-            return@cached packages
+            updateCache(input, packages)
+            packages
         }
+    }
+
+    private fun doResolve(project: PaddleProject, executable: String, arguments: Array<String>): List<String> {
+        val output = ArrayList<String>()
+        return ExecutionResult(
+            CommandLineUtils.executeCommandLine(
+                Commandline().apply {
+                    this.executable = executable
+                    addArguments(arguments)
+                },
+                ByteArrayInputStream("\n\n".encodeToByteArray()),
+                { output.add(it); project.terminal.stdout(it) },
+                { project.terminal.stderr(it) }
+            )
+        ).expose(
+            onSuccess = { return@expose output },
+            onFail = { throw Task.ActException("Package resolution for project ${project.routeAsString} failed with code $it.") }
+        )
+    }
 
     private fun parse(output: List<String>, project: PaddleProject): Set<PyPackage> {
+        val satisfiedRequirements = HashSet<PyPackage>()
+        for (line in output) {
+            SATISFIED_REQUIREMENT_REGEX.find(line.trim('\n'))?.let { matchResult ->
+                val name = matchResult.groups["name"]?.value
+                    ?: throw Task.ActException("Failed to parse pip-resolver output: could not extract package name from $line")
+                val pkg = project.environment.venv.findPackageWithNameOrNull(name)
+                    ?: throw Task.ActException(
+                        "Could not find existing package $name in ${project.environment.venv.path}: " +
+                            "most probably, it does not contain PyPackage.json file in its .dist-info folder to be indexed. " +
+                            "Please, consider re-installing this package using Paddle."
+                    )
+                satisfiedRequirements.add(pkg)
+            }
+        }
+
         val startIdx = output.indexOfFirst { it == "--- RESOLVED-BEGIN ---" }
         val endIdx = output.indexOfLast { it == "--- RESOLVED-END ---" }
         if (startIdx == -1 || endIdx == -1) {
@@ -120,6 +140,6 @@ object PipResolver {
             }
         }
 
-        return comesFromUrlByPackage.keys
+        return comesFromUrlByPackage.keys + satisfiedRequirements
     }
 }

@@ -5,6 +5,7 @@ import io.paddle.plugin.python.extensions.*
 import io.paddle.plugin.python.tasks.install.*
 import io.paddle.plugin.python.tasks.lint.MyPyTask
 import io.paddle.plugin.python.tasks.lint.PyLintTask
+import io.paddle.plugin.python.tasks.publish.TwinePublishTask
 import io.paddle.plugin.python.tasks.resolve.*
 import io.paddle.plugin.python.tasks.run.RunTask
 import io.paddle.plugin.python.tasks.setup.BuildTask
@@ -34,19 +35,23 @@ object PythonPlugin : Plugin {
             CiTask(project),
             MyPyTask(project),
             PyLintTask(project),
-            BuildTask(project)
+            BuildTask(project),
+            TwinePublishTask(project)
         ) + RunTask.from(project) + PyTestTask.from(project)
     }
 
     @Suppress("UNCHECKED_CAST")
     override fun extensions(project: PaddleProject): List<PaddleProject.Extension<Any>> {
         return listOf(
+            AuthConfig.Extension,
             Requirements.Extension,
             Repositories.Extension,
             Environment.Extension,
             Interpreter.Extension,
             JsonSchema.Extension,
             BuildEnvironment.Extension,
+            PublishEnvironment.Extension,
+            Metadata.Extension,
         ) as List<PaddleProject.Extension<Any>>
     }
 }

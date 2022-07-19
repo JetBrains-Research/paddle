@@ -9,6 +9,9 @@ import io.paddle.utils.config.ConfigurationYAML
 val PaddleProject.route: List<String>
     get() = ((this.parents.maxByOrNull { it.route.size }?.route ?: emptyList()) + this.descriptor.name)
 
+val PaddleProject.routeAsString: String
+    get() = route.joinToString(":", prefix = ":")
+
 class Subprojects(private val subprojects: List<PaddleProject>) : Iterable<PaddleProject> {
     companion object {
         internal fun create(project: PaddleProject, index: PaddleProjectIndex): Subprojects {

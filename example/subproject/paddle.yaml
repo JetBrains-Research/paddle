@@ -1,35 +1,33 @@
-descriptor:
-  name: subproject
-  version: 0.1.0
+project: subproject
 
 subprojects:
   - dependency
 
 roots:
-  sources:
-    - src
-  tests:
-    - test
+  sources: src
+  tests: test
 
 plugins:
   enabled:
     - python
 
 requirements:
-  - name: aioredis
-    version: 2.0.0
+  main:
+    - name: aioredis
+      version: 2.0.0
 
 environment:
   path: .venv
-  python: 3.9
 
 tasks:
   run:
-    - entrypoint: src/main.py
+    - entrypoint: main.py
       id: main
-  pytest:
-    - id: some_tests
-      targets: # if not specified, then all test roots will be used
-        - test/test_app.py
-      keywords: "not this"
-      parameters: ""
+  test:
+    pytest:
+      - id: some_tests
+        targets: # if targets are not provided, Paddle runs all test from tests root
+          - bar/test_app.py::TestFoo::test_that
+          - test_example.py
+        keywords: "not this"
+        parameters: ""

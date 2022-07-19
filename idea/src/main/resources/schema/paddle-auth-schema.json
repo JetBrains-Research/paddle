@@ -1,0 +1,60 @@
+{
+  "title": "paddle.auth.yaml",
+  "description": "Authentication config for PyPI repositories",
+  "type": "object",
+  "required": [
+    "repositories"
+  ],
+  "properties": {
+    "repositories": {
+      "description": "The ways how credentials for authentication for each PyPI repo will be provided",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "name",
+          "type"
+        ],
+        "properties": {
+          "name": {
+            "description": "Name of the PyPI repo as specified in the corresponding paddle.yaml file",
+            "type": "string"
+          },
+          "type": {
+            "description": "Auth type: 'keyring', 'profile', 'netrc' or 'none'",
+            "type": "string",
+            "enum": [
+              "keyring",
+              "netrc",
+              "profile",
+              "none"
+            ]
+          }
+        },
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "type": {
+                  "enum": [
+                    "keyring",
+                    "profile",
+                    "netrc"
+                  ]
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "username": {
+                  "description": "Username of the account to authenticate",
+                  "type": "string"
+                }
+              }
+            }
+          }
+        ]
+      }
+    }
+  }
+}

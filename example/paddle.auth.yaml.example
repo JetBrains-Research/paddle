@@ -1,0 +1,12 @@
+repositories:
+  - name: grazie-ml
+    type: netrc
+    username: Oleg.Smirnov
+
+  - name: grazie-ml
+    type: profile
+    username: Oleg.Smirnov
+
+  - name: test-pypi
+    type: netrc
+    username: Oleg.Smirnov
