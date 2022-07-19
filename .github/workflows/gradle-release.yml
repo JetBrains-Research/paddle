@@ -15,7 +15,12 @@ jobs:
           java-version: 11
           distribution: 'adopt'
 
-      - name: Release with Gradle
+      - name: Release CLI
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: ./gradlew githubRelease --console=plain
+
+      - name: Release IDEA
+        env:
+          MARKETPLACE_TOKEN: ${{ secrets.MARKETPLACE_TOKEN }}
+        run: ./gradlew publishPlugin --console=plain
