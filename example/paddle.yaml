@@ -19,7 +19,7 @@ roots:
 # Prerequisites: https://github.com/pyenv/pyenv/wiki#suggested-build-environment
 environment:
   path: .venv
-  python: 3.9
+  python: 3.9.13
 
 # By default, any custom repository will have precedence over PyPI (secondary == False)
 repositories:
@@ -34,8 +34,8 @@ repositories:
 
 requirements:
   main:
-#    - name: redis
-#      version: ==4.1.2
+    - version: ==4.1.2
+      name: redis
     - name: grazie-supar
       version: ~=1.2.1
   dev:

@@ -23,7 +23,7 @@ import java.nio.file.Path
 // (but the last one is a symlink to it)
 class PyInterpreter(val path: Path, val version: Version) {
     companion object {
-        private const val PYTHON_DISTRIBUTIONS_BASE_URL = "http://www.python.org/ftp/python/"
+        const val PYTHON_DISTRIBUTIONS_BASE_URL = "http://www.python.org/ftp/python/"
         private const val LOCAL_PYTHON_DIR_NAME = ".localpython"
 
         fun find(userDefinedVersion: Version, project: PaddleProject): PyInterpreter {
@@ -86,8 +86,8 @@ class PyInterpreter(val path: Path, val version: Version) {
         }
 
         // TODO: implement layers caching
-        private fun downloadAndInstall(userDefinedVersion: Version, project: PaddleProject): PyInterpreter {
-            val matchedVersion = Version.availableVersions.filter { it.matches(userDefinedVersion) }.maxOrNull()
+        private fun downloadAndInstall(userDefinedVersion: Version, project: PaddleProject): PyInterpreter = runBlocking {
+            val matchedVersion = Version.getAvailableRemoteVersions().filter { it.matches(userDefinedVersion) }.maxOrNull()
                 ?: throw Task.ActException("Can't find an appropriate version at $PYTHON_DISTRIBUTIONS_BASE_URL for version $userDefinedVersion")
 
             project.terminal.info("Downloading interpreter ${matchedVersion.fullName}...")
@@ -168,7 +168,7 @@ class PyInterpreter(val path: Path, val version: Version) {
             project.terminal.info("Interpreter installed to ${localPythonDir.resolve("bin").path}")
 
             val path = localPythonDir.deepResolve("bin", matchedVersion.executableName).toPath()
-            return PyInterpreter(path, matchedVersion)
+            return@runBlocking PyInterpreter(path, matchedVersion)
         }
 
         private fun tryInstallingPrerequisites(project: PaddleProject) {
@@ -225,18 +225,35 @@ class PyInterpreter(val path: Path, val version: Version) {
         }
 
         companion object {
-            val availableVersions: Set<Version> by lazy {
-                runBlocking {
-                    httpClient.request<HttpStatement>(PYTHON_DISTRIBUTIONS_BASE_URL).execute { response ->
-                        val page = Jsoup.parse(response.readText())
-                        return@execute page.body().getElementsByTag("a")
-                            .map { it.text().trim('/') }
-                            .filter { it.matches(RegexCache.PYTHON_VERSION_REGEX) }
-                            .map { Version(it) }
-                            .toSet()
-                    }
+            suspend fun getAvailableRemoteVersions(): Collection<Version> {
+                return httpClient.request<HttpStatement>(PYTHON_DISTRIBUTIONS_BASE_URL).execute { response ->
+                    val page = Jsoup.parse(response.readText())
+                    return@execute page.body().getElementsByTag("a")
+                        .map { it.text().trim('/') }
+                        .filter { it.matches(RegexCache.PYTHON_VERSION_REGEX) }
+                        .map { Version(it) }
+                        .toSet()
                 }
             }
+
+            val cachedVersions: Collection<Version>
+                get() = PyLocations.interpretersDir.toFile().listFiles()
+                    ?.filter { it.isDirectory }
+                    ?.map { Version(it.name) }
+                    ?: emptyList()
+
+            val locallyInstalledVersions: Collection<Version>
+                get() = when {
+                    Os.isFamily(Os.FAMILY_MAC) || Os.isFamily(Os.FAMILY_UNIX) ->
+                        System.getenv("PATH").split(":").flatMap { path ->
+                            File(path).listFiles()
+                                ?.filter { it.name.matches(RegexCache.PYTHON_EXECUTABLE_REGEX) }
+                                ?.map { execFile -> getVersion(execFile) }
+                                ?: emptyList()
+                        }
+
+                    else -> emptyList()
+                }
         }
 
         private val parts = number.split(".")

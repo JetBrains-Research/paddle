@@ -64,8 +64,11 @@ class Environment(val project: PaddleProject, val venv: VenvDir) : Hashable {
                         PyPackageRepositoryIndexer.getDistributionUrl(
                             WheelPyDistributionInfo.fromString("setuptools-$version-py3-none-any.whl")!!,
                             PyPackageRepository.PYPI_REPOSITORY
+                        ) ?: PyPackageRepositoryIndexer.getDistributionUrl(
+                            WheelPyDistributionInfo.fromString("setuptools-$version-py2.py3-none-any.whl")!!,
+                            PyPackageRepository.PYPI_REPOSITORY
                         )
-                    } ?: error("Could not find setuptools==$version in PyPI repository.")
+                    } ?: error("Could not find setuptools==$version in PyPI repository. Please, consider re-creating your virtual environment using Paddle.")
                     val pkg = PyPackage("setuptools", version, PyPackageRepository.PYPI_REPOSITORY, distributionUrl)
                     val infoDir = InstalledPackageInfoDir(it, InstalledPackageInfoDir.Companion.Type.DIST, "setuptools", version)
                     infoDir.addFile(CachedPyPackage.PYPACKAGE_CACHE_FILENAME, jsonParser.encodeToString(pkg))
