@@ -33,8 +33,8 @@ intellij {
 
     plugins.set(
         listOf(
-            "PythonCore:221.5591.52",
-            "org.jetbrains.plugins.yaml:221.5591.46"
+            "PythonCore:221.5080.210",
+            "org.jetbrains.plugins.yaml:221.5080.126"
         )
     )
 
