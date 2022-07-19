@@ -2,7 +2,7 @@ group = rootProject.group
 version = rootProject.version
 
 plugins {
-    kotlin("plugin.serialization")
+    kotlin("plugin.serialization") version "1.6.21" apply true
     java
 }
 

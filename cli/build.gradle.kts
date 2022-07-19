@@ -7,6 +7,7 @@ version = rootProject.version
 
 plugins {
     id("com.github.breadmoirai.github-release") version "2.2.12" apply true
+    id("tanvd.kosogor") version "1.0.12" apply true
 }
 
 dependencies {

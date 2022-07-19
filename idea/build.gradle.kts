@@ -41,8 +41,16 @@ intellij {
     updateSinceUntilBuild.set(false)
 }
 
+
 tasks {
     runIde {
         jvmArgs = listOf("-Xmx1024m")
+    }
+
+    publishPlugin {
+        token.set(System.getenv("MARKETPLACE_TOKEN") ?: "NONE")
+        System.getenv("MARKETPLACE_CHANNEL")?.let {
+            channels.set(listOf(it))
+        }
     }
 }

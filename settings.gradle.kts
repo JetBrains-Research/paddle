@@ -7,11 +7,3 @@ include(":plugins:python")
 include(":plugins:docker")
 include(":plugins:ssh")
 include(":plugins:migration")
-
-pluginManagement {
-    val kotlinVersion: String by settings
-    plugins {
-        kotlin("jvm") version kotlinVersion
-        kotlin("plugin.serialization") version kotlinVersion
-    }
-}
