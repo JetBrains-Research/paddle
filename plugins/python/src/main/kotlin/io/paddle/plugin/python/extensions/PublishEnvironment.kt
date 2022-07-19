@@ -9,7 +9,7 @@ import io.paddle.utils.ext.Extendable
 import java.io.File
 
 val PaddleProject.publishEnvironment: PublishEnvironment
-    get() = this.extensions.get(PublishEnvironment.Extension.key)!!
+    get() = checkNotNull(extensions.get(PublishEnvironment.Extension.key)) { "Could not load extension PublishEnvironment for project $routeAsString" }
 
 class PublishEnvironment(val twine: TwineEnvironment, val repo: PyPackageRepository?, val project: PaddleProject) {
     object Extension : PaddleProject.Extension<PublishEnvironment> {

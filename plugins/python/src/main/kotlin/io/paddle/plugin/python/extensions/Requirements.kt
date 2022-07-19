@@ -5,13 +5,14 @@ import io.paddle.plugin.python.dependencies.packages.PyPackageVersionSpecifier
 import io.paddle.plugin.python.dependencies.resolvers.PipResolver
 import io.paddle.plugin.python.utils.PyPackageName
 import io.paddle.project.PaddleProject
+import io.paddle.project.extensions.routeAsString
 import io.paddle.utils.ext.Extendable
 import io.paddle.utils.hash.Hashable
 import io.paddle.utils.hash.hashable
 
 
 val PaddleProject.requirements: Requirements
-    get() = extensions.get(Requirements.Extension.key)!!
+    get() = checkNotNull(extensions.get(Requirements.Extension.key)) { "Could not load extension Requirements for project $routeAsString" }
 
 class Requirements(val project: PaddleProject, val descriptors: MutableList<Descriptor>) : Hashable {
 

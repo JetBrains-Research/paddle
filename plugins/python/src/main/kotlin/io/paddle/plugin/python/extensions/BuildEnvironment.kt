@@ -1,12 +1,13 @@
 package io.paddle.plugin.python.extensions
 
 import io.paddle.project.PaddleProject
+import io.paddle.project.extensions.routeAsString
 import io.paddle.utils.ext.Extendable
 import io.paddle.utils.hash.*
 import java.io.File
 
 val PaddleProject.buildEnvironment: BuildEnvironment
-    get() = this.extensions.get(BuildEnvironment.Extension.key)!!
+    get() = checkNotNull(this.extensions.get(BuildEnvironment.Extension.key)) { "Could not load extension BuildEnvironment for project $routeAsString" }
 
 class BuildEnvironment(val project: PaddleProject) : Hashable {
     val pyprojectToml: File

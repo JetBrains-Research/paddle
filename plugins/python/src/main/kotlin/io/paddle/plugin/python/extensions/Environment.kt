@@ -11,6 +11,7 @@ import io.paddle.plugin.python.dependencies.resolvers.PipResolver
 import io.paddle.plugin.python.utils.jsonParser
 import io.paddle.plugin.standard.extensions.roots
 import io.paddle.project.PaddleProject
+import io.paddle.project.extensions.routeAsString
 import io.paddle.utils.config.ConfigurationView
 import io.paddle.utils.ext.Extendable
 import io.paddle.utils.hash.Hashable
@@ -23,7 +24,7 @@ import kotlin.io.path.absolutePathString
 
 
 val PaddleProject.environment: Environment
-    get() = extensions.get(Environment.Extension.key)!!
+    get() = checkNotNull(extensions.get(Environment.Extension.key)) { "Could not load extension Environment for project $routeAsString" }
 
 class Environment(val project: PaddleProject, val venv: VenvDir) : Hashable {
 

@@ -18,6 +18,7 @@ requirements:
 
 environment:
   path: .venv
+  python: 3.9
 
 tasks:
   run:

@@ -1,6 +1,5 @@
 package io.paddle.plugin.python.extensions
 
-import io.paddle.plugin.python.PyDefaultVersions
 import io.paddle.plugin.python.dependencies.PyInterpreter
 import io.paddle.plugin.python.hasPython
 import io.paddle.project.PaddleProject
@@ -13,7 +12,7 @@ import io.paddle.utils.hash.hashable
 
 
 val PaddleProject.globalInterpreter: Interpreter
-    get() = extensions.get(Interpreter.Extension.key)!!
+    get() = checkNotNull(extensions.get(Interpreter.Extension.key)) { "Could not load extension Interpreter for project $routeAsString" }
 
 class Interpreter(val project: PaddleProject, val pythonVersion: PyInterpreter.Version) : Hashable {
 
@@ -38,8 +37,8 @@ class Interpreter(val project: PaddleProject, val pythonVersion: PyInterpreter.V
             return Interpreter(
                 project = project,
                 pythonVersion = config.pythonVersion?.let { PyInterpreter.Version(it) }
-                    ?: project.parents.firstOrNull()?.globalInterpreter?.pythonVersion
-                    ?: PyDefaultVersions.PYTHON
+                    ?: project.parents.firstOrNull { it.hasPython }?.globalInterpreter?.pythonVersion
+                    ?: error("<environment.python> is not specified in project ${project.routeAsString} and could not be inferred")
             )
         }
     }

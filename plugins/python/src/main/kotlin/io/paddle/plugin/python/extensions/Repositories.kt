@@ -4,13 +4,14 @@ import io.paddle.plugin.python.dependencies.authentication.AuthInfo
 import io.paddle.plugin.python.dependencies.repositories.PyPackageRepositories
 import io.paddle.plugin.python.utils.*
 import io.paddle.project.PaddleProject
+import io.paddle.project.extensions.routeAsString
 import io.paddle.utils.ext.Extendable
 import io.paddle.utils.hash.Hashable
 import io.paddle.utils.hash.hashable
 
 
 val PaddleProject.repositories: Repositories
-    get() = extensions.get(Repositories.Extension.key)!!
+    get() = checkNotNull(extensions.get(Repositories.Extension.key)) { "Could not load extension Repositories for project $routeAsString" }
 
 class Repositories(val project: PaddleProject, val descriptors: List<Descriptor>) : Hashable {
 

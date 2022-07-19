@@ -6,7 +6,7 @@ import io.paddle.utils.hash.Hashable
 import io.paddle.utils.hash.hashable
 
 val PaddleProject.descriptor: Descriptor
-    get() = extensions.get(Descriptor.Extension.key)!!
+    get() = checkNotNull(extensions.get(Descriptor.Extension.key)) { "Could not load extension Descriptor for project $routeAsString" }
 
 class Descriptor(val name: String) : Hashable {
     object Extension : PaddleProject.Extension<Descriptor> {

@@ -3,12 +3,13 @@ package io.paddle.plugin.python.extensions
 import io.paddle.plugin.python.dependencies.authentication.AuthInfo
 import io.paddle.plugin.python.dependencies.authentication.AuthType
 import io.paddle.project.PaddleProject
+import io.paddle.project.extensions.routeAsString
 import io.paddle.utils.config.ConfigurationView
 import io.paddle.utils.ext.Extendable
 import java.io.File
 
 val PaddleProject.authConfig: AuthConfig
-    get() = extensions.get(AuthConfig.Extension.key)!!
+    get() = checkNotNull(extensions.get(AuthConfig.Extension.key)) { "Could not load extension AuthConfig for project $routeAsString" }
 
 class AuthConfig private constructor(val project: PaddleProject, val file: File?, private val authInfosByRepoName: Map<String, List<AuthInfo>>) {
     companion object {

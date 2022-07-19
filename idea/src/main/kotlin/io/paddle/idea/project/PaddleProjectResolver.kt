@@ -42,7 +42,8 @@ class PaddleProjectResolver : ExternalSystemProjectResolver<PaddleExecutionSetti
         // Resolve requirements, interpreter, repositories (== load model to RAM)
         project.output = IDEACommandOutput(id, listener)
         PaddleLogger.terminal = Terminal(project.output)
-        ResolveRequirementsTask(project).run()
+
+        resolveRequirements(project)
 
         val projectData = ProjectData(
             /* owner = */ PaddleManager.ID,
@@ -58,6 +59,16 @@ class PaddleProjectResolver : ExternalSystemProjectResolver<PaddleExecutionSetti
         createModuleDependencies(project, moduleByProject)
 
         return projectDataNode
+    }
+
+    private fun resolveRequirements(paddleProject: PaddleProject) {
+        if (paddleProject.hasPython) {
+            ResolveRequirementsTask(paddleProject).run()
+        } else {
+            for (subproject in paddleProject.subprojects) {
+                resolveRequirements(subproject)
+            }
+        }
     }
 
     private fun createModuleNodes(
