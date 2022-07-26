@@ -4,6 +4,7 @@ import com.intellij.codeInsight.completion.*
 import com.intellij.codeInsight.lookup.LookupElementBuilder
 import com.intellij.patterns.PlatformPatterns
 import com.intellij.util.ProcessingContext
+import io.paddle.plugin.python.dependencies.packages.PyPackage
 import io.paddle.plugin.python.dependencies.packages.PyPackageVersionRelation
 import io.paddle.plugin.python.extensions.repositories
 import io.paddle.plugin.python.hasPython
@@ -43,7 +44,7 @@ class PyPackageVersionCompletionProvider : CompletionProvider<CompletionParamete
 
         variants.keys.toList()
             .filter { it.version.startsWith(prefix) }
-            .reversed()
+            .sortedBy { PyPackage.Version.from(it.version) }
             .forEachIndexed { idx, distribution ->
                 result.addElement(
                     PrioritizedLookupElement.withPriority(
