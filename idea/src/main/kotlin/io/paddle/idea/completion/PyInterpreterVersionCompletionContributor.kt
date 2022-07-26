@@ -24,7 +24,13 @@ class PyInterpreterVersionCompletionContributor : CompletionContributor() {
 }
 
 class PyInterpreterVersionCompletionProvider : CompletionProvider<CompletionParameters>() {
-    private data class VersionTuple(val version: PyInterpreter.Version, val typeText: String)
+    private data class VersionTuple(val version: PyInterpreter.Version, val typeText: String) {
+        companion object Type {
+            const val CACHED = "internal paddle cache"
+            const val LOCAL = "local installation"
+            const val FTP = PyInterpreter.PYTHON_DISTRIBUTIONS_BASE_URL
+        }
+    }
 
     override fun addCompletions(parameters: CompletionParameters, context: ProcessingContext, result: CompletionResultSet) = runBlocking {
         val paddleProject = parameters.extractPaddleProject() ?: return@runBlocking
@@ -33,8 +39,8 @@ class PyInterpreterVersionCompletionProvider : CompletionProvider<CompletionPara
         val prefix = parameters.position.text.trim().removeSuffix(CompletionUtilCore.DUMMY_IDENTIFIER_TRIMMED)
         val remoteVersions = PyInterpreter.Version.getAvailableRemoteVersions()
 
-        val localVariants = PyInterpreter.Version.cachedVersions.asSequence().map { VersionTuple(it, "cached") } +
-            PyInterpreter.Version.locallyInstalledVersions.asSequence().map { VersionTuple(it, "local") }
+        val localVariants = PyInterpreter.Version.cachedVersions.asSequence().map { VersionTuple(it, VersionTuple.CACHED) } +
+            PyInterpreter.Version.locallyInstalledVersions.asSequence().map { VersionTuple(it, VersionTuple.LOCAL) }
 
         localVariants
             .filter { it.version.number.startsWith(prefix) }
@@ -43,16 +49,16 @@ class PyInterpreterVersionCompletionProvider : CompletionProvider<CompletionPara
                     PrioritizedLookupElement.withPriority(
                         LookupElementBuilder.create(it.version.number).withTypeText(it.typeText, true),
                         when (it.typeText) {
-                            "cached" -> 0.1
-                            "local" -> 0.2
-                            else -> Double.MAX_VALUE
+                            VersionTuple.CACHED -> 100_001.0
+                            VersionTuple.LOCAL -> 100_000.0
+                            else -> Double.MIN_VALUE
                         }
                     )
                 )
             }
 
-        remoteVersions.reversed().asSequence()
-            .map { VersionTuple(it, PyInterpreter.PYTHON_DISTRIBUTIONS_BASE_URL) }
+        remoteVersions.asSequence()
+            .map { VersionTuple(it, VersionTuple.FTP) }
             .filter { it.version.number.startsWith(prefix) }
             .forEachIndexed { idx, item ->
                 result.addElement(
