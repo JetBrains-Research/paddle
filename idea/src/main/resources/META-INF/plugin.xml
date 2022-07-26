@@ -66,6 +66,14 @@
 
         <runLineMarkerContributor language="yaml" implementationClass="io.paddle.idea.execution.PaddleRunLineMarkerContributor"/>
 
+        <!-- Settings -->
+        <applicationService serviceImplementation="io.paddle.idea.settings.global.PaddleAppSettings"/>
+        <applicationConfigurable
+                parentId="tools"
+                instance="io.paddle.idea.settings.global.PaddleAppSettingsConfigurable"
+                id="io.paddle.idea.settings.global.PaddleAppSettingsConfigurable"
+                displayName="Paddle"/>
+
         <!-- Run & Debug -->
         <programRunner implementation="io.paddle.idea.execution.runners.PaddleTaskRunner"
                        order="first"/>

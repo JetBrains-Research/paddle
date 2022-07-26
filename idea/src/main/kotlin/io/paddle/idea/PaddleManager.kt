@@ -75,7 +75,10 @@ class PaddleManager : ExternalSystemManager<
     }
 
     override fun getExecutionSettingsProvider(): Function<Pair<Project, String>, PaddleExecutionSettings> {
-        return Function { PaddleExecutionSettings() }
+        return Function { pair ->
+            val rootProjectPath = pair.first.basePath
+            PaddleExecutionSettings(File(rootProjectPath))
+        }
     }
 
     override fun getProjectResolverClass(): Class<out ExternalSystemProjectResolver<PaddleExecutionSettings>> {

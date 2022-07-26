@@ -8,10 +8,14 @@ import com.intellij.openapi.externalSystem.service.project.ExternalSystemProject
 import com.intellij.openapi.module.ModuleTypeManager
 import io.paddle.idea.PaddleManager
 import io.paddle.idea.settings.PaddleExecutionSettings
+import io.paddle.idea.settings.global.PaddleAppSettings
+import io.paddle.idea.settings.global.PaddleAppSettings.TaskTypeOnProjectReload.INSTALL
+import io.paddle.idea.settings.global.PaddleAppSettings.TaskTypeOnProjectReload.RESOLVE
 import io.paddle.idea.utils.IDEACommandOutput
 import io.paddle.plugin.python.extensions.authConfig
 import io.paddle.plugin.python.extensions.environment
 import io.paddle.plugin.python.hasPython
+import io.paddle.plugin.python.tasks.install.InstallTask
 import io.paddle.plugin.python.tasks.resolve.ResolveRequirementsTask
 import io.paddle.plugin.python.utils.PaddleLogger
 import io.paddle.plugin.python.utils.deepResolve
@@ -32,24 +36,24 @@ class PaddleProjectResolver : ExternalSystemProjectResolver<PaddleExecutionSetti
         settings: PaddleExecutionSettings?,
         listener: ExternalSystemTaskNotificationListener
     ): DataNode<ProjectData> {
-        val rootDir = File(projectPath)
+        val rootDir = settings?.rootDir ?: throw IllegalStateException("Root directory was not found for project $projectPath")
+        val workDir = File(projectPath)
 
         // First initialization of Paddle Project
         val paddleProjectProvider = PaddleProjectProvider.getInstance(rootDir).also { it.sync() }
-        val project = paddleProjectProvider.getProject(rootDir)
-            ?: throw IllegalStateException("Failed to initialize Paddle project from ${rootDir.canonicalPath}")
+        val project = paddleProjectProvider.getProject(workDir)
+            ?: throw IllegalStateException("Failed to initialize Paddle project from ${workDir.canonicalPath}")
 
-        // Resolve requirements, interpreter, repositories (== load model to RAM)
         project.output = IDEACommandOutput(id, listener)
         PaddleLogger.terminal = Terminal(project.output)
 
-        resolveRequirements(project)
+        installOrResolveRequirements(project)
 
         val projectData = ProjectData(
             /* owner = */ PaddleManager.ID,
             /* externalName = */ project.descriptor.name,
             /* ideProjectFileDirectoryPath = */ rootDir.canonicalPath,
-            /* linkedExternalProjectPath = */ rootDir.canonicalPath
+            /* linkedExternalProjectPath = */ workDir.canonicalPath
         ).also {
             it.group = project.descriptor.name
         }
@@ -61,12 +65,15 @@ class PaddleProjectResolver : ExternalSystemProjectResolver<PaddleExecutionSetti
         return projectDataNode
     }
 
-    private fun resolveRequirements(paddleProject: PaddleProject) {
+    private fun installOrResolveRequirements(paddleProject: PaddleProject) {
         if (paddleProject.hasPython) {
-            ResolveRequirementsTask(paddleProject).run()
+            when (PaddleAppSettings.getInstance().onReload) {
+                INSTALL -> InstallTask(paddleProject).run()
+                RESOLVE -> ResolveRequirementsTask(paddleProject).run()
+            }
         } else {
             for (subproject in paddleProject.subprojects) {
-                resolveRequirements(subproject)
+                installOrResolveRequirements(subproject)
             }
         }
     }
@@ -94,16 +101,6 @@ class PaddleProjectResolver : ExternalSystemProjectResolver<PaddleExecutionSetti
                 it.attachContentRoots(subproject)
                 moduleByProject[subproject] = it
             }
-        } else if (provider.hasProjectsIn(currentWorkDir)) {
-            // Directory contains paddle projects
-            val route = provider.getRouteToDir(currentWorkDir)
-            moduleData = createModuleData(
-                rootDir = provider.rootDir,
-                workDir = currentWorkDir,
-                moduleName = currentWorkDir.name,
-                route = route
-            )
-            projectDataNode.createChild(ProjectKeys.MODULE, moduleData)
         }
 
         moduleData?.setProperty("directoryToRunTask", currentWorkDir.canonicalPath)

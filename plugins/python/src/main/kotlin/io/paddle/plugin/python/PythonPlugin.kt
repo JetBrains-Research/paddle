@@ -22,6 +22,9 @@ object PythonPlugin : Plugin {
     override val id: String = "python"
 
     override fun configure(project: PaddleProject) {
+        project.rootDir.resolve(AuthConfig.FILENAME).takeIf { it.exists() }?.let {
+            project.configurationFiles.add(it)
+        }
     }
 
     override fun tasks(project: PaddleProject): List<Task> {
