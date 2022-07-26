@@ -106,7 +106,25 @@
     </extensions>
 
     <actions>
-        <action id="Gradle.ExecuteTask" class="io.paddle.idea.execution.runAnything.PaddleExecuteTaskAction" icon="PythonPsiApiIcons.PythonFile"/>
+        <action id="Gradle.ExecuteTask"
+                class="io.paddle.idea.execution.runAnything.PaddleExecuteTaskAction"
+                icon="io.paddle.idea.ui.PaddleIcons.Main"/>
+
+        <action id="io.paddle.idea.actions.CreatePaddleConfigAction"
+                class="io.paddle.idea.actions.CreatePaddleConfigAction"
+                text="Paddle YAML"
+                description="Create new Paddle configuration file"
+                icon="io.paddle.idea.ui.PaddleIcons.ToolWindow.Dark">
+            <add-to-group group-id="NewGroup" anchor="after" relative-to-action="NewPythonFile"/>
+        </action>
+
+        <action id="io.paddle.idea.actions.CreatePaddleAuthConfigAction"
+                class="io.paddle.idea.actions.CreatePaddleAuthConfigAction"
+                text="Paddle Auth YAML"
+                description="Create new Paddle authentication configuration file"
+                icon="io.paddle.idea.ui.PaddleIcons.ToolWindow.Dark">
+            <add-to-group group-id="NewGroup" anchor="after" relative-to-action="io.paddle.idea.actions.CreatePaddleConfigAction"/>
+        </action>
     </actions>
 
     <extensions defaultExtensionNs="JavaScript.JsonSchema">

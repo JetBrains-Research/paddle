@@ -1,0 +1,13 @@
+project: ${PROJECT_NAME}
+
+metadata:
+  version: 0.1.0
+
+plugins:
+  enabled:
+    - python
+
+# Prerequisites: https://github.com/pyenv/pyenv/wiki#suggested-build-environment
+environment:
+  path: .venv
+  python: 3.9
