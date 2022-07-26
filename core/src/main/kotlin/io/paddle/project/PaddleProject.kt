@@ -12,7 +12,7 @@ import io.paddle.tasks.Tasks
 import io.paddle.terminal.*
 import io.paddle.utils.config.Configuration
 import io.paddle.utils.ext.Extendable
-import io.paddle.utils.hash.StringHashable
+import io.paddle.utils.hash.*
 import java.io.File
 
 class PaddleProject internal constructor(val buildFile: File, val rootDir: File, output: TextOutput = TextOutput.Console) {
@@ -28,8 +28,16 @@ class PaddleProject internal constructor(val buildFile: File, val rootDir: File,
         internal set
 
     val id: String = "project_" + StringHashable(workDir.canonicalPath).hash()
-    var isLoaded: Boolean = false
-        private set
+
+    val configurationFiles: MutableCollection<File> = hashSetOf(buildFile)
+
+    private var initialHash: String = AggregatedHashable(configurationFiles.map { it.hashable() }).hash()
+
+    val isUpToDate: Boolean
+        get() {
+            val currentHash = AggregatedHashable(configurationFiles.map { it.hashable() }).hash()
+            return initialHash == currentHash
+        }
 
     val tasks = Tasks()
     val extensions = Extendable()
@@ -48,12 +56,14 @@ class PaddleProject internal constructor(val buildFile: File, val rootDir: File,
     var executor: CommandExecutor = LocalCommandExecutor(output)
     var terminal = Terminal(output)
 
+
     internal fun load(index: PaddleProjectIndex) {
         subprojects = Subprojects.create(this, index)
         extensions.register(Plugins.Extension.key, Plugins.Extension.create(this))
         extensions.register(JsonSchema.Extension.key, JsonSchema.Extension.create(this))
         register(plugins.enabled)
-        isLoaded = true
+        configurationFiles.addAll(subprojects.flatMap { it.configurationFiles })
+        initialHash = AggregatedHashable(configurationFiles.map { it.hashable() }).hash()
     }
 
     fun register(plugin: Plugin) {
