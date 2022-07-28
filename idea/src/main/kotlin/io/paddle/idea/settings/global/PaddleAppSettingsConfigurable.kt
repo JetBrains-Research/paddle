@@ -1,8 +1,7 @@
 package io.paddle.idea.settings.global
 
 import com.intellij.openapi.options.BoundSearchableConfigurable
-import com.intellij.ui.dsl.builder.bind
-import com.intellij.ui.dsl.builder.panel
+import com.intellij.ui.dsl.builder.*
 import io.paddle.idea.settings.global.PaddleAppSettings.TaskTypeOnProjectReload.INSTALL
 import io.paddle.idea.settings.global.PaddleAppSettings.TaskTypeOnProjectReload.RESOLVE
 
@@ -22,5 +21,9 @@ class PaddleAppSettingsConfigurable : BoundSearchableConfigurable(
             { settings.onReload },
             { settings.onReload = it }
         )
+        row {
+            checkBox("Don't show copy-paste dialog for requirements.txt next time")
+                .bindSelected(PaddleAppSettings.getInstance()::isDontShowDialogOnRequirementTxtPaste)
+        }
     }
 }

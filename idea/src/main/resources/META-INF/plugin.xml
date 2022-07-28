@@ -103,6 +103,9 @@
 
         <!-- Notifications -->
         <notificationGroup id="Paddle" displayType="BALLOON"/>
+
+        <!-- Copy-paste handlers -->
+        <copyPastePostProcessor implementation="io.paddle.idea.copypaste.RequirementsTxtCopyPasteProcessor"/>
     </extensions>
 
     <actions>
