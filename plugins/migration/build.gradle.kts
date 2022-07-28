@@ -12,5 +12,5 @@ dependencies {
 
     implementation("org.yaml:snakeyaml:1.30")
     implementation("org.snakeyaml:snakeyaml-engine:2.3")
-    implementation("org.antlr:antlr4-runtime:4.8")
+    implementation("org.antlr:antlr4-runtime:4.10.1")
 }
