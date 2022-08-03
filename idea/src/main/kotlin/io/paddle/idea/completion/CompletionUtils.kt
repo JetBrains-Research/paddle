@@ -7,10 +7,7 @@ import java.io.File
 
 fun CompletionParameters.extractPaddleProject(): PaddleProject? {
     val rootDir = editor.project?.basePath?.let { File(it) }
-    val virtualFile = originalFile.virtualFile?.takeIf { it.name == "paddle.yaml" }
-
-    // FIXME: not sure if it is ok to go from [VirtualFile] to [File] like that. how to fix it?
-    val workDir = virtualFile?.parent?.canonicalPath?.let { File(it) }
+    val workDir = originalFile.virtualFile?.parent?.toNioPath()?.toFile()
 
     return rootDir?.let { _rootDir ->
         workDir?.let { _workDir ->

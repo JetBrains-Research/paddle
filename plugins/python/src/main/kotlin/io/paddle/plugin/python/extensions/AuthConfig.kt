@@ -20,7 +20,7 @@ class AuthConfig private constructor(val project: PaddleProject, val file: File?
         override val key: Extendable.Key<AuthConfig> = Extendable.Key()
 
         override fun create(project: PaddleProject): AuthConfig {
-            val authConfigFile = project.rootDir.resolve(FILENAME).takeIf { it.exists() }
+            val authConfigFile = project.rootDir.resolve(FILENAME).takeIf { it.exists() && it.readText().contains("repositories:") }
                 ?: return AuthConfig(project, null, emptyMap())
             val config = object : ConfigurationView("repositories", from(authConfigFile)) {
                 val authInfos by list<Map<String, String>>(name = "", default = emptyList())
@@ -28,9 +28,9 @@ class AuthConfig private constructor(val project: PaddleProject, val file: File?
 
             val authInfosByRepoName = HashMap<String, MutableList<AuthInfo>>()
             for (authInfo in config.authInfos) {
-                val repoName = checkNotNull(authInfo["name"]) { "Failed to parse $FILENAME: <name> field must be specified for each repository." }
-                val authType = checkNotNull(authInfo["type"]) { "Failed to parse $FILENAME: <type> field must be specified for each repository." }
-                val username = checkNotNull(authInfo["username"]) { "Failed to parse $FILENAME: <username> field must be specified for each repository." }
+                val repoName = authInfo["name"] ?: continue
+                val authType = authInfo["type"] ?: continue
+                val username = authInfo["username"] ?: continue
                 authInfosByRepoName.getOrPut(repoName) { ArrayList() }.add(
                     AuthInfo(type = AuthType.valueOf(authType.uppercase()), username = username)
                 )

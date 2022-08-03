@@ -2,6 +2,7 @@ package io.paddle.plugin.python.extensions
 
 import io.paddle.plugin.python.dependencies.authentication.AuthInfo
 import io.paddle.plugin.python.dependencies.repositories.PyPackageRepositories
+import io.paddle.plugin.python.hasPython
 import io.paddle.plugin.python.utils.*
 import io.paddle.project.PaddleProject
 import io.paddle.project.extensions.routeAsString
@@ -89,4 +90,11 @@ class Repositories(val project: PaddleProject, val descriptors: List<Descriptor>
     override fun hash(): String {
         return descriptors.hashable().hash()
     }
+}
+
+fun PaddleProject.getAllPyPackageRepoDescriptors(): Set<Repositories.Descriptor> {
+    val result = hashSetOf(Repositories.Descriptor.PYPI)
+    if (hasPython) result += repositories.descriptors
+
+    return result + subprojects.filter { it.hasPython }.flatMap { it.getAllPyPackageRepoDescriptors() }.toSet()
 }

@@ -110,9 +110,6 @@
     "requirements": {
       "description": "List of project requirements",
       "type": "object",
-      "required": [
-        "main"
-      ],
       "properties": {
         "main": {
           "description": "Requirements to run code in the project",
