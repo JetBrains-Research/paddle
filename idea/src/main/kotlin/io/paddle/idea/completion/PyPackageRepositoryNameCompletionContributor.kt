@@ -29,8 +29,6 @@ class PyPackageRepositoryNameCompletionProvider : CompletionProvider<CompletionP
             val repoDescriptors = paddleProject.getAllPyPackageRepoDescriptors()
             val prefix = parameters.position.text.trim().removeSuffix(CompletionUtilCore.DUMMY_IDENTIFIER_TRIMMED)
 
-            result.addLookupAdvertisement("abacaba")
-
             result.withPrefixMatcher(prefix).addAllElements(
                 repoDescriptors.map {
                     LookupElementBuilder.create(it.name).withTypeText(it.url, true)
