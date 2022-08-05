@@ -1,6 +1,7 @@
 package io.paddle.plugin.python.extensions
 
 import io.paddle.plugin.python.dependencies.authentication.AuthInfo
+import io.paddle.plugin.python.dependencies.authentication.AuthType
 import io.paddle.plugin.python.dependencies.repositories.PyPackageRepositories
 import io.paddle.plugin.python.hasPython
 import io.paddle.plugin.python.utils.*
@@ -23,6 +24,7 @@ class Repositories(val project: PaddleProject, val descriptors: List<Descriptor>
     object Extension : PaddleProject.Extension<Repositories> {
         override val key: Extendable.Key<Repositories> = Extendable.Key()
 
+        @Suppress("UNCHECKED_CAST")
         override fun create(project: PaddleProject): Repositories {
             val reposConfig = project.config.get<List<Map<String, Any>>>("repositories") ?: emptyList()
 
@@ -36,22 +38,27 @@ class Repositories(val project: PaddleProject, val descriptors: List<Descriptor>
                 val uploadUrl = repo["uploadUrl"] as String?
 
                 val authInfos = project.authConfig.findAuthInfos(repoName).takeIf { it.isNotEmpty() }
-                    ?: listOf(AuthInfo.NONE).also {
-                        project.authConfig.file?.canonicalPath?.let {
-                            project.terminal.info(
-                                "Authentication method for PyPI repo $repoName is not provided in $it, proceeding..."
-                            )
-                        } ?: run {
+                    ?: mutableListOf(AuthInfo.NONE).also {
+                        project.authConfig.file ?: run {
                             project.terminal.info("${AuthConfig.FILENAME} was not found, proceeding...")
                         }
                     }
+
+                val fallbackAuthInfo = (repo["authEnv"] as? Map<String, String>)?.let { auth ->
+                    AuthInfo.Env(
+                        usernameVar = checkNotNull(auth["username"]) { "authEnv.username must be specified" },
+                        passwordVar = checkNotNull(auth["password"]) { "authEnv.password must be specified" },
+                    )
+                }
 
                 Descriptor(
                     name = repoName,
                     url = url,
                     default = (repo["default"] as String?)?.toBoolean(),
                     secondary = (repo["secondary"] as String?)?.toBoolean(),
-                    authInfos = authInfos,
+                    authInfos = fallbackAuthInfo?.let {
+                        authInfos.filter { info -> info.type != AuthType.NONE } + it
+                    } ?: authInfos,
                     uploadUrl = uploadUrl ?: url.removeSimple().join("legacy")
                 )
             }

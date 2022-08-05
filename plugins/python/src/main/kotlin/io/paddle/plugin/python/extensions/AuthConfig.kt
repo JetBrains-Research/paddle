@@ -32,7 +32,7 @@ class AuthConfig private constructor(val project: PaddleProject, val file: File?
                 val authType = authInfo["type"] ?: continue
                 val username = authInfo["username"] ?: continue
                 authInfosByRepoName.getOrPut(repoName) { ArrayList() }.add(
-                    AuthInfo(type = AuthType.valueOf(authType.uppercase()), username = username)
+                    AuthInfo.Config(type = AuthType.valueOf(authType.uppercase()), username = username)
                 )
             }
 

@@ -7,25 +7,45 @@ import io.paddle.plugin.python.utils.*
 import io.paddle.tasks.Task
 import io.paddle.utils.hash.Hashable
 import io.paddle.utils.hash.hashable
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
+@Serializable
 enum class AuthType {
+    ENV,
     KEYRING,
     NETRC,
     NONE,
     PROFILE
 }
 
-@kotlinx.serialization.Serializable
-data class AuthInfo(
-    val type: AuthType,
-    val username: String? = null
-) : Hashable {
+@Serializable
+sealed class AuthInfo : Hashable {
+    @SerialName("authType") abstract val type: AuthType
+
     companion object {
-        val NONE = AuthInfo(AuthType.NONE)
+        val NONE = Config(AuthType.NONE)
     }
 
-    override fun hash(): String {
-        return listOf(type.toString().hashable(), (username ?: "").hashable()).hashable().hash()
+    @Serializable
+    data class Config(
+        @SerialName("authTypeConfig") override val type: AuthType,
+        val username: String? = null
+    ) : Hashable, AuthInfo() {
+        override fun hash(): String {
+            return listOf(type.toString().hashable(), (username ?: "").hashable()).hashable().hash()
+        }
+    }
+
+    @Serializable
+    data class Env(
+        val usernameVar: String,
+        val passwordVar: String
+    ) : Hashable, AuthInfo() {
+        @SerialName("authTypeEnv") override val type = AuthType.ENV
+        override fun hash(): String {
+            return listOf(usernameVar.hashable(), passwordVar.hashable()).hashable().hash()
+        }
     }
 }
 
@@ -39,6 +59,15 @@ object AuthenticationProvider {
     fun resolveCredentials(repoUrl: PyPackagesRepositoryUrl, authInfos: List<AuthInfo>): PyPackageRepository.Credentials {
         for (authInfo in authInfos) {
             when (authInfo.type) {
+                AuthType.ENV -> {
+                    val (usernameVar, passwordVar) = (authInfo as AuthInfo.Env)
+                    System.getenv(usernameVar)?.let { username ->
+                        System.getenv(passwordVar)?.let { password ->
+                            return PyPackageRepository.Credentials(login = username, password = password)
+                        } ?: PaddleLogger.terminal.error("Can not find password env variable: $passwordVar")
+                    } ?: PaddleLogger.terminal.error("Can not find username env variable: $usernameVar")
+                }
+
                 AuthType.NETRC -> {
                     netrc ?: PaddleLogger.terminal.error(".netrc configuration not found.")
                     netrc?.authenticators(host = repoUrl.getHost())?.also { return it }
@@ -47,7 +76,7 @@ object AuthenticationProvider {
 
                 AuthType.KEYRING -> {
                     val keyring = Keyring.create()
-                    val usernameOrNull = authInfo.username ?: (null).also {
+                    val usernameOrNull = (authInfo as AuthInfo.Config).username ?: (null).also {
                         PaddleLogger.terminal.error("Keyring authentication error: username must be specified.")
                     }
                     usernameOrNull?.let { username ->
@@ -64,7 +93,7 @@ object AuthenticationProvider {
                 }
 
                 AuthType.PROFILE -> {
-                    val usernameOrNull = authInfo.username ?: (null).also {
+                    val usernameOrNull = (authInfo as AuthInfo.Config).username ?: (null).also {
                         PaddleLogger.terminal.error("Profiles auth: username must be specified.")
                     }
                     usernameOrNull?.let { username ->
