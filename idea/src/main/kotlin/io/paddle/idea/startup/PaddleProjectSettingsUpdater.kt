@@ -43,11 +43,11 @@ class PaddleProjectSettingsUpdater : ExternalSystemSettingsListenerEx {
                     try {
                         PaddlePythonSdkUtil.configurePythonSdk(module, subproject)
                         val sdkData = module.pythonSdk?.sdkModificator?.sdkAdditionalData as? PythonSdkAdditionalData
-                        for (pkg in subproject.requirements.resolved) {
-                            val cachedPath = GlobalCacheRepository.getPathToCachedPackage(pkg)
-                            val virtualFile = LocalFileSystem.getInstance().findFileByNioFile(cachedPath) ?: continue
-                            sdkData?.addedPathFiles?.add(virtualFile)
-                        }
+
+                        subproject.requirements.resolved
+                            .map { GlobalCacheRepository.getPathToCachedPackage(it) }
+                            .mapNotNull { LocalFileSystem.getInstance().findFileByNioFile(it) }
+                            .forEach { sdkData?.addedPathFiles?.add(it) }
                     } catch (e: Throwable) {
                         log.warn(e)
                     }

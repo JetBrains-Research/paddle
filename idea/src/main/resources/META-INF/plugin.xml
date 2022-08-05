@@ -107,6 +107,9 @@
 
         <!-- Notifications -->
         <notificationGroup id="Paddle" displayType="BALLOON"/>
+        <editorNotificationProvider implementation="io.paddle.idea.notifications.PaddleAuthEditorNotificationProvider"/>
+        <editorNotificationProvider implementation="io.paddle.idea.notifications.VcsIgnoreEditorNotificationProvider"/>
+        <ignoredFileProvider implementation="io.paddle.idea.vcs.PaddleIgnoredFileProvider"/>
 
         <!-- Copy-paste handlers -->
         <copyPastePostProcessor implementation="io.paddle.idea.copypaste.RequirementsTxtCopyPasteProcessor"/>
