@@ -13,6 +13,9 @@ abstract class Task(val project: PaddleProject) {
      */
     abstract val id: String
 
+    val taskRoute: String
+        get() = project.routeAsString+":$id"
+
     /**
      * Short description of the task.
      */
@@ -51,7 +54,6 @@ abstract class Task(val project: PaddleProject) {
      * Decorated version of [act]: prints current state to project's terminal.
      */
     protected open fun execute() {
-        val taskRoute = project.routeAsString + ":$id"
         project.terminal.commands.stdout(CommandOutput.Command.Task(taskRoute, CommandOutput.Command.Task.Status.EXECUTE))
 
         try {
@@ -72,10 +74,17 @@ abstract class Task(val project: PaddleProject) {
     }
 
     /**
-     * Run task with respect to the caches and current state.
+     * Run task with respect to the caches and current state (execution order & cancellation requests).
      */
-    open fun run() {
-        executionOrder.forEach { it.execute() }
+    open fun run(cancellationToken: CancellationToken = CancellationToken.DEFAULT) {
+        executionOrder.forEach {
+            if (cancellationToken.isCancelled) {
+                project.terminal.error("$taskRoute execution was cancelled.")
+                throw CancelledException()
+            }
+
+            it.execute()
+        }
     }
 
     open val executionOrder: ExecutionOrder
@@ -105,6 +114,7 @@ abstract class Task(val project: PaddleProject) {
     }
 
     class ActException(reason: String) : Exception(reason)
+    class CancelledException : Exception()
 
     override fun hashCode(): Int = id.hashCode()
 }

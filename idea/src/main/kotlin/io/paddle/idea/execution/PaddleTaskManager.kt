@@ -1,20 +1,16 @@
 package io.paddle.idea.execution
 
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.externalSystem.ExternalSystemAutoImportAware
-import com.intellij.openapi.externalSystem.autoimport.ExternalSystemProjectListener
-import com.intellij.openapi.externalSystem.autoimport.ExternalSystemRefreshStatus
 import com.intellij.openapi.externalSystem.importing.ImportSpecBuilder
 import com.intellij.openapi.externalSystem.model.DataNode
 import com.intellij.openapi.externalSystem.model.project.ProjectData
-import com.intellij.openapi.externalSystem.model.task.*
+import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
+import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListener
 import com.intellij.openapi.externalSystem.service.execution.ProgressExecutionMode
-import com.intellij.openapi.externalSystem.service.internal.ExternalSystemProcessingManager
-import com.intellij.openapi.externalSystem.service.internal.ExternalSystemResolveProjectTask
 import com.intellij.openapi.externalSystem.service.project.ExternalProjectRefreshCallback
 import com.intellij.openapi.externalSystem.task.ExternalSystemTaskManager
 import com.intellij.openapi.externalSystem.util.ExternalSystemUtil
+import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.project.ProjectManager
 import io.paddle.idea.PaddleManager
 import io.paddle.idea.settings.PaddleExecutionSettings
@@ -23,13 +19,16 @@ import io.paddle.idea.utils.containsPrefix
 import io.paddle.plugin.python.utils.PaddleLogger
 import io.paddle.project.PaddleProject
 import io.paddle.project.PaddleProjectProvider
+import io.paddle.tasks.CancellationToken
 import io.paddle.tasks.Task
 import java.io.File
+import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.CountDownLatch
-import java.util.concurrent.atomic.AtomicReference
 
 class PaddleTaskManager : ExternalSystemTaskManager<PaddleExecutionSettings> {
     private val log = Logger.getInstance(PaddleTaskManager::class.java)
+    private val cancellationMap = ConcurrentHashMap<ExternalSystemTaskId, CancellationToken>()
+
     private lateinit var latch: CountDownLatch
 
     override fun executeTasks(
@@ -45,6 +44,9 @@ class PaddleTaskManager : ExternalSystemTaskManager<PaddleExecutionSettings> {
             .find { it.isOpen && it.isInitialized && it.basePath != null && File(projectPath).containsPrefix(File(it.basePath!!)) }
             ?: throw IllegalStateException("Could not find corresponding intellij project for path $projectPath")
         val rootDir = project.basePath?.let { File(it) } ?: return
+
+        // FIXME: in case of a long-running operation this could cause a UI freeze
+        // but all the ways to execute it as a read action/on pooled thread didn't work so far
         val paddleProject = PaddleProjectProvider.getInstance(rootDir).getProject(workDir) ?: return
 
         if (paddleProject.isUpToDate) {
@@ -90,56 +92,33 @@ class PaddleTaskManager : ExternalSystemTaskManager<PaddleExecutionSettings> {
         paddleProject.output = IDEACommandOutput(id, listener)
         PaddleLogger.terminal = paddleProject.terminal
 
-        for (task in taskNames) {
-            listener.onStart(id, projectPath)
-            try {
-                paddleProject.execute(task)
-            } catch (e: Task.ActException) {
-                listener.onFailure(id, e)
-                continue
-            }
-            listener.onSuccess(id)
-            listener.onEnd(id)
-        }
-    }
+        val cancellationToken = CancellationToken()
+        cancellationMap[id] = cancellationToken
 
-    private inner class TaskNotificationListener(
-        val delegate: ExternalSystemProjectListener,
-        val projectPath: String,
-        val autoImportAware: ExternalSystemAutoImportAware
-    ) : ExternalSystemTaskNotificationListenerAdapter() {
-        var externalSystemTaskId = AtomicReference<ExternalSystemTaskId?>(null)
-
-        override fun onStart(id: ExternalSystemTaskId, workingDir: String?) {
-            if (id.type != ExternalSystemTaskType.RESOLVE_PROJECT) return
-            val task = ApplicationManager.getApplication().getService(ExternalSystemProcessingManager::class.java).findTask(id)
-            if (task is ExternalSystemResolveProjectTask) {
-                if (!autoImportAware.isApplicable(task.resolverPolicy)) {
-                    return
+        try {
+            for (task in taskNames) {
+                listener.onStart(id, projectPath)
+                try {
+                    paddleProject.execute(task, cancellationToken)
+                } catch (e: Task.ActException) {
+                    listener.onFailure(id, e)
+                    continue
+                } catch (e: Task.CancelledException) {
+                    listener.onFailure(id, e)
+                    throw ProcessCanceledException()
                 }
+                listener.onSuccess(id)
+                listener.onEnd(id)
             }
-            externalSystemTaskId.set(id)
-            delegate.onProjectReloadStart()
-        }
-
-        private fun afterProjectRefresh(id: ExternalSystemTaskId, status: ExternalSystemRefreshStatus) {
-            if (id.type != ExternalSystemTaskType.RESOLVE_PROJECT) return
-            if (!externalSystemTaskId.compareAndSet(id, null)) return
-            delegate.onProjectReloadFinish(status)
-        }
-
-        override fun onSuccess(id: ExternalSystemTaskId) {
-            afterProjectRefresh(id, ExternalSystemRefreshStatus.SUCCESS)
-        }
-
-        override fun onFailure(id: ExternalSystemTaskId, e: Exception) {
-            afterProjectRefresh(id, ExternalSystemRefreshStatus.FAILURE)
-        }
-
-        override fun onCancel(id: ExternalSystemTaskId) {
-            afterProjectRefresh(id, ExternalSystemRefreshStatus.CANCEL)
+        } finally {
+            cancellationMap.remove(id)
         }
     }
 
-    override fun cancelTask(id: ExternalSystemTaskId, listener: ExternalSystemTaskNotificationListener): Boolean = false
+    override fun cancelTask(id: ExternalSystemTaskId, listener: ExternalSystemTaskNotificationListener): Boolean {
+        return cancellationMap[id]?.run {
+            cancel()
+            true
+        } ?: false
+    }
 }
