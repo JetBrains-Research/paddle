@@ -1,6 +1,7 @@
 package io.paddle.plugin.python.dependencies.resolvers
 
 import io.paddle.execution.ExecutionResult
+import io.paddle.plugin.python.PaddlePythonRegistry
 import io.paddle.plugin.python.PyLocations
 import io.paddle.plugin.python.dependencies.index.PyPackageRepositoryIndexer
 import io.paddle.plugin.python.dependencies.index.distributions.ArchivePyDistributionInfo
@@ -18,6 +19,8 @@ import kotlinx.serialization.builtins.*
 import org.codehaus.plexus.util.cli.CommandLineUtils
 import org.codehaus.plexus.util.cli.Commandline
 import java.io.ByteArrayInputStream
+import java.io.File
+import java.net.URI
 import kotlin.io.path.absolutePathString
 
 /**
@@ -96,6 +99,8 @@ object PipResolver {
         val lines = output.slice((startIdx + 1) until endIdx)
         val comesFromUrlByPackage = HashMap<PyPackage, PyPackageUrl>()
 
+        var retry = false
+
         for (i in lines.indices step PACKAGE_PROPERTIES_NUM) {
             val name = lines[i].substringAfter(": ")
             // val constraints = lines[i + 1].substringAfter(": ")
@@ -111,18 +116,28 @@ object PipResolver {
 
             val version = pyDistributionInfo.version
 
-            val repo = if (repoUrl == "None") {
+            val repo = if (repoUrl == "None") { // it was resolved as a local file distribution file://...
                 runBlocking {
-                    PyPackageRepository.PYPI_REPOSITORY.also {
-                        distributionUrl = PyPackageRepositoryIndexer.getDistributionUrl(pyDistributionInfo, it)
-                            ?: throw Task.ActException(
-                                "Distribution $filename was not found in the repository ${it.url.getSecure()}.\n" +
-                                    "It is possible that it was resolved from your local cache, " +
-                                    "which is deprecated since it is not available online anymore.\n" +
-                                    "Please, consider removing $distributionUrl from cache and re-running the task."
-                            )
+                    PyPackageRepositoryIndexer.getDistributionUrl(pyDistributionInfo, PyPackageRepository.PYPI_REPOSITORY)
+                } // if null, it was not found in the PyPi repo
+                    ?: if (PaddlePythonRegistry.autoRemove) {
+                        val localDistribution = File(URI(distributionUrl))
+                        if (!localDistribution.exists()) {
+                            throw Task.ActException("Failed to delete local distribution $distributionUrl: file not found.")
+                        }
+                        if (!localDistribution.delete()) {
+                            throw Task.ActException("Failed to delete local distribution $distributionUrl. Please, do it manually and re-run the task.")
+                        }
+                        retry = true
+                    } else {
+                        throw Task.ActException(
+                            "Distribution $filename was not found in the repository ${PyPackageRepository.PYPI_REPOSITORY.url.getSecure()}.\n" +
+                                "It is possible that it was resolved from your local cache, " +
+                                "which is deprecated since it is not available online anymore.\n" +
+                                "Please, consider removing $distributionUrl from cache and re-running the task."
+                        )
                     }
-                }
+                PyPackageRepository.PYPI_REPOSITORY
             } else {
                 project.repositories.resolved.all.find { it.url.trimmedEquals(repoUrl) }
                     ?: throw IllegalStateException("Unknown repository: $repoUrl")
@@ -131,6 +146,8 @@ object PipResolver {
             val pkg = PyPackage(name, version, repo, distributionUrl)
             comesFromUrlByPackage[pkg] = comesFromDistributionUrl
         }
+
+        if (retry) throw RetrySignal()
 
         // Restoring inter-package dependencies via 'comesFrom' field
         for ((pkg, comesFromDistributionUrl) in comesFromUrlByPackage) {
@@ -142,4 +159,6 @@ object PipResolver {
 
         return comesFromUrlByPackage.keys + satisfiedRequirements
     }
+
+    class RetrySignal : Exception()
 }
