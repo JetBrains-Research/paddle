@@ -1,9 +1,4 @@
-<h1 style="display: flex"> 
-<img width="50" height="50" 
-src="idea/src/main/resources/META-INF/pluginIcon.svg" 
-alt="Paddle Icon"> 
-Paddle 
-</h1>
+# Paddle
 
 Paddle is a young, extensible and IDE-friendly build system for Python.
 
@@ -31,6 +26,7 @@ environment, running tasks and more.
     - [Metadata](#metadata)
     - [Environment](#environment)
     - [Repositories](#repositories)
+      - [Authentication](#authentication)
     - [Requirements](#requirements)
     - [Tasks section](#tasks-section)
       - [Run](#run)
@@ -55,8 +51,8 @@ environment, running tasks and more.
   It is not just another CLI tool to solve some limited scope of tasks which appear when you are
   developing in Python — Paddle is an ultimate decision to use for a Python project.
   It resolves and installs a needed version of the Python interpreter automatically,
-  manages dependencies in the virtual environments,    
-  provides a way to reliably run incremental tasks with scripts/tests/linters and more.
+  manages dependencies in the virtual environments, provides a way to reliably run incremental
+  tasks with scripts/tests/linters and more.
 - **Paddle supports multi-project builds.**
   [Monorepos](https://en.wikipedia.org/wiki/Monorepo) gained a huge popularity
   in the industrial software development standards nowadays. With Paddle, it became possible
@@ -90,7 +86,7 @@ To run Paddle, you need:
     Java(TM) SE Runtime Environment (build 1.8.0_151-b12)
     Java HotSpot(TM) 64-Bit Server VM (build 25.151-b12, mixed mode)
     ```
-- **PyCharm IDE 2022.1 (or higher)** — optional, if you want to use CLI tool.
+- **PyCharm IDE 2022.1 (or higher)** — optional, only if you want to use Paddle plugin for PyCharm IDE.
 - **Internet access** (so that Paddle can access and index PyPI repositories, download packages,
   etc.)
 
