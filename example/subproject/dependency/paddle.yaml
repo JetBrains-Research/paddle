@@ -1,15 +1,22 @@
 project: dependency
 
-metadata:
-  description: Some dependency. Don't mind
-
 plugins:
   enabled:
     - python
 
-roots:
-  sources: src
-
 environment:
   path: .venv
-#  python: 3.9
+  python: 3.9
+
+requirements:
+  dev:
+    - name: pytest
+      version: ==7.1.2
+    - name: pylint
+      version: ==2.14.4
+    - name: mypy
+      version: ==0.961
+    - name: twine
+      version: ==4.0.1
+    - name: wheel
+      version: ==0.37.1

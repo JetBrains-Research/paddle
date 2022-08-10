@@ -1,4 +1,10 @@
-# Paddle
+<h1> 
+<img width="40" height="40" 
+src="idea/src/main/resources/META-INF/pluginIcon.svg" 
+alt="Paddle Icon">
+Paddle 
+</h1>
+
 
 Paddle is a young, extensible and IDE-friendly build system for Python.
 
@@ -97,6 +103,9 @@ platform.
 
 The preferable way to install Paddle is to use download a PyCharm plugin from
 the [Marketplace](TODO).
+
+<img src="assets/paddle-plugin-main.png" alt="Paddle IDE Plugin">
+
 It already contains a bootstrapped Paddle build system inside, so you don't even need to install
 something else manually, and supports a bunch of features:
 
