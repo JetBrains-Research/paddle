@@ -1,10 +1,9 @@
-<h1> 
-<img width="40" height="40" 
+<h1 style="display: flex"> 
+<img width="50" height="50" 
 src="idea/src/main/resources/META-INF/pluginIcon.svg" 
-alt="Paddle Icon">
+alt="Paddle Icon"> 
 Paddle 
 </h1>
-
 
 Paddle is a young, extensible and IDE-friendly build system for Python.
 
@@ -524,6 +523,12 @@ like `<=`, `>=`, `<`, `>`, `==`, `!=`, `~=`, `===`)
 
 **Note:** for now, only this format of requirement specification is available.
 Specifying requirements by URL/URI will be added in a sooner Paddle release, stay in touch!
+
+**Tip:** if you are using PyCharm plugin and migrating from the old `requirements.txt` file, try
+to copy-paste the file contents into the `paddle.yaml` file as is, and Paddle will
+convert it to its own format.
+
+<img src="assets/copypaste-paddle.png" alt="Copy-paste example">
 
 #### Tasks section
 
