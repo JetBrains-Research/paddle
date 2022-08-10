@@ -27,11 +27,15 @@ environment, running tasks and more.
     - [Environment](#environment)
     - [Repositories](#repositories)
     - [Requirements](#requirements)
-    - [Tasks](#tasks)
+    - [Tasks section](#tasks-section)
       - [Run](#run)
       - [Test](#test)
       - [Publish](#publish)
   - [Docker & SSH sections](#docker-ssh-sections)
+- [Tasks](#tasks)
+  - [Core tasks](#core-tasks)
+  - [Python tasks](#python-tasks)
+- [Contact us](#contact-us)
 
 ### Why do I need to use Paddle?
 
@@ -143,7 +147,7 @@ That's it, you are now ready to go!
   PyCharm IDE (it should be 2022.1+, since build `221.5080`). If everything is correct, try
   to restart the IDE.
   - If it still doesn't appear, don't hesitate to drop an issue
-    or [contact us](https://telegram.me/oesmirnov) directly.
+    or [contact us](#contact-us) directly.
 - If Paddle plugin works but the actual build fails to load a proper version of Python interpreter,
   make sure you have followed the instructions for your current
   platform [here](https://github.com/pyenv/pyenv/wiki#suggested-build-environment).
@@ -286,7 +290,9 @@ roots:
 
 - `sources`: name of the directory with all the source files (`src/` by default). \
   If you have several Python
-  packages within a single Paddle project, please, store all of them under this folder.
+  packages within a single Paddle project, please, store all of them under this folder. But
+  generally speaking, this is not encouraged: the preferred way is "one Python package == one
+  Paddle project".
 - `tests`: name of the directory with tests  (`tests/` by default).
 - `resources`: name of the directory with project's resources (`resources/` by default).
 - `dist`: name of the directory where the distribution files (e.g., `.whl`) are built and stored
@@ -510,7 +516,7 @@ like `<=`, `>=`, `<`, `>`, `==`, `!=`, `~=`, `===`)
 **Note:** for now, only this format of requirement specification is available.
 Specifying requirements by URL/URI will be added in a sooner Paddle release, stay in touch!
 
-#### Tasks
+#### Tasks section
 
 The `tasks` section consists of several subsections which provide run configurations for
 different Python executors.
@@ -595,4 +601,41 @@ tasks:
 
 To be added soon.
 
+## Tasks
 
+Here is a reference for all the built-in Paddle tasks available at the moment provided.
+
+### Core tasks
+
+- `clean`: cleans up the ignored directories of the Paddle project. By default, only `.paddle`
+  local project folder (containing incremental caches) is included, but Python plugin also adds
+  some other targets if enabled (e.g., `.venv`, `.pylint_cache`, etc.).
+- `cleanAll`: the same task but running it will also call the `cleanAll` task for ALL the
+  subprojects of the given Paddle project.
+
+### Python tasks
+
+- `build`: builds a Python wheel from the `sources` of the Paddle project, saves it in the `dist`
+  root. This task auto-generates `setup.cfg` and uses `wheel` & `setuptools` packages.
+- `resolveInterpreter`: finds or downloads a suitable Python interpreter.
+- `resolveRepositories`: runs indexing (or retrieves cached indexes) of the specified PyPI
+  repositories (it is needed for packages auto-completion in PyCharm).
+- `resolveRequirements`: runs `pip`'s resolver to resolve a set of the given requirements.
+- `install`: installs the resolved set of requirements.
+- `lock`: creates a `paddle-lock.json` lockfile in the root directory of Paddle project.
+- `ci`: installs the snapshot versions of the packages specified in the `paddle-lock.json` lockfile.
+- `venv`: creates a local virtual environment in the Paddle project.
+- `run`, `test`, `publish`: these tasks are executed from the entrypoint. This part was covered
+  in the
+  [previous section](#tasks-section).
+- `mypy`: runs [Mypy](http://www.mypy-lang.org/) type checker on the `sources` of the Paddle project.
+- `pylint`: runs [Pylint](https://pylint.pycqa.org/en/latest/) linter on the `sources` of the Paddle
+  project.
+
+## Contact us
+
+If you have found a bug or have a feature suggestion, please, don't hesitate to open an issue on
+GitHub or contact the developers personally:
+
+- **Oleg Smirnov** (oleg.smirnov@jetbrains.com), tg: [@oesmirnov](https://telegram.me/oesmirnov)
+- **Vladislav Tankov** (vladislav.tankov@jetbrains.com)
