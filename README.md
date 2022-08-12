@@ -1,13 +1,11 @@
 # Paddle
 
-Paddle is a young, extensible and IDE-friendly build system for Python.
-
-It provides a declarative way to managing project dependencies, configuring execution
-environment, running tasks and more.
+Paddle is a fresh, extensible, and IDE-friendly build system for Python. It provides a declarative way for managing project dependencies, configuring execution
+environment, running tasks, and much more.
 
 ### Guide outline
 
-- [Why do I need to use Paddle?](#why-do-i-need-to-use-paddle)
+- [Why do I need to use Paddle?](#why-should-i-use-paddle)
 - [Getting started](#getting-started)
   - [Prerequisites](#prerequisites)
   - [Installation](#installation)
@@ -38,34 +36,34 @@ environment, running tasks and more.
   - [Python tasks](#python-tasks)
 - [Contact us](#contact-us)
 
-### Why do I need to use Paddle?
+### Why should I use Paddle?
 
-- **Paddle is so easy to start with**.
+- **Paddle is very easy to start with**.
   You only need a single YAML configuration file for your project,
-  and the build system will do the rest.
-  If you are familiar with some basic concepts of a build
+  and the build system will do all the rest.
+  If you are familiar with the basic concepts of a build
   system like [Gradle](https://docs.gradle.org/current/userguide/what_is_gradle.html),
   and also have some experience of using various Python development tools
   (such as `venv`/`pytest`/`pylint`/`twine`) — you already know how to use Paddle!
 - **Paddle supports Python**.
   It is not just another CLI tool to solve some limited scope of tasks which appear when you are
-  developing in Python — Paddle is an ultimate decision to use for a Python project.
-  It resolves and installs a needed version of the Python interpreter automatically,
+  developing in Python — Paddle is an ultimate solution for a Python project.
+  It resolves and installs a necessary version of the Python interpreter automatically,
   manages dependencies in the virtual environments, provides a way to reliably run incremental
-  tasks with scripts/tests/linters and more.
+  tasks with scripts/tests/linters, and more.
 - **Paddle supports multi-project builds.**
-  [Monorepos](https://en.wikipedia.org/wiki/Monorepo) gained a huge popularity
-  in the industrial software development standards nowadays. With Paddle, it became possible
-  to declare inter-project dependencies between packages and to configure complicated
-  building&publishing pipelines for your Python monorepo.
+  [Monorepos](https://en.wikipedia.org/wiki/Monorepo) are gaining popularity
+  in the industrial software development, and if you are using them, you are in luck. With Paddle, it became possible
+  to declare intra-project dependencies between packages and to configure complicated
+  building and publishing pipelines for your Python monorepo.
 - **Paddle is fully supported in the PyCharm IDE.**
-  You can surely use an old-fashioned command line interface, or choose a preferred brand-new
+  You can use an old-fashioned command line interface, or choose a preferred brand-new
   plugin for [PyCharm](https://www.jetbrains.com/pycharm/),
   a popular IDE for Python developed by [JetBrains](https://www.jetbrains.com/).
 - **Paddle is an extensible general-purpose build system by its nature.**
-  Yet it focuses on the Python projects support at first, it could also be easily customized to
+  Although it focuses on the Python projects at first, it could also be easily customized to
   suit your own needs by writing and using various plugins.
-  For instance, bundled `docker` and `ssh` plugins provide a way to run your tasks within
+  For instance, the bundled `docker` and `ssh` plugins provide a way to run your tasks within
   other execution environments, such as
   [Docker containers](https://www.docker.com/resources/what-container/) and remote machines.
 
@@ -77,16 +75,16 @@ To run Paddle, you need:
 
 - **Linux** (tested on Ubuntu 20.04) or **macOS** (tested on Big Sur and Monterey).
 - **JDK version 8 or higher** (for CLI tool only, if you
-  will use PyCharm plugin, the needed
+  plan to use the PyCharm plugin, the necessary
   version of Java is already installed with the IDE).
-  - To check, run `java -version`. You should see something like this:
+  - To check your version, run `java -version`. You should see something like this:
     ```
     $ java -version
     java version "1.8.0_151"
     Java(TM) SE Runtime Environment (build 1.8.0_151-b12)
     Java HotSpot(TM) 64-Bit Server VM (build 25.151-b12, mixed mode)
     ```
-- **PyCharm IDE 2022.1 (or higher)** — optional, only if you want to use Paddle plugin for PyCharm IDE.
+- **PyCharm 2022.1 or higher** (if you want to use the Paddle plugin for PyCharm).
 - **Internet access** (so that Paddle can access and index PyPI repositories, download packages,
   etc.)
 
@@ -96,34 +94,34 @@ platform.
 
 ### Installation
 
-The preferable way to install Paddle is to use download a PyCharm plugin from
+The preferable way to install Paddle is to download a PyCharm plugin from
 the [Marketplace](TODO).
 
 <img src="assets/paddle-plugin-main.png" alt="Paddle IDE Plugin">
 
-It already contains a bootstrapped Paddle build system inside, so you don't even need to install
-something else manually, and supports a bunch of features:
+The plugin already contains a bootstrapped Paddle build system inside (so you don't even have to install
+anything else manually) and supports a bunch of features:
 
 - automatic [SDK configuration](https://www.jetbrains.com/help/idea/configuring-python-sdk.html) for
   Paddle projects;
 - smart auto-completion and pre-configured YAML templates for Paddle build files;
 - facilities (like copy-paste handlers) to migrate from `requirements.txt` to Paddle YAML
   configurations;
-- a bunch of code inspections to check the build configuration files;
-- built-in task runners for Python scripts, tests and linters;
-- [compound run configurations for PyTest framework](https://intellij-support.jetbrains.com/hc/en-us/community/posts/360003520439-Run-multiple-test-using-PyTest-and-module-names)
+- a number of code inspections to check the build configuration files;
+- built-in task runners for Python scripts, tests, and linters;
+- [compound run configurations for the PyTest framework](https://intellij-support.jetbrains.com/hc/en-us/community/posts/360003520439-Run-multiple-test-using-PyTest-and-module-names)
   ;
-- etc.
+- and more!
 
-If you are a hard-core command-line user and still want to use the CLI tool, you can run
+If you are a hardcore command-line user and still want to use the CLI tool, you can run
 the following command in your terminal:
 
 ```shell
 curl -s 'https://raw.githubusercontent.com/tanvd/paddle/master/scripts/install.sh' -o ./install.sh && chmod +x install.sh && ./install.sh && rm ./install.sh
 ```
 
-It will download and execute the installation script, which will add `paddle.sh` to your local PATH
-so that you can access the build system in way like `paddle :<project_name>:<task_name>`.
+It will download and execute the installation script, which will add `paddle.sh` to your local PATH,
+so that you can access the build system like this: `paddle :<project_name>:<task_name>`.
 You can now verify your installation by running:
 
 ```shell
@@ -135,28 +133,28 @@ Paddle project.
 
 ### Quick start
 
-For a quick start, you could just create a new project in the PyCharm IDE and
+For a quick start, you can simply create a new project in the PyCharm IDE and
 choose `File - New - Paddle YAML` from the top menu.
-It will generate a template `paddle.yaml` build configuration file in the root directory of your
+This will generate a template `paddle.yaml` build configuration file in the root directory of your
 project.
-Then, press the `Load Paddle project` button on the popup in the right-down corner of your screen
-and wait until Paddle will finish building project's model and configuring execution environment.
+Then, press the `Load Paddle project` button on the pop-up in the bottom-right corner of your screen
+and wait until Paddle finishes building the project's model and configuring the execution environment.
 You can check the build status on the `Build` tool window tab.
 That's it, you are now ready to go!
 
 ### Troubleshooting
 
-- If you don't see the `Paddle YAML` item in the drop-down menu list, or none of notifications
-  appears, please, make sure you have installed and supported version of Paddle plugin in your
-  PyCharm IDE (it should be 2022.1+, since build `221.5080`). If everything is correct, try
-  to restart the IDE.
-  - If it still doesn't appear, don't hesitate to drop an issue
-    or [contact us](#contact-us) directly.
-- If Paddle plugin works but the actual build fails to load a proper version of Python interpreter,
+- If you don't see the `Paddle YAML` item in the drop-down menu list, or none of the notifications
+  appear, please make sure you have installed and supported version of Paddle plugin in your
+  PyCharm IDE (it should be 2022.1+, starting from build `221.5080`). If everything is correct, try
+  restarting your IDE.
+- If the item still does not appear, don't hesitate to leave an issue
+  or [contact us](#contact-us) directly.
+- If the Paddle plugin works but the actual build fails to load a proper version of the Python interpreter,
   make sure you have followed the instructions for your current
   platform [here](https://github.com/pyenv/pyenv/wiki#suggested-build-environment).
 
-In case of a CLI tool, create a new `paddle.yaml` file in the root directory of your project and
+In case of a using the CLI, create a new `paddle.yaml` file in the root directory of your project and
 paste the following script:
 
 ```yaml
@@ -194,56 +192,56 @@ Then, you can run the following command:
 paddle install
 ```
 
-It will prepare your environment, find or download Python interpreter, and install the specified dev
+It will prepare your environment, find or download the Python interpreter, and install the specified dev
 requirements.
 
 ## Key concepts
 
-- <a id="project-concept"></a> **Project** is a main abstraction of the Paddle build system.
+- <a id="project-concept"></a> **Project** is the main abstraction of the Paddle build system.
   Every Paddle project is associated with a single build configuration YAML file `paddle.yaml` (the
-  name matters) which must be stored in the project's root directory. Project could have
-  **subprojects** which are declared in the `paddle.yaml` file and could be referenced later as its
+  name matters), which must be stored in the project's root directory. A project can have
+  **subprojects** that are declared in the `paddle.yaml` file and can be referenced later as its
   own local dependencies.
-  - If you are using PyCharm IDE, Paddle projects (or subprojects) are naturally mapped to
-    the [IntelliJ's Modules](https://www.jetbrains.com/help/idea/creating-and-managing-modules.html)
+  - If you are using PyCharm, Paddle projects (or subprojects) are naturally mapped to
+    the [IntelliJ Modules](https://www.jetbrains.com/help/idea/creating-and-managing-modules.html)
     . Paddle supports multi-project builds, so it will automatically map different
-    Paddle (sub)projects to the different IntelliJ modules in the IDE.
+    Paddle (sub)projects to different IntelliJ modules in the IDE.
   - **Note:** Paddle always expects you to have at least one root project (with the
     corresponding `paddle.yaml` file) in the root directory of your working environment.
 - <a id="tasks-concept"></a> **Tasks** are the commands which Paddle can execute. Each task has its own unique
   identifier, by
-  which this task could be referenced to (e.g., `clear` or `install`). Tasks also could have
-  dependencies which ensure that some other tasks *must* be completed before running the current
+  which this task can be referenced (e.g., `clear` or `install`). Tasks also can have
+  dependencies that ensure that some other tasks *must* be completed before running the current
   task (e.g., `resolveRepositories <- resolveRequirements <- install <- lock`).
   - Each running task reports its status: EXECUTING, DONE, or FAILED.
   - Paddle supports incrementality checks, so that tasks whose inputs and outputs remain unchanged
     will not be executed every time. Their status will be reported as UP-TO-DATE.
-- <a id="plugins-concept"></a> **Plugins** are the extension points of the Paddle build system. In fact, even Python
-  language
-  is supported as a plugin for Paddle, so that's why you need to specify it in the `plugins` section
+- <a id="plugins-concept"></a> **Plugins** are the extension points of the Paddle build system. In fact, even the Python
+  language itself
+  is implemented as a plugin for Paddle, which is why you need to specify it in the `plugins` section
   of the build `paddle.yaml` file.
   - Paddle is shipped with the following plugins out-of-the-box: `python`, `docker`, and `ssh`.
-  - You can also write and use your own custom plugins by building and specifying
-    corresponding `.jars`. The docs covering custom plugins development process are coming soon.
+  - You can also write and use your own custom plugins by building and specifying the
+    corresponding `.jars`. The documentation about the development of custom plugins is coming soon.
 
 ## YAML Configuration
 
 Build configuration of the Paddle project is specified in the `paddle.yaml` file. This file is
-semantically splitted into **sections** (provided by **extensions**), where some of them are standard
+semantically split into **sections** (provided by **extensions**), where some of them are standard
 and built-in, and some of them are added by the external or bundled plugins.
 
-If you are using PyCharm plugin, it will help you with the schema of the `paddle.yaml`
-automatically. Use `Ctrl - Shift - Space` shortcut (by default) to look through the completion
-variants when typing the YAML configuration.
+If you are using the PyCharm plugin, it will help you with the schema of the `paddle.yaml`
+automatically. Use the `Ctrl + Shift + Space` shortcut (by default) to look through the completion
+variants when writing the YAML configuration.
 
-### Core extensions
+### Core sections
 
 All these sections are available in every Paddle project.
 
 #### Project
 
-`project` is a unique name of the Paddle project. If you are also using
-Python plugin to build Python wheels, this name will be used as a package name.
+`project` is a unique name of the given Paddle project. If you are also using
+a Python plugin to build Python wheels, this name will be used as a package name.
 
 ```yaml
 project: example
@@ -254,7 +252,7 @@ project: example
 `subprojects` is a list of names of the subprojects for the
 current project. There are no
 restrictions where these subprojects should be placed in relation to each other, but they all
-should be stored somewhere under the root directory of the root Paddle project.
+have to be stored somewhere under the root directory of the root Paddle project.
 
 ```yaml
 subprojects:
@@ -292,21 +290,21 @@ roots:
   dist: build/wheels
 ```
 
-- `sources`: name of the directory with all the source files (`src/` by default). \
+- `sources`: the path to the directory with all the source files (`src/` by default). \
   If you have several Python
-  packages within a single Paddle project, please, store all of them under this folder. But
-  generally speaking, this is not encouraged: the preferred way is "one Python package == one
+  packages within a single Paddle project, please store all of them under this folder. 
+  Generally speaking, this is not encouraged: the preferred way is "one Python package == one
   Paddle project".
-- `tests`: name of the directory with tests  (`tests/` by default).
-- `resources`: name of the directory with project's resources (`resources/` by default).
-- `dist`: name of the directory where the distribution files (e.g., `.whl`) are built and stored
+- `tests`: the path to the directory with tests  (`tests/` by default).
+- `resources`: the path to the directory with the project's resources (`resources/` by default).
+- `dist`: the path to the directory where the distribution files (e.g., `.whl`) are built and stored
   (`dist/` by default).
 - All the specified paths should be relative to the Paddle project's root directory.
 
 #### Plugins
 
 `plugins` is a list of plugins to be available in the current Paddle
-project. Use `enabled` subsection to specify bundled/built-in plugins, or `jars` to put
+project. Use the `enabled` subsection to specify bundled/built-in plugins, or `jars` to iclude
 paths to your own custom plugins.
 
 ```yaml
@@ -326,7 +324,7 @@ in your project.
 
 #### Metadata
 
-`metadata` is a key-value map containing Python Package metadata.
+`metadata` is a key-value map containing the Python Package metadata.
 Paddle will use it when building a wheel distribution.
 
 ```yaml
@@ -345,10 +343,9 @@ metadata:
 
 - A `long-description` will be parsed from the README (or README.md) file from the root directory
   of the project.
-- If you want to build a wheel distribution by running Paddle `build` task, fields `version` and
+- If you want to build a wheel distribution by running the Paddle `build` task, the fields `version` and
   `author` **are required**. If not specified, they will be inferred from the parent project (if
-  there
-  exists one), and if the inference fails, then the build will fail with an error as well.
+  it exists), and if the inference fails, then the build will fail with an error as well.
 
 #### Environment
 
@@ -363,9 +360,10 @@ environment:
 
 - `path`: a relative path to the directory where the virtual environment will be created.
   - Note that Paddle does **not** install new packages into this virtual environment directly.
-    Instead, it uses some internal cache repository for the installed Python packages, and
+    Instead, it uses an internal cache repository for the installed Python packages, and
     creates
-    symbolic links from these files to your local virtual environment.
+    symbolic links from these files to your local virtual environment. This allows Paddle
+    to save a significant amount of hard drive space.
   - Under the hood, Paddle uses `pip` to install new packages, `venv` to create/manage
     virtual environments, and `pip-autoremove`to remove packages with their dependencies.
 - `python`: a version of the Python interpreter to be used.
@@ -390,18 +388,18 @@ repositories:
     secondary: False
 ```
 
-**Note:** standard PyPI repository (shown in the example above) is included in the list of
+**Note:** a standard PyPI repository (shown in the example above) is included in the list of
 repositories for every Paddle project by default, so you don't need to add it manually every time.
 
 - `name`: a unique name of the PyPI repository used in Paddle. It is used to reference the
-  particular repository in the build system, e.g., in the `paddle.auth.yaml` (see below).
+  particular repository in the build system, e.g., in the authentification `paddle.auth.yaml` (see below).
 - `url`: a URL of the PyPI repository.
 - `uploadUrl` (*optional*): a URL of the PyPI repository to be used by `twine` later for publishing packages
-  with `publish` Paddle task.
+  with the `publish` Paddle task.
 - `secondary` (*optional*): by default, any custom repository from the `repositories` section will have
   precedence over PyPI. If you still want PyPI to be your primary source for your packages, you
   can set this flag for your custom repositories to `True`.
-- `default` (*optional*): if True, this would disable the default PyPI repo, and make this particular
+- `default` (*optional*): if True, this disables the default PyPI repo, and makes this particular
   private repository the default fallback source when looking up for a package.
 
 **Note:** the repository list is configured for the current Paddle project only. If you have a
@@ -414,18 +412,18 @@ all:
     ...
 ```
 
-Thus, the list of repositories will be available in every subproject of the current Paddle project.
+This way, the list of repositories will be available in every subproject of the current Paddle project.
 
 #### Authentication
 
 Paddle provides several ways to specify the authentication way for your PyPI repository:
 
 The preferable way is to create a `paddle.auth.yaml` file and **place it in the root directory
-of your Paddle project**. Please, note that if you have a multi-project build, you still
-should create only a single instance of this file and place it in the **topmost root project
+of your Paddle project**. Please note that if you have a multi-project build, you need
+to create only a single instance of this file and place it in the **topmost root project
 directory!**.
 
-If you are using PyCharm plugin, you can create such file by choosing `File - New - Paddle
+If you are using a PyCharm plugin, you can create such file by choosing `File - New - Paddle
 Auth YAML`.
 
 The schema of the `paddle.auth.yaml` is the following:
@@ -446,11 +444,11 @@ The schema of the `paddle.auth.yaml` is the following:
     local [`.netrc` file](https://www.gnu.org/software/inetutils/manual/html_node/The-_002enetrc-file.html).
   - `keyring`: use credentials from the available [`keyring` backend](https://pypi.org/project/keyring/).
   - `profiles`: use credentials from the `profiles.yaml` file. The idea of Paddle profiles
-    is similar (in some sense) to the idea
-    of [AWS CLI profiles](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-profiles.html): you could
+    is similar (in a certain sense) to the idea
+    of [AWS CLI profiles](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-profiles.html): you can
     have a single file on
     your local machine where you specify credentials for your different profiles, and then you
-    could just reference it in the build files. This file should be stored in the root of
+    can simply reference it in the build files. This file should be stored in the root of the
     `~/.paddle/` directory (also referenced as `$PADDLE_HOME`). The expected YAML file
     structure
     is the
@@ -469,7 +467,7 @@ The schema of the `paddle.auth.yaml` is the following:
 **Note:** If there are several authentication providers specified for a single repository, Paddle
 will use the first available one from the list.
 
-However, sometimes you need to specify the credentials for your private PyPI repository in a more
+Sometimes, you need to specify the credentials for your private PyPI repository in a more
 explicit way, e.g., when the build is running in CI. For such purposes, Paddle also provides a
 good old way for authentication by using *environment variables*. To specify the variable
 names containing username and token (e.g., password) for the particular PyPI repo, you can add
@@ -485,7 +483,7 @@ repositories:
       password: CLIENT_SECRET
 ```
 
-**Note:** if there will be any available authentication providers specified for this repository
+**Note:** if there are any available authentication providers specified for this repository
 in the `paddle.auth.yaml` file as well, the first of them will have precedence over this
 `authEnv` provider. In other words, Paddle will just add this provider to the end
 of the authentication providers list.
@@ -493,7 +491,7 @@ of the authentication providers list.
 #### Requirements
 
 `requirements` is a list of the Paddle project requirements (e.g., external dependencies). The
-list should be splitted into two sections: `main` for the general project requirements to be
+list should be split into two sections: `main` for the general project requirements to be
 included in the requirements list of the Python packages later, and `dev` for development
 requirements (such as test frameworks, linters, type checkers, etc.)
 
@@ -511,24 +509,24 @@ requirements:
       version: 4.0.1
 ```
 
-Each requirement **must** have a specified `name` to look for in the PyPI repository, and
-optional property `version`. If the version is not specified, Paddle will try to resolve it by
-its own when running `resolveRequirements` task.
-The version could be specified as a general version number or as a relation (by using prefix
+Each requirement **must** have a specified `name` to look for in the PyPI repository, as well as a
+optional `version` property. If the version is not specified, Paddle will try to resolve it by
+itself when running the `resolveRequirements` task.
+The version can be specified as a general version number or as a relation (by using prefixes
 like `<=`, `>=`, `<`, `>`, `==`, `!=`, `~=`, `===`)
 
 **Note:** for now, only this format of requirement specification is available.
-Specifying requirements by URL/URI will be added in a sooner Paddle release, stay in touch!
+Specifying requirements by URL/URI will be added in an upcoming Paddle release, stay tuned!
 
-**Tip:** if you are using PyCharm plugin and migrating from the old `requirements.txt` file, try
-to copy-paste the file contents into the `paddle.yaml` file as is, and Paddle will
+**Tip:** if you are using the PyCharm plugin and migrating from the old `requirements.txt` file, try
+to copy-paste the file's contents into the `paddle.yaml` file as is, and Paddle will
 convert it to its own format.
 
 <img src="assets/copypaste-paddle.png" alt="Copy-paste example">
 
 #### Tasks section
 
-The `tasks` section consists of several subsections which provide run configurations for
+The `tasks` section consists of several subsections that provide run configurations for
 different Python executors.
 
 ```yaml
@@ -552,10 +550,10 @@ tasks:
   - `entrypoint`: a relative path (from the `sources` root) to the particular Python script to
     be executed. If the `.py` extension of the Python script is **not** specified, the
     entrypoint is considered as a module and called in a way like `python -m <entrypoint>` when
-    running task
+    running the task.
 
 
-- <a id="tests"></a> `tests`: a section to add configuration for the test frameworks.
+- <a id="tests"></a> `tests`: a section to add configurations for the test frameworks.
   For now,
   only [pytest](https://docs.pytest.org/en/7.1.x/) is
   supported.
@@ -573,22 +571,22 @@ tasks:
     `pytest$<id>`.
   - `targets`: a list of [pytest targets](https://docs.pytest.org/en/6.2.x/usage.html#specifying-tests-selecting-tests)
     to be executed when running the task (Python module, direcotry, or node id).
-    - If you are using PyCharm plugin, it will create
+    - If you are using the PyCharm plugin, it will create
       a [Compound Run Configuration](https://www.jetbrains.com/help/pycharm/run-debug-multiple.html) to run all
-      the targets simultaneously since multiple PyTest
+      the targets simultaneously, since multiple PyTest
       targets [are not supported](https://intellij-support.jetbrains.com/hc/en-us/community/posts/360003520439/comments/360000485959)
       by default.
-    - **Note:** if `targets` are not provided, Paddle runs **all** tests from the `tests` root.
+    - **Note:** if `targets` are not provided, Paddle runs **all** the tests from the `tests` root.
   - `keywords` (*optional*): a string
     with
     [keyword expressions](https://www.oreilly.com/library/view/pytest-quick-start/9781789347562/9abf181f-044d-4fea-a99c-cfe200f0628d.xhtml)
-    used by framework to select tests.
-  - `parameters` (*optional*): a string with all the other options/parameters/flags to pass to
+    used by the framework to select tests.
+  - `parameters` (*optional*): a string with all the other options/parameters/flags to pass to the
     `pytest` CLI
     command.
 
 
-- <a id="publish"></a> `publish`: a section to add configuration for [Twine](https://twine.readthedocs.io/en/stable/)
+- <a id="publish"></a> `publish`: a section to add configuration for the [Twine](https://twine.readthedocs.io/en/stable/)
   utility to publish Python packages.
   ```yaml
   publish:
@@ -613,12 +611,12 @@ To be added soon.
 
 ## Tasks
 
-Here is a reference for all the built-in Paddle tasks available at the moment provided.
+Here is a reference for all the built-in Paddle tasks available at the moment.
 
 ### Core tasks
 
-- `clean`: cleans up the ignored directories of the Paddle project. By default, only `.paddle`
-  local project folder (containing incremental caches) is included, but Python plugin also adds
+- `clean`: cleans up the ignored directories of the Paddle project. By default, only the local `.paddle`
+  project folder (containing incremental caches) is included, but the Python plugin also adds
   some other targets if enabled (e.g., `.venv`, `.pylint_cache`, etc.).
 - `cleanAll`: the same task but running it will also call the `cleanAll` task for ALL the
   subprojects of the given Paddle project.
@@ -644,7 +642,7 @@ Here is a reference for all the built-in Paddle tasks available at the moment pr
 
 ## Contact us
 
-If you have found a bug or have a feature suggestion, please, don't hesitate to open an issue on
+If you have found a bug or have a feature suggestion, please don't hesitate to open an issue on
 GitHub or contact the developers personally:
 
 - **Oleg Smirnov** (oleg.smirnov@jetbrains.com), tg: [@oesmirnov](https://telegram.me/oesmirnov)
