@@ -6,6 +6,7 @@ import com.intellij.openapi.externalSystem.model.project.*
 import com.intellij.openapi.externalSystem.model.task.*
 import com.intellij.openapi.externalSystem.service.project.ExternalSystemProjectResolver
 import com.intellij.openapi.module.ModuleTypeManager
+import com.intellij.openapi.progress.ProcessCanceledException
 import io.paddle.idea.PaddleManager
 import io.paddle.idea.settings.PaddleExecutionSettings
 import io.paddle.idea.settings.global.PaddleAppSettings
@@ -24,11 +25,17 @@ import io.paddle.project.PaddleProject
 import io.paddle.project.PaddleProjectProvider
 import io.paddle.project.extensions.descriptor
 import io.paddle.project.extensions.route
+import io.paddle.tasks.CancellationToken
+import io.paddle.tasks.PaddleTaskCancellationException
+import io.paddle.tasks.Task
 import io.paddle.terminal.Terminal
 import java.io.File
 import java.io.FileFilter
+import java.util.concurrent.ConcurrentHashMap
 
 class PaddleProjectResolver : ExternalSystemProjectResolver<PaddleExecutionSettings> {
+    private val cancellationMap = ConcurrentHashMap<ExternalSystemTaskId, CancellationToken>()
+
     override fun resolveProjectInfo(
         id: ExternalSystemTaskId,
         projectPath: String,
@@ -39,7 +46,8 @@ class PaddleProjectResolver : ExternalSystemProjectResolver<PaddleExecutionSetti
         val rootDir = settings?.rootDir ?: throw IllegalStateException("Root directory was not found for project $projectPath")
         val workDir = File(projectPath)
 
-        // First initialization of Paddle Project
+        listener.onStart(id, projectPath)
+
         val paddleProjectProvider = PaddleProjectProvider.getInstance(rootDir).also { it.sync() }
         val project = paddleProjectProvider.getProject(workDir)
             ?: throw IllegalStateException("Failed to initialize Paddle project from ${workDir.canonicalPath}")
@@ -47,7 +55,19 @@ class PaddleProjectResolver : ExternalSystemProjectResolver<PaddleExecutionSetti
         project.output = IDEACommandOutput(id, listener)
         PaddleLogger.terminal = Terminal(project.output)
 
-        installOrResolveRequirements(project)
+        val cancellationToken = CancellationToken()
+        cancellationMap[id] = cancellationToken
+
+        try {
+            installOrResolveRequirements(project, cancellationToken)
+        } catch (e: Task.ActException) {
+            listener.onFailure(id, e)
+        } catch (e: PaddleTaskCancellationException) {
+            listener.onFailure(id, e)
+            throw ProcessCanceledException()
+        } finally {
+            cancellationMap.remove(id)
+        }
 
         val projectData = ProjectData(
             /* owner = */ PaddleManager.ID,
@@ -62,18 +82,21 @@ class PaddleProjectResolver : ExternalSystemProjectResolver<PaddleExecutionSetti
         val moduleByProject = createModuleNodes(projectDataNode, project.rootDir, paddleProjectProvider)
         createModuleDependencies(project, moduleByProject)
 
+        listener.onSuccess(id)
+        listener.onEnd(id)
+
         return projectDataNode
     }
 
-    private fun installOrResolveRequirements(paddleProject: PaddleProject) {
+    private fun installOrResolveRequirements(paddleProject: PaddleProject, cancellationToken: CancellationToken) {
         if (paddleProject.hasPython) {
             when (PaddleAppSettings.getInstance().onReload) {
-                INSTALL -> InstallTask(paddleProject).run()
-                RESOLVE -> ResolveRequirementsTask(paddleProject).run()
+                INSTALL -> InstallTask(paddleProject).run(cancellationToken)
+                RESOLVE -> ResolveRequirementsTask(paddleProject).run(cancellationToken)
             }
         } else {
             for (subproject in paddleProject.subprojects) {
-                installOrResolveRequirements(subproject)
+                installOrResolveRequirements(subproject, cancellationToken)
             }
         }
     }
@@ -164,5 +187,10 @@ class PaddleProjectResolver : ExternalSystemProjectResolver<PaddleExecutionSetti
         createChild(ProjectKeys.CONTENT_ROOT, rootData)
     }
 
-    override fun cancelTask(taskId: ExternalSystemTaskId, listener: ExternalSystemTaskNotificationListener): Boolean = false
+    override fun cancelTask(id: ExternalSystemTaskId, listener: ExternalSystemTaskNotificationListener): Boolean {
+        return cancellationMap[id]?.run {
+            cancel()
+            true
+        } ?: false
+    }
 }

@@ -4,6 +4,7 @@ import io.paddle.project.PaddleProject
 import io.paddle.project.extensions.routeAsString
 import io.paddle.terminal.CommandOutput
 import io.paddle.utils.tasks.TaskDefaultGroups
+import kotlinx.coroutines.*
 
 abstract class Task(val project: PaddleProject) {
     /**
@@ -12,6 +13,9 @@ abstract class Task(val project: PaddleProject) {
      * Note that this identifier will be used to call the task from the terminal.
      */
     abstract val id: String
+
+    val taskRoute: String
+        get() = project.routeAsString + ":$id"
 
     /**
      * Short description of the task.
@@ -51,20 +55,23 @@ abstract class Task(val project: PaddleProject) {
      * Decorated version of [act]: prints current state to project's terminal.
      */
     protected open fun execute() {
-        val taskRoute = project.routeAsString + ":$id"
-        project.terminal.commands.stdout(CommandOutput.Command.Task(taskRoute, CommandOutput.Command.Task.Status.EXECUTE))
+        project.terminal.commands.stdout(
+            CommandOutput.Command.Task(taskRoute, CommandOutput.Command.Task.Status.EXECUTE)
+        )
 
         try {
             act()
-        } catch (e: ActException) {
-            e.message?.let { project.terminal.error(it) }
-            project.terminal.error(e.stackTraceToString())
-            project.terminal.commands.stdout(CommandOutput.Command.Task(taskRoute, CommandOutput.Command.Task.Status.FAILED))
+        } catch (e: PaddleTaskCancellationException) {
+            project.terminal.commands.stdout(
+                CommandOutput.Command.Task(taskRoute, CommandOutput.Command.Task.Status.CANCELLED)
+            )
             throw e
         } catch (e: Throwable) {
             e.message?.let { project.terminal.error(it) }
             project.terminal.error(e.stackTraceToString())
-            project.terminal.commands.stdout(CommandOutput.Command.Task(taskRoute, CommandOutput.Command.Task.Status.FAILED))
+            project.terminal.commands.stdout(
+                CommandOutput.Command.Task(taskRoute, CommandOutput.Command.Task.Status.FAILED)
+            )
             throw e
         }
 
@@ -72,10 +79,35 @@ abstract class Task(val project: PaddleProject) {
     }
 
     /**
-     * Run task with respect to the caches and current state.
+     * Runs a task as a coroutine and creates another polling coroutine to perform graceful cancellation
+     * (by killing all the created external processes).
      */
-    open fun run() {
-        executionOrder.forEach { it.execute() }
+    open fun run(cancellationToken: CancellationToken = CancellationToken.None) = runBlocking(Dispatchers.IO) {
+        val job = launch {
+            try {
+                executionOrder.forEach {
+                    it.execute()
+                    yield()
+                }
+            } catch (e: CancellationException) {
+                project.terminal.info("$taskRoute execution was cancelled.")
+                throw PaddleTaskCancellationException()
+            }
+        }
+
+        launch {
+            while (job.isActive) {
+                if (cancellationToken.isCancelled) {
+                    for (process in project.executor.runningProcesses) {
+                        process.destroy()
+                        project.terminal.info("Cancelling process ${process.pid()}...}")
+                    }
+                    job.cancel()
+                    break
+                }
+                delay(CancellationToken.STATE_CHECK_TIMEOUT_MS)
+            }
+        }
     }
 
     open val executionOrder: ExecutionOrder
@@ -108,3 +140,5 @@ abstract class Task(val project: PaddleProject) {
 
     override fun hashCode(): Int = id.hashCode()
 }
+
+class PaddleTaskCancellationException : Exception()

@@ -39,13 +39,12 @@ class PyInterpreterVersionCompletionProvider : CompletionProvider<CompletionPara
         val prefix = parameters.position.text.trim().removeSuffix(CompletionUtilCore.DUMMY_IDENTIFIER_TRIMMED)
         val remoteVersions = PyInterpreter.Version.getAvailableRemoteVersions()
 
-        val localVariants = PyInterpreter.Version.cachedVersions.asSequence().map { VersionTuple(it, VersionTuple.CACHED) } +
-            PyInterpreter.Version.locallyInstalledVersions.asSequence().map { VersionTuple(it, VersionTuple.LOCAL) }
+        val localVariants = PyInterpreter.Version.cachedVersions.map { VersionTuple(it, VersionTuple.CACHED) } +
+            PyInterpreter.Version.locallyInstalledVersions.map { VersionTuple(it, VersionTuple.LOCAL) }
 
-        localVariants
-            .filter { it.version.number.startsWith(prefix) }
-            .forEach {
-                result.addElement(
+        result.withPrefixMatcher(PlainPrefixMatcher(prefix, true)).addAllElements(
+            localVariants
+                .map {
                     PrioritizedLookupElement.withPriority(
                         LookupElementBuilder.create(it.version.number).withTypeText(it.typeText, true),
                         when (it.typeText) {
@@ -54,19 +53,19 @@ class PyInterpreterVersionCompletionProvider : CompletionProvider<CompletionPara
                             else -> Double.MIN_VALUE
                         }
                     )
-                )
-            }
+                }
+        )
 
-        remoteVersions.asSequence()
-            .map { VersionTuple(it, VersionTuple.FTP) }
-            .filter { it.version.number.startsWith(prefix) }
-            .forEachIndexed { idx, item ->
-                result.addElement(
+        result.withPrefixMatcher(PlainPrefixMatcher(prefix, true)).addAllElements(
+            remoteVersions.asSequence()
+                .map { VersionTuple(it, VersionTuple.FTP) }
+                .mapIndexed { idx, item ->
                     PrioritizedLookupElement.withPriority(
                         LookupElementBuilder.create(item.version.number).withTypeText(item.typeText, true),
                         idx.toDouble()
                     )
-                )
-            }
+                }
+                .toList()
+        )
     }
 }

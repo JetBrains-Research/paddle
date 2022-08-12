@@ -8,6 +8,7 @@ import io.paddle.plugin.standard.extensions.plugins
 import io.paddle.project.extensions.Subprojects
 import io.paddle.schema.extensions.BaseJsonSchemaExtension
 import io.paddle.schema.extensions.JsonSchema
+import io.paddle.tasks.CancellationToken
 import io.paddle.tasks.Tasks
 import io.paddle.terminal.*
 import io.paddle.utils.config.Configuration
@@ -31,7 +32,7 @@ class PaddleProject internal constructor(val buildFile: File, val rootDir: File,
 
     val configurationFiles: MutableCollection<File> = hashSetOf(buildFile)
 
-    private var initialHash: String = AggregatedHashable(configurationFiles.map { it.hashable() }).hash()
+    private var initialHash: String = ""
 
     val isUpToDate: Boolean
         get() {
@@ -88,12 +89,12 @@ class PaddleProject internal constructor(val buildFile: File, val rootDir: File,
         plugins.forEach { this.register(it) }
     }
 
-    fun execute(taskId: String) {
+    fun execute(taskId: String, cancellationToken: CancellationToken = CancellationToken.None) {
         val task = tasks.get(taskId) ?: run {
             terminal.commands.stderr(CommandOutput.Command.Task(taskId, CommandOutput.Command.Task.Status.UNKNOWN))
             return
         }
-        task.run()
+        task.run(cancellationToken)
     }
 
     override fun hashCode(): Int = id.hashCode()

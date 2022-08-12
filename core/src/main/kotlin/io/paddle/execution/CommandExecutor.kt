@@ -3,9 +3,16 @@ package io.paddle.execution
 import io.paddle.terminal.Terminal
 import io.paddle.terminal.TextOutput
 import java.io.File
+import java.util.function.Consumer
 
 abstract class CommandExecutor(val configuration: OutputConfiguration) {
-    data class OutputConfiguration(val output: TextOutput, val printStdOut: Boolean = true, val printStdErr: Boolean = true)
+    data class OutputConfiguration(
+        val output: TextOutput,
+        val printStdout: Boolean = true,
+        val printStderr: Boolean = true
+    )
+
+    open val runningProcesses: MutableSet<Process> = hashSetOf()
 
     abstract fun execute(
         command: String,
@@ -14,6 +21,17 @@ abstract class CommandExecutor(val configuration: OutputConfiguration) {
         terminal: Terminal,
         envVars: Map<String, String> = emptyMap(),
         verbose: Boolean = true
+    ): ExecutionResult
+
+    abstract fun execute(
+        command: String,
+        args: Iterable<String>,
+        workingDir: File,
+        terminal: Terminal,
+        envVars: Map<String, String> = emptyMap(),
+        verbose: Boolean = true,
+        systemOut: Consumer<String>,
+        systemErr: Consumer<String>
     ): ExecutionResult
 }
 

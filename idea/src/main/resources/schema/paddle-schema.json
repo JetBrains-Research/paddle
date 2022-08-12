@@ -110,9 +110,6 @@
     "requirements": {
       "description": "List of project requirements",
       "type": "object",
-      "required": [
-        "main"
-      ],
       "properties": {
         "main": {
           "description": "Requirements to run code in the project",
@@ -181,6 +178,20 @@
           "secondary": {
             "description": "If True, pypi.org (or other user-defined repo, if it was specified) still would be the primary index source",
             "type": "boolean"
+          },
+          "authEnv": {
+            "description": "Authentication fallback to environment variables for PyPI repository, usually should be used by CI",
+            "type": "object",
+            "properties": {
+              "username": {
+                "description": "Environment variable with username to authenticate this PyPI repository",
+                "type": "string"
+              },
+              "password": {
+                "description": "Environment variable with password to authenticate this this PyPI repository",
+                "type": "string"
+              }
+            }
           }
         }
       }

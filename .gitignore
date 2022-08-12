@@ -8,3 +8,5 @@ build
 *.iml
 cli/src/main/resources/version.txt
 .DS_Store
+**/.paddle/**
+paddle.auth.yaml

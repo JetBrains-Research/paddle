@@ -1,5 +1,6 @@
 package io.paddle.plugin.python.dependencies
 
+import io.paddle.PaddleLocations
 import io.paddle.execution.ExecutionResult
 import io.paddle.plugin.python.PyLocations
 import io.paddle.plugin.python.dependencies.packages.CachedPyPackage.Companion.PYPACKAGE_CACHE_FILENAME
@@ -40,7 +41,7 @@ class TempVenvManager private constructor(val venv: VenvDir, val project: Paddle
             return project.executor.execute(
                 command = project.environment.localInterpreterPath.absolutePathString(),
                 args = listOf("-m", "venv") + options + PyLocations.venvsDir.resolve(project.id).toString(),
-                workingDir = PyLocations.paddleHome.toFile(),
+                workingDir = PaddleLocations.paddleHome.toFile(),
                 terminal = Terminal.MOCK,
                 verbose = verbose
             ).then {
@@ -69,7 +70,7 @@ class TempVenvManager private constructor(val venv: VenvDir, val project: Paddle
         return project.executor.execute(
             command = interpreterPath.absolutePathString(),
             args = listOf("-m", "pip", "install", "--no-deps", pkg.repo.credentials.authenticate(pkg.distributionUrl)),
-            workingDir = PyLocations.paddleHome.toFile(),
+            workingDir = PaddleLocations.paddleHome.toFile(),
             terminal = project.terminal
         ).also {
             val infoDir = InstalledPackageInfoDir.findByNameAndVersion(venv.sitePackages, pkg.name, pkg.version)
@@ -81,7 +82,7 @@ class TempVenvManager private constructor(val venv: VenvDir, val project: Paddle
         return project.executor.execute(
             command = interpreterPath.absolutePathString(),
             args = listOf("-m", "pip", "uninstall", "-y", pkg.name),
-            workingDir = PyLocations.paddleHome.toFile(),
+            workingDir = PaddleLocations.paddleHome.toFile(),
             terminal = Terminal.MOCK
         )
     }

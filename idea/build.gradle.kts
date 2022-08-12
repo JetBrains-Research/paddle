@@ -18,9 +18,6 @@ dependencies {
     implementation(project(":plugins:ssh")) {
         exclude("org.slf4j")
     }
-    implementation(project(":plugins:migration")) {
-        exclude("org.slf4j")
-    }
 }
 
 intellij {

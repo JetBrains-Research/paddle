@@ -6,10 +6,15 @@ plugins {
     java
 }
 
+java {
+    sourceCompatibility = JavaVersion.VERSION_11
+    targetCompatibility = JavaVersion.VERSION_11
+}
+
 dependencies {
     implementation(project(":core"))
 
-    implementation("org.antlr:antlr4-runtime:4.8")
+    implementation("org.antlr:antlr4-runtime:4.10.1")
     implementation("javax.mail:mail:1.4.7")
 
     implementation("org.jsoup:jsoup:1.14.2")

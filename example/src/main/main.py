@@ -2,6 +2,8 @@ import sys
 
 if __name__ == '__main__':
     print(sys.path)
+    for i in range(100000000):
+        pass
     print("Hello world!")
 
 

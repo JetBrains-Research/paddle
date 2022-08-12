@@ -18,7 +18,12 @@ class Requirements(val project: PaddleProject, val descriptors: MutableList<Desc
 
     val resolved: Collection<PyPackage> by lazy {
         val installedPackages = project.environment.venv.pyPackages
-        val resolvedPackages = PipResolver.resolve(project)
+        val resolvedPackages = try {
+            PipResolver.resolve(project)
+        } catch (e: PipResolver.RetrySignal) {
+            project.terminal.warn("Retrying resolve...")
+            PipResolver.resolve(project)
+        }
 
         // Uninstall packages which were removed from requirements of the project
         val irrelevantPackages = installedPackages.minus(resolvedPackages) // FIXME: looks like it drops Pytest because of uppercase here

@@ -26,6 +26,9 @@ repositories:
   - name: grazie-ml
     url: https://packages.jetbrains.team/pypi/p/grazi/grazie-ml/simple
     default: False # If True, this would disable the global PyPI repo, and make <grazie-ml> the default fallback source
+    authEnv:
+      username: JB_SPACE_CLIENT_ID
+      password: JB_SPACE_CLIENT_SECRET
 
   - name: test-pypi
     url: https://packages.jetbrains.team/pypi/p/paddle/test-pypi/simple

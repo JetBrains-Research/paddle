@@ -1,18 +1,12 @@
 package io.paddle.plugin.python
 
+import io.paddle.PaddleLocations
 import io.paddle.plugin.python.utils.deepResolve
 import io.paddle.utils.exists
 import java.io.File
 import java.nio.file.Path
-import java.nio.file.Paths
 
 object PyLocations {
-    /**
-     * A home directory for Paddle. Contains installed package caches and internal virtual environment. Planning to support caching wheels, etc.
-     */
-    val paddleHome: Path = System.getenv("PADDLE_HOME")?.let { Path.of(it) } ?: Paths.get(System.getProperty("user.home"), ".paddle")
-        get() = field.also { if (!field.exists()) field.toFile().mkdirs() }
-
     /**
      * A path to the main packages cache directory.
      * It has the following structure:
@@ -34,7 +28,7 @@ object PyLocations {
      *                   ...
      * ```
      */
-    val packagesDir: Path = paddleHome.resolve("packages")
+    val packagesDir: Path = PaddleLocations.paddleHome.resolve("packages")
 
     /**
      * A path to the internal venvs directory which contains virtual environment per project.
@@ -42,18 +36,18 @@ object PyLocations {
      * Such an environment is used to install all new packages since python's venv
      * do not support installation of the multiple versions for a single package to the same environment.
      */
-    val venvsDir: Path = paddleHome.resolve("venvs")
+    val venvsDir: Path = PaddleLocations.paddleHome.resolve("venvs")
 
-    val indexDir: Path = paddleHome.resolve("index")
+    val indexDir: Path = PaddleLocations.paddleHome.resolve("index")
         get() = field.also { if (!field.exists()) field.toFile().mkdirs() }
 
-    val interpretersDir: Path = paddleHome.resolve("interpreters")
+    val interpretersDir: Path = PaddleLocations.paddleHome.resolve("interpreters")
         get() = field.also { if (!field.exists()) field.toFile().mkdirs() }
 
-    val distResolverCachePath: Path = paddleHome.deepResolve("cache", "distResolverCache.json")
+    val distResolverCachePath: Path = PaddleLocations.paddleHome.deepResolve("cache", "distResolverCache.json")
 
-    val pipResolverCachePath: Path = paddleHome.deepResolve("cache", "pipResolverCache.json")
+    val pipResolverCachePath: Path = PaddleLocations.paddleHome.deepResolve("cache", "pipResolverCache.json")
 
-    val profiles: File = paddleHome.resolve("profiles.yaml").toFile()
+    val profiles: File = PaddleLocations.paddleHome.resolve("profiles.yaml").toFile()
 }
 

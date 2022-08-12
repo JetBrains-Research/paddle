@@ -24,6 +24,9 @@ class PaddleProjectProvider private constructor(val rootDir: File) {
 
     private val index = PaddleProjectIndex(rootDir)
 
+    val allProjects: Collection<PaddleProject>
+        get() = index.dumbProjects.toList()
+
     fun sync() {
         index.refresh(rootDir)
         index.dumbProjects.forEach { it.load(index) }

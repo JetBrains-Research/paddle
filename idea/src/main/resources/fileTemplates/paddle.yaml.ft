@@ -1,0 +1,26 @@
+project: ${PROJECT_NAME}
+
+metadata:
+  version: 0.1.0
+
+plugins:
+  enabled:
+    - python
+
+# Prerequisites: https://github.com/pyenv/pyenv/wiki#suggested-build-environment
+environment:
+  path: .venv
+  python: 3.9
+
+requirements:
+  dev:
+    - name: pytest
+      version: ==7.1.2
+    - name: pylint
+      version: ==2.14.4
+    - name: mypy
+      version: ==0.961
+    - name: twine
+      version: ==4.0.1
+    - name: wheel
+      version: ==0.37.1
