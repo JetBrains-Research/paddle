@@ -89,7 +89,7 @@ class PaddleProject internal constructor(val buildFile: File, val rootDir: File,
         plugins.forEach { this.register(it) }
     }
 
-    fun execute(taskId: String, cancellationToken: CancellationToken = CancellationToken.DEFAULT) {
+    fun execute(taskId: String, cancellationToken: CancellationToken = CancellationToken.None) {
         val task = tasks.get(taskId) ?: run {
             terminal.commands.stderr(CommandOutput.Command.Task(taskId, CommandOutput.Command.Task.Status.UNKNOWN))
             return

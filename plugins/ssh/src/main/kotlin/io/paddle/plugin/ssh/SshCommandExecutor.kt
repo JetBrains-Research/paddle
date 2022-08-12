@@ -11,6 +11,7 @@ import io.paddle.terminal.Terminal
 import io.paddle.terminal.TextOutput
 import io.paddle.utils.ext.Extendable
 import java.io.File
+import java.util.function.Consumer
 
 class SshCommandExecutor(
     private val host: String, private val user: String,
@@ -40,7 +41,8 @@ class SshCommandExecutor(
         terminal.stdout(
             "> Executor :remote-ssh: ${
                 Terminal.colored(
-                    "Transfer files via rsync from ${workingDir.canonicalPath} to $remoteDir with host: $host and username: $user", Terminal.Color.CYAN
+                    "Transfer files via rsync from ${workingDir.canonicalPath} to $remoteDir with host: $host and username: $user",
+                    Terminal.Color.CYAN
                 )
             }"
         )
@@ -99,5 +101,18 @@ class SshCommandExecutor(
 
         processOutput.monitor(rsyncFrom.builder())
         return ExecutionResult(rsyncFrom.start().waitFor())
+    }
+
+    override fun execute(
+        command: String,
+        args: Iterable<String>,
+        workingDir: File,
+        terminal: Terminal,
+        envVars: Map<String, String>,
+        verbose: Boolean,
+        systemOut: Consumer<String>,
+        systemErr: Consumer<String>
+    ): ExecutionResult {
+        return execute(command, args, workingDir, terminal, envVars, verbose) // fixme: capture output
     }
 }

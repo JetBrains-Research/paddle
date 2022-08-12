@@ -19,6 +19,7 @@ class PaddleBuildOutputParser: BuildOutputParser {
         val event = when (task.status) {
             CommandOutput.Command.Task.Status.EXECUTE -> StartEventImpl(task.route, reader.parentEventId, System.currentTimeMillis(), raw)
             CommandOutput.Command.Task.Status.FAILED -> FinishEventImpl(task.route, reader.parentEventId, System.currentTimeMillis(), raw, FailureResultImpl())
+            CommandOutput.Command.Task.Status.CANCELLED -> FinishEventImpl(task.route, reader.parentEventId, System.currentTimeMillis(), raw, FailureResultImpl())
             CommandOutput.Command.Task.Status.UNKNOWN -> FinishEventImpl(task.route, reader.parentEventId, System.currentTimeMillis(), raw, FailureResultImpl())
             CommandOutput.Command.Task.Status.DONE -> FinishEventImpl(task.route, reader.parentEventId, System.currentTimeMillis(), raw, SuccessResultImpl())
             CommandOutput.Command.Task.Status.UP_TO_DATE -> FinishEventImpl(task.route, reader.parentEventId, System.currentTimeMillis(), raw, SuccessResultImpl(true))

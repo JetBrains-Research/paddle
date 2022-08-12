@@ -26,6 +26,7 @@ import io.paddle.project.PaddleProjectProvider
 import io.paddle.project.extensions.descriptor
 import io.paddle.project.extensions.route
 import io.paddle.tasks.CancellationToken
+import io.paddle.tasks.PaddleTaskCancellationException
 import io.paddle.tasks.Task
 import io.paddle.terminal.Terminal
 import java.io.File
@@ -61,7 +62,7 @@ class PaddleProjectResolver : ExternalSystemProjectResolver<PaddleExecutionSetti
             installOrResolveRequirements(project, cancellationToken)
         } catch (e: Task.ActException) {
             listener.onFailure(id, e)
-        } catch (e: Task.CancelledException) {
+        } catch (e: PaddleTaskCancellationException) {
             listener.onFailure(id, e)
             throw ProcessCanceledException()
         } finally {

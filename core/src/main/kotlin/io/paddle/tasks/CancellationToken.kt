@@ -4,7 +4,9 @@ import java.util.concurrent.atomic.AtomicBoolean
 
 open class CancellationToken {
     companion object {
-        val DEFAULT = object : CancellationToken() {
+        const val STATE_CHECK_TIMEOUT_MS = 1000L
+
+        val None = object : CancellationToken() {
             override fun cancel() {
                 return
             }

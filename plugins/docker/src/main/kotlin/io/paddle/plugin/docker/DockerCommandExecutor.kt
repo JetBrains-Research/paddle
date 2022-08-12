@@ -15,8 +15,10 @@ import io.paddle.terminal.Terminal
 import io.paddle.terminal.TextOutput
 import io.paddle.utils.ext.Extendable
 import java.io.File
+import java.util.function.Consumer
 
-class DockerCommandExecutor(private val image: String, output: TextOutput) : CommandExecutor(OutputConfiguration(output)) {
+class DockerCommandExecutor(private val image: String, output: TextOutput) :
+    CommandExecutor(OutputConfiguration(output)) {
     object Extension : PaddleProject.Extension<DockerCommandExecutor> {
         override val key: Extendable.Key<DockerCommandExecutor> = Extendable.Key()
 
@@ -27,7 +29,8 @@ class DockerCommandExecutor(private val image: String, output: TextOutput) : Com
     }
 
     private val config = DefaultDockerClientConfig.createDefaultConfigBuilder().build()
-    private val http = ApacheDockerHttpClient.Builder().dockerHost(config.dockerHost).sslConfig(config.sslConfig).build()
+    private val http =
+        ApacheDockerHttpClient.Builder().dockerHost(config.dockerHost).sslConfig(config.sslConfig).build()
     private val client = DockerClientImpl.getInstance(config, http)
 
     override fun execute(
@@ -77,5 +80,18 @@ class DockerCommandExecutor(private val image: String, output: TextOutput) : Com
         val result = client.waitContainerCmd(container.id).exec(WaitContainerResultCallback()).awaitCompletion()
         client.removeContainerCmd(container.id).exec()
         return ExecutionResult(result.awaitStatusCode())
+    }
+
+    override fun execute(
+        command: String,
+        args: Iterable<String>,
+        workingDir: File,
+        terminal: Terminal,
+        envVars: Map<String, String>,
+        verbose: Boolean,
+        systemOut: Consumer<String>,
+        systemErr: Consumer<String>
+    ): ExecutionResult {
+        return execute(command, args, workingDir, terminal, envVars, verbose) // fixme: capture output
     }
 }

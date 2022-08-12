@@ -20,6 +20,7 @@ import io.paddle.plugin.python.utils.PaddleLogger
 import io.paddle.project.PaddleProject
 import io.paddle.project.PaddleProjectProvider
 import io.paddle.tasks.CancellationToken
+import io.paddle.tasks.PaddleTaskCancellationException
 import io.paddle.tasks.Task
 import java.io.File
 import java.util.concurrent.ConcurrentHashMap
@@ -103,7 +104,7 @@ class PaddleTaskManager : ExternalSystemTaskManager<PaddleExecutionSettings> {
                 } catch (e: Task.ActException) {
                     listener.onFailure(id, e)
                     continue
-                } catch (e: Task.CancelledException) {
+                } catch (e: PaddleTaskCancellationException) {
                     listener.onFailure(id, e)
                     throw ProcessCanceledException()
                 }
