@@ -1,7 +1,7 @@
 import org.jetbrains.kotlin.gradle.dsl.KotlinJvmCompile
 
 group = "io.paddle"
-version = "0.2.0"
+version = "0.3.0"
 
 plugins {
     kotlin("jvm") version "1.6.21" apply false
