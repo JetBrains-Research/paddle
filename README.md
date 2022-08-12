@@ -1,11 +1,12 @@
 # Paddle
 
-Paddle is a fresh, extensible, and IDE-friendly build system for Python. It provides a declarative way for managing project dependencies, configuring execution
+Paddle is a fresh, extensible, and IDE-friendly build system for Python. It provides a declarative way for managing
+project dependencies, configuring execution
 environment, running tasks, and much more.
 
 ### Guide outline
 
-- [Why do I need to use Paddle?](#why-should-i-use-paddle)
+- [Why should I use Paddle?](#why-should-i-use-paddle)
 - [Getting started](#getting-started)
   - [Prerequisites](#prerequisites)
   - [Installation](#installation)
@@ -34,6 +35,7 @@ environment, running tasks, and much more.
 - [Tasks](#tasks)
   - [Core tasks](#core-tasks)
   - [Python tasks](#python-tasks)
+- [Troubleshooting](#troubleshooting)
 - [Contact us](#contact-us)
 
 ### Why should I use Paddle?
@@ -56,6 +58,11 @@ environment, running tasks, and much more.
   in the industrial software development, and if you are using them, you are in luck. With Paddle, it became possible
   to declare intra-project dependencies between packages and to configure complicated
   building and publishing pipelines for your Python monorepo.
+- **Paddle uses caching**.
+  Unlike standard Python virtual environment utilities (e.g.,`venv`), Paddle downloads and installs Python packages to
+  the internal cache repository, and then creates symbolic links from these files to your local project environments.
+  This allows Paddle to save a significant amount of hard drive space, especially in the case of a multi-project build
+  with several environments targeting the same Python package with different versions.
 - **Paddle is fully supported in the PyCharm IDE.**
   You can use an old-fashioned command line interface, or choose a preferred brand-new
   plugin for [PyCharm](https://www.jetbrains.com/pycharm/),
@@ -105,7 +112,7 @@ anything else manually) and supports a bunch of features:
 - automatic [SDK configuration](https://www.jetbrains.com/help/idea/configuring-python-sdk.html) for
   Paddle projects;
 - smart auto-completion and pre-configured YAML templates for Paddle build files;
-- facilities (like copy-paste handlers) to migrate from `requirements.txt` to Paddle YAML
+- features (like copy-paste handlers) to migrate from `requirements.txt` to Paddle YAML
   configurations;
 - a number of code inspections to check the build configuration files;
 - built-in task runners for Python scripts, tests, and linters;
@@ -141,18 +148,6 @@ Then, press the `Load Paddle project` button on the pop-up in the bottom-right c
 and wait until Paddle finishes building the project's model and configuring the execution environment.
 You can check the build status on the `Build` tool window tab.
 That's it, you are now ready to go!
-
-### Troubleshooting
-
-- If you don't see the `Paddle YAML` item in the drop-down menu list, or none of the notifications
-  appear, please make sure you have installed and supported version of Paddle plugin in your
-  PyCharm IDE (it should be 2022.1+, starting from build `221.5080`). If everything is correct, try
-  restarting your IDE.
-- If the item still does not appear, don't hesitate to leave an issue
-  or [contact us](#contact-us) directly.
-- If the Paddle plugin works but the actual build fails to load a proper version of the Python interpreter,
-  make sure you have followed the instructions for your current
-  platform [here](https://github.com/pyenv/pyenv/wiki#suggested-build-environment).
 
 In case of a using the CLI, create a new `paddle.yaml` file in the root directory of your project and
 paste the following script:
@@ -213,7 +208,7 @@ requirements.
   which this task can be referenced (e.g., `clear` or `install`). Tasks also can have
   dependencies that ensure that some other tasks *must* be completed before running the current
   task (e.g., `resolveRepositories <- resolveRequirements <- install <- lock`).
-  - Each running task reports its status: EXECUTING, DONE, or FAILED.
+  - Each running task reports its status: EXECUTING, DONE, CANCELLED, or FAILED.
   - Paddle supports incrementality checks, so that tasks whose inputs and outputs remain unchanged
     will not be executed every time. Their status will be reported as UP-TO-DATE.
 - <a id="plugins-concept"></a> **Plugins** are the extension points of the Paddle build system. In fact, even the Python
@@ -227,8 +222,8 @@ requirements.
 ## YAML Configuration
 
 Build configuration of the Paddle project is specified in the `paddle.yaml` file. This file is
-semantically split into **sections** (provided by **extensions**), where some of them are standard
-and built-in, and some of them are added by the external or bundled plugins.
+semantically split into **sections**, where some of them are built-in, and some of them are added by the external or
+bundled plugins.
 
 If you are using the PyCharm plugin, it will help you with the schema of the `paddle.yaml`
 automatically. Use the `Ctrl + Shift + Space` shortcut (by default) to look through the completion
@@ -292,7 +287,7 @@ roots:
 
 - `sources`: the path to the directory with all the source files (`src/` by default). \
   If you have several Python
-  packages within a single Paddle project, please store all of them under this folder. 
+  packages within a single Paddle project, please store all of them under this folder.
   Generally speaking, this is not encouraged: the preferred way is "one Python package == one
   Paddle project".
 - `tests`: the path to the directory with tests  (`tests/` by default).
@@ -304,7 +299,7 @@ roots:
 #### Plugins
 
 `plugins` is a list of plugins to be available in the current Paddle
-project. Use the `enabled` subsection to specify bundled/built-in plugins, or `jars` to iclude
+project. Use the `enabled` subsection to specify bundled/built-in plugins, or `jars` to include
 paths to your own custom plugins.
 
 ```yaml
@@ -319,7 +314,7 @@ plugins:
 
 ### Python sections
 
-The following extensions are added by the `python` plugin, so make sure you have enabled it
+The following sections are added by the `python` plugin, so make sure you have enabled it
 in your project.
 
 #### Metadata
@@ -586,7 +581,8 @@ tasks:
     command.
 
 
-- <a id="publish"></a> `publish`: a section to add configuration for the [Twine](https://twine.readthedocs.io/en/stable/)
+- <a id="publish"></a> `publish`: a section to add configuration for
+  the [Twine](https://twine.readthedocs.io/en/stable/)
   utility to publish Python packages.
   ```yaml
   publish:
@@ -639,6 +635,27 @@ Here is a reference for all the built-in Paddle tasks available at the moment.
 - `mypy`: runs [Mypy](http://www.mypy-lang.org/) type checker on the `sources` of the Paddle project.
 - `pylint`: runs [Pylint](https://pylint.pycqa.org/en/latest/) linter on the `sources` of the Paddle
   project.
+
+## Troubleshooting
+
+#### Using PyCharm plugin
+
+- If you don't see the `Paddle YAML` item in the drop-down menu list, or none of the notifications
+  (such as `Load Paddle project`)
+  appears, please make sure you have installed Paddle plugin in your
+  PyCharm IDE (which should be 2022.1+, starting from the build number `221.5080`). If everything is correct, try
+  restarting your IDE.
+- If the item still does not appear, don't hesitate to open an issue
+  or [contact us](#contact-us) directly.
+
+#### Running Paddle tasks
+
+- If the build fails to load a proper version of the Python interpreter,
+  make sure you have followed the instructions for your current
+  platform [here](https://github.com/pyenv/pyenv/wiki#suggested-build-environment).
+- If the build fails to load packages from internal cache, you can try to clear it by removing the corresponding
+  directory under the `~/.paddle/packages/` folder. The cache might be corrupted when some task execution is cancelled,
+  so make sure that you have cleaned up the environment and caches before starting a dry Paddle run again.
 
 ## Contact us
 
