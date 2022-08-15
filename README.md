@@ -416,7 +416,7 @@ Paddle provides several ways to specify the authentication way for your PyPI rep
 The preferable way is to create a `paddle.auth.yaml` file and **place it in the root directory
 of your Paddle project**. Please note that if you have a multi-project build, you need
 to create only a single instance of this file and place it in the **topmost root project
-directory!**.
+directory!**
 
 If you are using a PyCharm plugin, you can create such file by choosing `File - New - Paddle
 Auth YAML`.
@@ -507,8 +507,10 @@ requirements:
 Each requirement **must** have a specified `name` to look for in the PyPI repository, as well as a
 optional `version` property. If the version is not specified, Paddle will try to resolve it by
 itself when running the `resolveRequirements` task.
-The version can be specified as a general version number or as a relation (by using prefixes
-like `<=`, `>=`, `<`, `>`, `==`, `!=`, `~=`, `===`)
+
+The version identifier can be specified as a number with some relation (e.g., by using prefixes `<=`, `>=`, `<`, `>`,
+`==`, `!=`,
+`~=`, `===`), or just a general version number (the same as with `==` prefix).
 
 **Note:** for now, only this format of requirement specification is available.
 Specifying requirements by URL/URI will be added in an upcoming Paddle release, stay tuned!
@@ -619,19 +621,26 @@ Here is a reference for all the built-in Paddle tasks available at the moment.
 
 ### Python tasks
 
-- `build`: builds a Python wheel from the `sources` of the Paddle project, saves it in the `dist`
-  root. This task auto-generates `setup.cfg` and uses `wheel` & `setuptools` packages.
 - `resolveInterpreter`: finds or downloads a suitable Python interpreter.
 - `resolveRepositories`: runs indexing (or retrieves cached indexes) of the specified PyPI
   repositories (it is needed for packages auto-completion in PyCharm).
 - `resolveRequirements`: runs `pip`'s resolver to resolve a set of the given requirements.
+- `venv`: creates a local virtual environment in the Paddle project.
 - `install`: installs the resolved set of requirements.
 - `lock`: creates a `paddle-lock.json` lockfile in the root directory of Paddle project.
 - `ci`: installs the snapshot versions of the packages specified in the `paddle-lock.json` lockfile.
-- `venv`: creates a local virtual environment in the Paddle project.
-- `run`, `test`, `publish`: these tasks are executed from the entrypoint. This part was covered
-  in the
-  [previous section](#tasks-section).
+
+- `build`: builds a Python wheel from the `sources` of the Paddle project and saves it in the `dist`
+  root.
+  - This task auto-generates `setup.cfg` and `pyproject.toml` files for the Paddle project if they do not exist yet.
+  - Internally, the task uses `wheel` and `setuptools` Python packages.
+- `twine`: publishes a wheel distribution to the specified PyPI repository.
+  - Configuration for the task was covered in the [`tasks.publish`](#publish) subsection.
+- `run$<id>`: runs a Python script or module.
+  - Configuration for the task was covered in the [`tasks.run`](#run) subsection.
+- `pytest$<id>`: runs all the test targets by using the Pytest framework.
+  - Configuration for the task was covered in the [`task.tests`](#tests) subsection.
+
 - `mypy`: runs [Mypy](http://www.mypy-lang.org/) type checker on the `sources` of the Paddle project.
 - `pylint`: runs [Pylint](https://pylint.pycqa.org/en/latest/) linter on the `sources` of the Paddle
   project.
