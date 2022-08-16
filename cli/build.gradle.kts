@@ -26,7 +26,7 @@ val shadowJar = shadowJar {
         mainClass = "io.paddle.ApplicationKt"
     }
 }.apply {
-    task.archiveClassifier.set("")
+    task.archiveClassifier.set("all")
     task.archiveBaseName.set("paddle")
 
     task.from(file("src/main/resources/version.txt").apply {
@@ -37,14 +37,6 @@ val shadowJar = shadowJar {
 
         writeText(project.version.toString())
     })
-}
-
-githubRelease {
-    token(System.getenv("GITHUB_TOKEN"))
-    owner("tanvd")
-    repo("paddle")
-    targetCommitish("main")
-    releaseAssets(shadowJar.task.archiveFile.get())
 }
 
 tasks.withType(GithubReleaseTask::class) {
