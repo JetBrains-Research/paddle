@@ -17,12 +17,12 @@ class PyLockFile(val interpreterVersion: String, val lockedPackages: Set<LockedP
             if (!file.exists()) {
                 throw Task.ActException("$FILENAME was not found in the project.")
             }
-            return jsonParser.decodeFromString(file.readText())
+            return jsonParser.decodeFromString(serializer(), file.readText())
         }
     }
 
     fun save(path: Path) {
         val json = Json { prettyPrint = true }
-        path.resolve(FILENAME).toFile().writeText(json.encodeToString(this))
+        path.resolve(FILENAME).toFile().writeText(json.encodeToString(serializer(), this))
     }
 }

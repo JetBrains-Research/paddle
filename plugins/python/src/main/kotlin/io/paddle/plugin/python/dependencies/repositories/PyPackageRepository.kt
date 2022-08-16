@@ -14,12 +14,27 @@ import kotlinx.serialization.*
 import java.io.File
 
 @Serializable
-class PyPackageRepository(val url: PyPackagesRepositoryUrl, val name: String, val authInfos: List<AuthInfo>, val uploadUrl: PyPackagesRepositoryUrl) {
+class PyPackageRepository(
+    val url: PyPackagesRepositoryUrl,
+    val name: String,
+    val authInfos: List<AuthInfo>,
+    val uploadUrl: PyPackagesRepositoryUrl
+) {
     constructor(metadata: Metadata) : this(metadata.url, metadata.name, metadata.authInfos, metadata.uploadUrl)
-    constructor(descriptor: Repositories.Descriptor) : this(descriptor.url.removeSimple(), descriptor.name, descriptor.authInfos, descriptor.uploadUrl)
+    constructor(descriptor: Repositories.Descriptor) : this(
+        descriptor.url.removeSimple(),
+        descriptor.name,
+        descriptor.authInfos,
+        descriptor.uploadUrl
+    )
 
     @Serializable
-    data class Metadata(val url: PyPackagesRepositoryUrl, val name: String, val authInfos: List<AuthInfo>, val uploadUrl: PyPackagesRepositoryUrl) : Hashable {
+    data class Metadata(
+        val url: PyPackagesRepositoryUrl,
+        val name: String,
+        val authInfos: List<AuthInfo>,
+        val uploadUrl: PyPackagesRepositoryUrl
+    ) : Hashable {
         override fun hash() = listOf(url.hashable(), name.hashable(), authInfos.hashable()).hashable().hash()
     }
 
@@ -87,7 +102,7 @@ class PyPackageRepository(val url: PyPackagesRepositoryUrl, val name: String, va
         if (names.isEmpty()) {
             throw IndexUpdateException(
                 "Downloaded index for repository ${urlSimple.getSecure()} is empty. " +
-                    "It is either unavailable at he moment or corrupted."
+                        "It is either unavailable at he moment or corrupted."
             )
         }
         packagesNamesCache = PackedWordList(names.toSet())
@@ -95,13 +110,16 @@ class PyPackageRepository(val url: PyPackagesRepositoryUrl, val name: String, va
 
     fun loadCache(file: File) {
         require(file.name == this.cacheFileName)
-        val cachedCopy: PyPackageRepository = jsonParser.decodeFromString(file.readText())
+        val cachedCopy: PyPackageRepository = jsonParser.decodeFromString(serializer(), file.readText())
         packagesNamesCache = cachedCopy.packagesNamesCache
     }
 
     fun getPackagesNamesByPrefix(prefix: String): Sequence<PyPackageName> = packagesNamesCache.prefix(prefix)
 
-    suspend fun findAvailableDistributionsByPackageName(packageName: PyPackageName, useCache: Boolean = true): List<PyDistributionInfo> {
+    suspend fun findAvailableDistributionsByPackageName(
+        packageName: PyPackageName,
+        useCache: Boolean = true
+    ): List<PyDistributionInfo> {
         if (useCache && packageName in distributionsCache) {
             return distributionsCache[packageName]!!
         }
@@ -117,7 +135,7 @@ class PyPackageRepository(val url: PyPackagesRepositoryUrl, val name: String, va
 
     fun saveCache() {
         PyLocations.indexDir.resolve(this.cacheFileName).toFile()
-            .writeText(jsonParser.encodeToString(this))
+            .writeText(jsonParser.encodeToString(serializer(), this))
     }
 
     override fun hashCode() = metadata.hashCode()

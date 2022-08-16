@@ -1,6 +1,5 @@
 package io.paddle.plugin.python.dependencies.index
 
-import io.ktor.client.call.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
@@ -11,7 +10,6 @@ import io.paddle.plugin.python.dependencies.repositories.PyPackageRepository
 import io.paddle.plugin.python.utils.*
 import io.paddle.tasks.Task
 import io.paddle.terminal.Terminal
-import kotlinx.serialization.decodeFromString
 import org.jsoup.Jsoup
 
 
@@ -58,7 +56,11 @@ object PyPackageRepositoryIndexer {
         val client = CachedHttpClient.getInstance(pkg.repo.credentials)
         val response = client.get(metadataJsonUrl)
         return when (response.status) {
-            HttpStatusCode.OK -> jsonParser.decodeFromString(response.bodyAsText())
+            HttpStatusCode.OK -> jsonParser.decodeFromString(
+                JsonPackageMetadataInfo.serializer(),
+                response.bodyAsText()
+            )
+
             else -> {
                 terminal.warn("Failed to download metadata for package ${pkg.name}==${pkg.version} from ${metadataJsonUrl.getSecure()}")
                 terminal.warn("Http status: ${response.status}")

@@ -8,7 +8,7 @@ version = rootProject.version
 plugins {
     id("com.github.breadmoirai.github-release") version "2.2.12" apply true
     id("tanvd.kosogor") version "1.0.12" apply true
-    id("org.graalvm.buildtools.native") version "0.9.11"
+    id("org.graalvm.buildtools.native") version "0.9.13"
 }
 
 dependencies {
@@ -51,6 +51,8 @@ tasks.withType(GithubReleaseTask::class) {
     dependsOn("shadowJar")
 }
 
+
+// To build a native image, run "./gradlew -Pagent nativeCompile"
 graalvmNative {
     binaries {
         named("main") {
@@ -77,7 +79,7 @@ graalvmNative {
             buildArgs.add("-H:+ReportUnsupportedElementsAtRuntime")
             buildArgs.add("-H:+ReportExceptionStackTraces")
 
-            configurationFileDirectories.from(file("src/main/resources/META-INF/native-image"))
+            configurationFileDirectories.from(file("src/main/resources/META-INF/native-agent-config"))
         }
     }
 }
