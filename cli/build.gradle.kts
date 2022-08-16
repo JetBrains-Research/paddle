@@ -1,13 +1,14 @@
 import com.github.breadmoirai.githubreleaseplugin.GithubReleaseTask
+import org.graalvm.buildtools.gradle.tasks.BuildNativeImageTask
 import tanvd.kosogor.proxy.shadowJar
 
 group = rootProject.group
 version = rootProject.version
 
-
 plugins {
     id("com.github.breadmoirai.github-release") version "2.2.12" apply true
     id("tanvd.kosogor") version "1.0.12" apply true
+    id("org.graalvm.buildtools.native") version "0.9.11"
 }
 
 dependencies {
@@ -17,10 +18,7 @@ dependencies {
     implementation(project(":plugins:ssh"))
 
     implementation("com.github.ajalt.clikt", "clikt", "3.2.0")
-
     implementation("ch.qos.logback", "logback-classic", "1.2.3")
-
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.2")
 }
 
 val shadowJar = shadowJar {
@@ -51,4 +49,39 @@ githubRelease {
 
 tasks.withType(GithubReleaseTask::class) {
     dependsOn("shadowJar")
+}
+
+graalvmNative {
+    binaries {
+        named("main") {
+            imageName.set("paddle")
+            mainClass.set("io.paddle.ApplicationKt")
+
+            debug.set(true)
+            verbose.set(true)
+            fallback.set(false)
+
+            buildArgs.add(
+                "--initialize-at-build-time=" +
+                        "org.snakeyaml.engine," +
+                        "kotlinx.serialization," +
+                        "org.antlr," +
+                        "io.ktor," +
+                        "kotlinx.coroutines," +
+                        "kotlin"
+            )
+
+            buildArgs.add("--enable-url-protocols=https")
+
+            buildArgs.add("-H:+InstallExitHandlers")
+            buildArgs.add("-H:+ReportUnsupportedElementsAtRuntime")
+            buildArgs.add("-H:+ReportExceptionStackTraces")
+
+            configurationFileDirectories.from(file("src/main/resources/META-INF/native-image"))
+        }
+    }
+}
+
+tasks.named<BuildNativeImageTask>("nativeCompile") {
+    classpathJar.set(shadowJar.task.archiveFile)
 }

@@ -8,4 +8,5 @@ internal val jsonParser = Json {
     ignoreUnknownKeys = true
 }
 
-class WrappedSerialDescriptor(override val serialName: String, original: SerialDescriptor) : SerialDescriptor by original
+class WrappedSerialDescriptor(override val serialName: String, original: SerialDescriptor) :
+    SerialDescriptor by original

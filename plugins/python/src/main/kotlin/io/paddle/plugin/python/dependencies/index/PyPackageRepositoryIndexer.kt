@@ -1,5 +1,6 @@
 package io.paddle.plugin.python.dependencies.index
 
+import io.ktor.client.call.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
@@ -17,10 +18,9 @@ import org.jsoup.Jsoup
 object PyPackageRepositoryIndexer {
     suspend fun downloadPackagesNames(repository: PyPackageRepository): Collection<PyPackageName> {
         val client = CachedHttpClient.getInstance(repository.credentials)
-        return client.request<HttpStatement>(repository.urlSimple).execute { response ->
-            val allNamesDocument = Jsoup.parse(response.readText())
-            return@execute allNamesDocument.body().getElementsByTag("a").map { it.text() }
-        }
+        val response = client.get(repository.urlSimple)
+        val allNamesDocument = Jsoup.parse(response.bodyAsText())
+        return allNamesDocument.body().getElementsByTag("a").map { it.text() }
     }
 
     suspend fun downloadDistributionsList(
@@ -28,29 +28,27 @@ object PyPackageRepositoryIndexer {
         repository: PyPackageRepository
     ): List<PyDistributionInfo> {
         val client = CachedHttpClient.getInstance(repository.credentials)
-        return client.request<HttpStatement>(repository.urlSimple.join(packageName.canonicalize())).execute { response ->
-            val distributionsPage = Jsoup.parse(response.readText())
-            return@execute distributionsPage.body().getElementsByTag("a")
-                .mapNotNull { PyDistributionInfo.fromString(it.text()) }
-        }
+        val response = client.get(repository.urlSimple.join(packageName.canonicalize()))
+        val distributionsPage = Jsoup.parse(response.bodyAsText())
+        return distributionsPage.body().getElementsByTag("a")
+            .mapNotNull { PyDistributionInfo.fromString(it.text()) }
     }
 
     suspend fun getDistributionUrl(
         distributionInfo: PyDistributionInfo,
         repository: PyPackageRepository
     ): PyPackageUrl? {
-        return try {
+        try {
             val client = CachedHttpClient.getInstance(repository.credentials)
-            client.request<HttpStatement>(repository.urlSimple.join(distributionInfo.name.canonicalize())).execute { response ->
-                val distributionsPage = Jsoup.parse(response.readText())
-                val element = distributionsPage.body().getElementsByTag("a")
-                    .find { it.text() == distributionInfo.distributionFilename }
-                return@execute element?.attr("href")
-            }
+            val response = client.get(repository.urlSimple.join(distributionInfo.name.canonicalize()))
+            val distributionsPage = Jsoup.parse(response.bodyAsText())
+            val element = distributionsPage.body().getElementsByTag("a")
+                .find { it.text() == distributionInfo.distributionFilename }
+            return element?.attr("href")
         } catch (exception: Throwable) {
             throw Task.ActException(
                 "Failed to resolve distribution ${distributionInfo.distributionFilename} in " +
-                    "${repository.urlSimple.getSecure()}: ${exception.message}."
+                        "${repository.urlSimple.getSecure()}: ${exception.message}."
             )
         }
     }
@@ -58,9 +56,9 @@ object PyPackageRepositoryIndexer {
     suspend fun downloadMetadata(pkg: PyPackage, terminal: Terminal): JsonPackageMetadataInfo? {
         val metadataJsonUrl = pkg.repo.url.join("pypi", pkg.name, "json")
         val client = CachedHttpClient.getInstance(pkg.repo.credentials)
-        val response: HttpResponse = client.request(metadataJsonUrl)
+        val response = client.get(metadataJsonUrl)
         return when (response.status) {
-            HttpStatusCode.OK -> jsonParser.decodeFromString(response.readText())
+            HttpStatusCode.OK -> jsonParser.decodeFromString(response.bodyAsText())
             else -> {
                 terminal.warn("Failed to download metadata for package ${pkg.name}==${pkg.version} from ${metadataJsonUrl.getSecure()}")
                 terminal.warn("Http status: ${response.status}")
