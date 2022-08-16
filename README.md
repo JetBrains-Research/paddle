@@ -70,9 +70,12 @@ environment, running tasks, and much more.
 - **Paddle is an extensible general-purpose build system by its nature.**
   Although it focuses on the Python projects at first, it could also be easily customized to
   suit your own needs by writing and using various plugins.
-  For instance, the bundled `docker` and `ssh` plugins provide a way to run your tasks within
-  other execution environments, such as
-  [Docker containers](https://www.docker.com/resources/what-container/) and remote machines.
+
+[//]: # (  For instance, the bundled `docker` and `ssh` plugins provide a way to run your tasks within)
+
+[//]: # (  other execution environments, such as)
+
+[//]: # (  [Docker containers]&#40;https://www.docker.com/resources/what-container/&#41; and remote machines.)
 
 ## Getting started
 
@@ -215,7 +218,7 @@ requirements.
   language itself
   is implemented as a plugin for Paddle, which is why you need to specify it in the `plugins` section
   of the build `paddle.yaml` file.
-  - Paddle is shipped with the following plugins out-of-the-box: `python`, `docker`, and `ssh`.
+  - Paddle is shipped with the `python` plugin out-of-the-box.
   - You can also write and use your own custom plugins by building and specifying the
     corresponding `.jars`. The documentation about the development of custom plugins is coming soon.
 
@@ -306,8 +309,6 @@ paths to your own custom plugins.
 plugins:
   enabled:
     - python
-    - docker
-    - ssh
   jars:
     - plugins/test-plugin-0.1.0.jar
 ```
