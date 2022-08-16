@@ -48,6 +48,8 @@
         <externalSystemSettingsListener implementation="io.paddle.idea.startup.PaddleProjectSettingsUpdater"/>
         <externalSystemUnlinkedProjectAware implementation="io.paddle.idea.project.PaddleUnlinkedProjectAware"/>
 
+        <errorHandler implementation="io.paddle.idea.reporter.PaddleErrorReportSubmitter"/>
+
         <!--suppress PluginXmlValidity -->
         <externalResolverIsSafe executesTrustedCodeOnly="true" systemId="Paddle"/>
 
