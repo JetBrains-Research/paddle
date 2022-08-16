@@ -21,7 +21,7 @@ jobs:
 
       - name: 'Get Version Number'
         run: |
-          echo "::set-env name=VERSION::$(./gradlew properties -q | grep "version:" | awk '{print $2}')"
+          echo "VERSION=$(./gradlew properties -q | grep "version:" | awk '{print $2}')" >> $GITHUB_ENV
 
       - name: 'Publish JAR'
         uses: actions/upload-artifact@v2
@@ -101,7 +101,7 @@ jobs:
 
       - name: 'Get Version Number'
         run: |
-          echo "::set-env name=VERSION::$(./gradlew properties -q | grep "version:" | awk '{print $2}')"
+          echo "VERSION=$(./gradlew properties -q | grep "version:" | awk '{print $2}')" >> $GITHUB_ENV
 
       - name: 'Get JAR Artifact'
         uses: actions/download-artifact@v2
@@ -117,7 +117,7 @@ jobs:
       - name: 'Set Upload URL Env Var'
         if: contains(github.ref, 'v')
         run: |
-          echo "::set-env name=UPLOAD_URL::$(cat upload_url.txt)"
+          echo "VERSION=$(./gradlew properties -q | grep "version:" | awk '{print $2}')" >> $GITHUB_ENV
 
       - name: 'Build Linux Image'
         run: |
@@ -142,7 +142,7 @@ jobs:
           asset_path: 'paddle-${{env.VERSION}}-all'
           asset_content_type: application/octet-stream
 
-  publich-idea-plugin:
+  publish-idea-plugin:
     runs-on: ubuntu-latest
     steps:
       - name: 'Checkout'
