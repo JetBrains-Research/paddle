@@ -1,10 +1,8 @@
-import org.jetbrains.kotlin.gradle.dsl.KotlinJvmCompile
-
 group = "io.paddle"
 version = "0.3.0"
 
 plugins {
-    kotlin("jvm") version "1.6.21" apply false
+    kotlin("jvm") version "1.7.10" apply false
 }
 
 subprojects {
@@ -16,11 +14,11 @@ subprojects {
         mavenCentral()
     }
 
-    tasks.withType<KotlinJvmCompile> {
+    tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinJvmCompile> {
         kotlinOptions {
             jvmTarget = "11"
-            languageVersion = "1.5"
-            apiVersion = "1.5"
+            languageVersion = "1.7"
+            apiVersion = "1.7"
             freeCompilerArgs = listOf("-Xjvm-default=all")
         }
     }

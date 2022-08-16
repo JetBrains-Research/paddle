@@ -17,12 +17,7 @@ object PyPackageLocker {
     suspend fun lock(project: PaddleProject) {
         supervisorScope {
             val lockedPackages = project.requirements.resolved.parallelMap { pkg ->
-                val metadata = try {
-                    PyPackageRepositoryIndexer.downloadMetadata(pkg, project.terminal)
-                } catch (e: Throwable) {
-                    project.terminal.warn("Failed to download metadata for package ${pkg.name}==${pkg.version} from ${pkg.repo.url.getSecure()}")
-                    null
-                }
+                val metadata = getMetadata(pkg, project)
                 val distributions = metadata?.releases?.get(pkg.version) ?: emptyList()
                 LockedPyPackage(
                     LockedPyPackageIdentifier(pkg),
@@ -45,7 +40,7 @@ object PyPackageLocker {
         if (lockedInterpreter.version != project.globalInterpreter.resolved.version) {
             throw Task.ActException(
                 "Locked interpreter version (${lockedInterpreter.version.number}) is not consistent with " +
-                    "current interpreter version ${project.globalInterpreter.resolved.version}."
+                        "current interpreter version ${project.globalInterpreter.resolved.version}."
             )
         }
 
@@ -73,7 +68,8 @@ object PyPackageLocker {
         // Restoring inter-package dependencies via 'comesFrom' field
         for (lockedPkg in lockedPackages) {
             val comesFrom = lockedPkg.comesFrom?.let { packageByIdentifier[it] }
-            val pkg = checkNotNull(packageByIdentifier[lockedPkg.identifier]) { "Package ${lockedPkg.name} was not resolved properly in a coroutine." }
+            val pkg =
+                checkNotNull(packageByIdentifier[lockedPkg.identifier]) { "Package ${lockedPkg.name} was not resolved properly in a coroutine." }
             pkg.comesFrom = comesFrom
         }
 
@@ -81,12 +77,7 @@ object PyPackageLocker {
     }
 
     private suspend fun checkHashes(pkg: PyPackage, lockedPkg: LockedPyPackage, project: PaddleProject) {
-        val metadata = try {
-            PyPackageRepositoryIndexer.downloadMetadata(pkg, project.terminal)
-        } catch (e: Throwable) {
-            project.terminal.warn("Failed to download metadata for package ${pkg.name}==${pkg.version} from ${pkg.repo.url.getSecure()}")
-            null
-        }
+        val metadata = getMetadata(pkg, project)
         val availableDistributions = metadata?.releases?.get(pkg.version)
 
         if (availableDistributions == null && lockedPkg.distributions.isEmpty()) {
@@ -96,13 +87,14 @@ object PyPackageLocker {
         } else if (availableDistributions == null) {
             throw Task.ActException(
                 "Corresponding locked distribution ${pkg.distributionUrl} was not found in current package metadata. " +
-                    "Consider upgrading your lockfile."
+                        "Consider upgrading your lockfile."
             )
         }
 
         val currentHash = availableDistributions.find { it.url == pkg.distributionUrl }?.packageHash
         if (currentHash !in lockedPkg.distributions.map { it.hash }) {
-            val msg = "Can not find appropriate distribution in the lockfile for ${pkg.distributionUrl}: inconsistent hashes."
+            val msg =
+                "Can not find appropriate distribution in the lockfile for ${pkg.distributionUrl}: inconsistent hashes."
             if (lockedPkg.repoMetadata.url.trimmedEquals(PyPackageRepository.PYPI_REPOSITORY.url)) {
                 throw Task.ActException(msg)
             } else {
@@ -110,10 +102,18 @@ object PyPackageLocker {
                 project.terminal.warn(msg)
                 project.terminal.warn(
                     "If repo = ${lockedPkg.repoMetadata.url} is private, then (most probably) " +
-                        "the repo owner did not provide package metadata in a JSON format." +
-                        "You should consider contact them directly."
+                            "the repo owner did not provide package metadata in a JSON format." +
+                            "You should consider contact them directly."
                 )
             }
         }
+    }
+
+    private suspend fun getMetadata(pkg: PyPackage, project: PaddleProject) = try {
+        PyPackageRepositoryIndexer.downloadMetadata(pkg, project.terminal)
+    } catch (e: Throwable) {
+        project.terminal.warn("Failed to download metadata for package ${pkg.name}==${pkg.version} from ${pkg.repo.url.getSecure()}")
+        e.message?.let { project.terminal.warn(it) }
+        null
     }
 }

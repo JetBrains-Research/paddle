@@ -10,13 +10,21 @@ import io.paddle.schema.extensions.BaseJsonSchemaExtension
 import io.paddle.schema.extensions.JsonSchema
 import io.paddle.tasks.CancellationToken
 import io.paddle.tasks.Tasks
-import io.paddle.terminal.*
+import io.paddle.terminal.CommandOutput
+import io.paddle.terminal.Terminal
+import io.paddle.terminal.TextOutput
 import io.paddle.utils.config.Configuration
 import io.paddle.utils.ext.Extendable
-import io.paddle.utils.hash.*
+import io.paddle.utils.hash.AggregatedHashable
+import io.paddle.utils.hash.StringHashable
+import io.paddle.utils.hash.hashable
 import java.io.File
 
-class PaddleProject internal constructor(val buildFile: File, val rootDir: File, output: TextOutput = TextOutput.Console) {
+class PaddleProject internal constructor(
+    val buildFile: File,
+    val rootDir: File,
+    output: TextOutput = TextOutput.Console
+) {
     interface Extension<V : Any> {
         val key: Extendable.Key<V>
 
@@ -90,11 +98,12 @@ class PaddleProject internal constructor(val buildFile: File, val rootDir: File,
     }
 
     fun execute(taskId: String, cancellationToken: CancellationToken = CancellationToken.None) {
-        val task = tasks.get(taskId) ?: run {
-            terminal.commands.stderr(CommandOutput.Command.Task(taskId, CommandOutput.Command.Task.Status.UNKNOWN))
-            return
-        }
-        task.run(cancellationToken)
+        tasks.resolve(taskId, this)
+            ?.run(cancellationToken)
+            ?: run {
+                terminal.commands.stderr(CommandOutput.Command.Task(taskId, CommandOutput.Command.Task.Status.UNKNOWN))
+                return
+            }
     }
 
     override fun hashCode(): Int = id.hashCode()

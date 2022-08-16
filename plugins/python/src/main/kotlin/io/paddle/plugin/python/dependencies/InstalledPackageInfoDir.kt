@@ -108,6 +108,6 @@ class InstalledPackageInfoDir(val dir: File, val type: Type, val name: PyPackage
     val pkg: PyPackage?
         get() {
             val file = dir.resolve(PYPACKAGE_CACHE_FILENAME)
-            return if (file.exists()) jsonParser.decodeFromString(file.readText()) else null
+            return if (file.exists()) jsonParser.decodeFromString(PyPackage.serializer(), file.readText()) else null
         }
 }

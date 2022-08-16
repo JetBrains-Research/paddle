@@ -33,11 +33,19 @@ class TempVenvManager private constructor(val venv: VenvDir, val project: Paddle
 
         private fun getTempVenvManager(project: PaddleProject): TempVenvManager {
             val venv = VenvDir(PyLocations.venvsDir.resolve(project.id).toFile())
-            createTempVenv(project, venv).orElse { throw Task.ActException("Failed to create Paddle's internal virtualenv. Check your python installation.") }
+            createTempVenv(
+                project,
+                venv
+            ).orElse { throw Task.ActException("Failed to create Paddle's internal virtualenv. Check your python installation.") }
             return TempVenvManager(venv, project)
         }
 
-        private fun createTempVenv(project: PaddleProject, venv: VenvDir, options: List<String> = emptyList(), verbose: Boolean = true): ExecutionResult {
+        private fun createTempVenv(
+            project: PaddleProject,
+            venv: VenvDir,
+            options: List<String> = emptyList(),
+            verbose: Boolean = true
+        ): ExecutionResult {
             return project.executor.execute(
                 command = project.environment.localInterpreterPath.absolutePathString(),
                 args = listOf("-m", "venv") + options + PyLocations.venvsDir.resolve(project.id).toString(),
@@ -74,7 +82,7 @@ class TempVenvManager private constructor(val venv: VenvDir, val project: Paddle
             terminal = project.terminal
         ).also {
             val infoDir = InstalledPackageInfoDir.findByNameAndVersion(venv.sitePackages, pkg.name, pkg.version)
-            infoDir.addFile(PYPACKAGE_CACHE_FILENAME, jsonParser.encodeToString(pkg))
+            infoDir.addFile(PYPACKAGE_CACHE_FILENAME, jsonParser.encodeToString(PyPackage.serializer(), pkg))
         }
     }
 

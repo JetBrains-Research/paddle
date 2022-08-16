@@ -35,7 +35,7 @@ class VenvDir(private val directory: File) : File(directory.path) {
         get() = sitePackages.walkTopDown().filter { it.name == PYPACKAGE_CACHE_FILENAME }.toList()
 
     val pyPackages: Set<PyPackage>
-        get() = pyPackageFiles.map { jsonParser.decodeFromString<PyPackage>(it.readText()) }.toSet()
+        get() = pyPackageFiles.map { jsonParser.decodeFromString(PyPackage.serializer(), it.readText()) }.toSet()
 
     fun getInterpreterPath(project: PaddleProject): Path {
         return bin.resolve(project.globalInterpreter.resolved.version.executableName).toPath()
