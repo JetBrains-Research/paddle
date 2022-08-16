@@ -24,7 +24,7 @@ class PaddleAutoImportAware : ExternalSystemAutoImportAware {
         }
 
         val manager = ExternalSystemApiUtil.getManager(PaddleManager.ID) ?: return null
-        val systemSettings = manager.settingsProvider.`fun`(project)
+        val systemSettings = manager.getSettingsProvider().`fun`(project)
         val projectsSettings = systemSettings.linkedProjectsSettings
         if (projectsSettings.isEmpty()) {
             return null

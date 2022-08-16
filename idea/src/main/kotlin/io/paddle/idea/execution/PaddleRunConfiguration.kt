@@ -58,8 +58,8 @@ class PaddleRunConfiguration(project: Project, factory: ConfigurationFactory, na
 
         val taskName = (env.runProfile as PaddleRunConfiguration).settings.taskNames.first()
 
-        val paddleProject = PaddleProjectProvider.getInstance(rootDir).getProject(moduleDir)
-        val task = paddleProject?.tasks?.get(taskName) ?: return null
+        val paddleProject = PaddleProjectProvider.getInstance(rootDir).getProject(moduleDir) ?: return null
+        val task = paddleProject.tasks.resolve(taskName, paddleProject) ?: return null
         val ctx = PaddleTaskRunProfileStateContext(moduleDir, rootDir, executor, env, this)
 
         return when (task) {

@@ -1,6 +1,5 @@
 package io.paddle.plugin.python.dependencies.resolvers
 
-import io.paddle.execution.ExecutionResult
 import io.paddle.plugin.python.PaddlePythonRegistry
 import io.paddle.plugin.python.PyLocations
 import io.paddle.plugin.python.dependencies.index.PyPackageRepositoryIndexer
@@ -8,17 +7,21 @@ import io.paddle.plugin.python.dependencies.index.distributions.ArchivePyDistrib
 import io.paddle.plugin.python.dependencies.index.distributions.WheelPyDistributionInfo
 import io.paddle.plugin.python.dependencies.packages.PyPackage
 import io.paddle.plugin.python.dependencies.repositories.PyPackageRepository
-import io.paddle.plugin.python.extensions.*
-import io.paddle.plugin.python.utils.*
+import io.paddle.plugin.python.extensions.environment
+import io.paddle.plugin.python.extensions.repositories
+import io.paddle.plugin.python.extensions.requirements
+import io.paddle.plugin.python.utils.PyPackageUrl
+import io.paddle.plugin.python.utils.cached
+import io.paddle.plugin.python.utils.getSecure
+import io.paddle.plugin.python.utils.trimmedEquals
 import io.paddle.project.PaddleProject
 import io.paddle.project.extensions.routeAsString
 import io.paddle.tasks.Task
 import io.paddle.utils.hash.hashable
 import kotlinx.coroutines.runBlocking
-import kotlinx.serialization.builtins.*
-import org.codehaus.plexus.util.cli.CommandLineUtils
-import org.codehaus.plexus.util.cli.Commandline
-import java.io.ByteArrayInputStream
+import kotlinx.serialization.builtins.MapSerializer
+import kotlinx.serialization.builtins.SetSerializer
+import kotlinx.serialization.builtins.serializer
 import java.io.File
 import java.net.URI
 import kotlin.io.path.absolutePathString
@@ -62,7 +65,8 @@ object PipResolver {
             workingDir = project.workDir,
             terminal = project.terminal,
             systemOut = { output.add(it); project.terminal.stdout(it) },
-            systemErr = { project.terminal.stderr(it) }
+            systemErr = { project.terminal.stderr(it) },
+            verbose = false
         ).expose(
             onSuccess = { return@expose output },
             onFail = { throw Task.ActException("Package resolution for project ${project.routeAsString} failed with code $it.") }
