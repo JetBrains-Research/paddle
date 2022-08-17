@@ -109,7 +109,7 @@ jobs:
 
       - name: 'Set Upload URL Env Var'
         run: |
-          echo "VERSION=$(./gradlew properties -q | grep "version:" | awk '{print $2}')" >> $GITHUB_ENV
+          echo "UPLOAD_URL=$(cat upload_url.txt)" >> $GITHUB_ENV
 
       - name: 'Build Image'
         run: |
