@@ -87,16 +87,6 @@ environment, running tasks, and much more.
 To run Paddle, you need:
 
 - **Linux** (tested on Ubuntu 20.04) or **macOS** (tested on Big Sur and Monterey).
-- **JDK version 8 or higher** (for CLI tool only, if you
-  plan to use the PyCharm plugin, the necessary
-  version of Java is already installed with the IDE).
-  - To check your version, run `java -version`. You should see something like this:
-    ```
-    $ java -version
-    java version "1.8.0_151"
-    Java(TM) SE Runtime Environment (build 1.8.0_151-b12)
-    Java HotSpot(TM) 64-Bit Server VM (build 25.151-b12, mixed mode)
-    ```
 - **PyCharm 2022.1 or higher** (if you want to use the Paddle plugin for PyCharm).
 - **Internet access** (so that Paddle can access and index PyPI repositories, download packages,
   etc.)
@@ -105,10 +95,15 @@ To be able to load and install various versions of Python interpreters, please, 
 instructions given [here](https://github.com/pyenv/pyenv/wiki#suggested-build-environment) for your
 platform.
 
+**Experimental:** Paddle CLI is compiled as
+a [native image](https://www.graalvm.org/22.1/reference-manual/native-image/) using GraalVM and available for Linux and
+macOS. You can
+still use plain `paddle-$version-all.jar` build with Java 8 (or higher).
+
 ### Installation
 
 The preferable way to install Paddle is to download a PyCharm plugin from
-the [Marketplace](TODO).
+the [JetBrains Marketplace](https://plugins.jetbrains.com/plugin/17452-paddle).
 
 <img src="assets/paddle-plugin-main.png" alt="Paddle IDE Plugin">
 
@@ -126,19 +121,13 @@ anything else manually) and supports a bunch of features:
   ;
 - and more!
 
-If you are a hardcore command-line user and still want to use the CLI tool, you can run
-the following command in your terminal:
+If you are a hardcore command-line user and still want to use the CLI tool, you can download the needed native image
+asset from the release (Linux/macOS, x86) and run it as an executable on your local instance.
+
+You can verify your installation by running:
 
 ```shell
-curl -s 'https://raw.githubusercontent.com/tanvd/paddle/master/scripts/install.sh' -o ./install.sh && chmod +x install.sh && ./install.sh && rm ./install.sh
-```
-
-It will download and execute the installation script, which will add `paddle.sh` to your local PATH,
-so that you can access the build system like this: `paddle :<project_name>:<task_name>`.
-You can now verify your installation by running:
-
-```shell
-paddle --help
+./paddle --help
 ```
 
 **Note:** Paddle CLI generally assumes that it is called from the root directory of the current
