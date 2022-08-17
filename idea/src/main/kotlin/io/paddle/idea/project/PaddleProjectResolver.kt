@@ -3,7 +3,9 @@ package io.paddle.idea.project
 import com.intellij.openapi.externalSystem.model.DataNode
 import com.intellij.openapi.externalSystem.model.ProjectKeys
 import com.intellij.openapi.externalSystem.model.project.*
-import com.intellij.openapi.externalSystem.model.task.*
+import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
+import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListener
+import com.intellij.openapi.externalSystem.model.task.TaskData
 import com.intellij.openapi.externalSystem.service.project.ExternalSystemProjectResolver
 import com.intellij.openapi.module.ModuleTypeManager
 import com.intellij.openapi.progress.ProcessCanceledException
@@ -43,7 +45,8 @@ class PaddleProjectResolver : ExternalSystemProjectResolver<PaddleExecutionSetti
         settings: PaddleExecutionSettings?,
         listener: ExternalSystemTaskNotificationListener
     ): DataNode<ProjectData> {
-        val rootDir = settings?.rootDir ?: throw IllegalStateException("Root directory was not found for project $projectPath")
+        val rootDir = settings?.rootDir
+            ?: throw IllegalStateException("Root directory was not found for project $projectPath")
         val workDir = File(projectPath)
 
         listener.onStart(id, projectPath)
@@ -134,7 +137,10 @@ class PaddleProjectResolver : ExternalSystemProjectResolver<PaddleExecutionSetti
         return moduleByProject
     }
 
-    private fun createModuleDependencies(project: PaddleProject, moduleByProject: Map<PaddleProject, DataNode<ModuleData>>) {
+    private fun createModuleDependencies(
+        project: PaddleProject,
+        moduleByProject: Map<PaddleProject, DataNode<ModuleData>>
+    ) {
         for (subproject in project.subprojects) {
             val ownerNode = moduleByProject[project]
                 ?: throw IllegalStateException("Can't find corresponding module for owner paddle project :${project.descriptor.name}")
@@ -162,11 +168,19 @@ class PaddleProjectResolver : ExternalSystemProjectResolver<PaddleExecutionSetti
     }
 
     private fun DataNode<*>.attachTasks(project: PaddleProject) {
-        for (task in project.tasks.all()) {
-            val data = TaskData(PaddleManager.ID, task.id, project.workDir.canonicalPath, null).also {
-                it.group = task.group
+        val allTasks = project.subprojects.map { it.tasks.all() }.flatten() + project.tasks.all()
+        for (task in allTasks.distinctBy { it.id }) {
+            project.tasks.resolve(task.id, project)?.let { resolvedTask ->
+                val data = TaskData(
+                    PaddleManager.ID,
+                    resolvedTask.id,
+                    project.workDir.canonicalPath,
+                    resolvedTask.description
+                ).also {
+                    it.group = resolvedTask.group
+                }
+                createChild(ProjectKeys.TASK, data)
             }
-            createChild(ProjectKeys.TASK, data)
         }
     }
 

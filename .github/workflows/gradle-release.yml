@@ -30,21 +30,17 @@ jobs:
           path: build/shadow/paddle-${{ env.VERSION }}-all.jar
 
       - name: 'Create Release'
-        if: contains(github.ref, 'v')
         id: create_release
         uses: actions/create-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: ${{ github.ref }}
-          release_name: Release ${{github.ref}}
-          body: |
-            Paddle release
+          tag_name: v${{ env.VERSION }}
+          release_name: Release v${{ env.VERSION }}
           draft: false
-          prerelease: true
+          prerelease: false
 
       - name: 'Upload Release Asset'
-        if: contains(github.ref, 'v')
         id: upload-release-asset
         uses: actions/upload-release-asset@v1
         env:
@@ -56,12 +52,10 @@ jobs:
           asset_content_type: application/java-archive
 
       - name: 'Write Upload URL To File'
-        if: contains(github.ref, 'v')
         run: |
           echo "${{ steps.create_release.outputs.upload_url }}" > upload_url.txt
 
       - name: 'Publish Upload URL'
-        if: contains(github.ref, 'v')
         uses: actions/upload-artifact@v2
         with:
           name: 'upload_url.txt'
@@ -109,13 +103,11 @@ jobs:
           name: 'paddle-${{env.VERSION}}-all.jar'
 
       - name: 'Download Release URL'
-        if: contains(github.ref, 'v')
         uses: actions/download-artifact@v2
         with:
           name: 'upload_url.txt'
 
       - name: 'Set Upload URL Env Var'
-        if: contains(github.ref, 'v')
         run: |
           echo "VERSION=$(./gradlew properties -q | grep "version:" | awk '{print $2}')" >> $GITHUB_ENV
 
@@ -131,15 +123,15 @@ jobs:
           path: 'build/cli/native/nativeCompile/paddle'
 
       - name: 'Upload Image Asset'
-        if: success() && contains(github.ref, 'v')
+        if: success()
         id: upload-release-asset
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ env.UPLOAD_URL }}
-          asset_name: 'paddle-${{env.VERSION}}-${{matrix.label}}'
           asset_path: 'build/cli/native/nativeCompile/paddle'
+          asset_name: 'paddle-${{env.VERSION}}-${{matrix.label}}'
           asset_content_type: application/octet-stream
 
   publish-idea-plugin:

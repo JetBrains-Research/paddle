@@ -2,15 +2,19 @@ package io.paddle.plugin.python
 
 import io.paddle.plugin.Plugin
 import io.paddle.plugin.python.extensions.*
-import io.paddle.plugin.python.tasks.install.*
+import io.paddle.plugin.python.tasks.install.CiTask
+import io.paddle.plugin.python.tasks.install.InstallTask
+import io.paddle.plugin.python.tasks.install.LockTask
 import io.paddle.plugin.python.tasks.lint.MyPyTask
 import io.paddle.plugin.python.tasks.lint.PyLintTask
 import io.paddle.plugin.python.tasks.publish.TwinePublishTask
-import io.paddle.plugin.python.tasks.resolve.*
+import io.paddle.plugin.python.tasks.resolve.ResolveInterpreterTask
+import io.paddle.plugin.python.tasks.resolve.ResolveRepositoriesTask
+import io.paddle.plugin.python.tasks.resolve.ResolveRequirementsTask
 import io.paddle.plugin.python.tasks.run.RunTask
-import io.paddle.plugin.python.tasks.setup.BuildTask
 import io.paddle.plugin.python.tasks.test.PyTestTask
 import io.paddle.plugin.python.tasks.venv.VenvTask
+import io.paddle.plugin.python.tasks.wheel.WheelTask
 import io.paddle.plugin.standard.extensions.plugins
 import io.paddle.project.PaddleProject
 import io.paddle.tasks.Task
@@ -38,7 +42,7 @@ object PythonPlugin : Plugin {
             CiTask(project),
             MyPyTask(project),
             PyLintTask(project),
-            BuildTask(project),
+            WheelTask(project),
             TwinePublishTask(project)
         ) + RunTask.from(project) + PyTestTask.from(project)
     }

@@ -1,17 +1,21 @@
 <idea-plugin>
-    <id>tanvd.paddle</id>
+    <id>io.paddle</id>
     <name>Paddle</name>
-    <vendor email="vdtankov@gmail.com">Vladislav Tankov</vendor>
+    <vendor>JetBrains Research</vendor>
 
     <idea-version since-build="221.5080" until-build="999.0"/>
 
     <description><![CDATA[
-        <p>Integrates Paddle build system with IntelliJ-based IDEs</p>
+        <p>This plugin integrates <a href="https://github.com/TanVD/paddle">Paddle build system</a> with PyCharm IDE.</p>
 
-        <ul>
-            <li>Automate configuration of your development environment: source sets, run configurations -- everything preconfigured</li>
-            <li>Execute tasks right from your IDE: tests, linters and more</li>
-        </ul>
+        <p>Paddle is a fresh, extensible, and IDE-friendly build system for Python.
+        It provides a declarative way for managing project dependencies, configuring execution environment,
+        running tasks, and much more.</p>
+
+        <p>It also supports multi-project builds for your monorepos, and uses internal caches with symbolic links
+        for Python packages, which allows it to save a significant amount of hard drive space.</p>
+
+        <p>See the <a href="https://github.com/TanVD/paddle">README</a> guide for more information.</p>
     ]]></description>
 
     <depends>com.intellij.modules.platform</depends>
@@ -28,7 +32,8 @@
     <extensions defaultExtensionNs="io.paddle.idea">
         <runProfileStateProvider implementation="io.paddle.idea.execution.state.PythonScriptCommandLineStateProvider"/>
         <runProfileStateProvider implementation="io.paddle.idea.execution.state.PyPyTestExecutionEnvironmentProvider"/>
-        <runProfileStateProvider implementation="io.paddle.idea.execution.state.PyTestCompoundConfigurationStateProvider"/>
+        <runProfileStateProvider
+                implementation="io.paddle.idea.execution.state.PyTestCompoundConfigurationStateProvider"/>
     </extensions>
 
     <extensions defaultExtensionNs="com.intellij">
@@ -43,7 +48,8 @@
         <projectConfigurable groupId="build.tools" groupWeight="110" id="reference.settingsdialog.project.paddle"
                              instance="io.paddle.idea.settings.PaddleConfigurable"
                              displayName="Paddle"/>
-        <toolWindow id="Paddle" anchor="right" icon="AllIcons.Actions.Compile" factoryClass="io.paddle.idea.ui.PaddleToolWindowFactory"/>
+        <toolWindow id="Paddle" anchor="right" icon="AllIcons.Actions.Compile"
+                    factoryClass="io.paddle.idea.ui.PaddleToolWindowFactory"/>
 
         <externalSystemSettingsListener implementation="io.paddle.idea.startup.PaddleProjectSettingsUpdater"/>
         <externalSystemUnlinkedProjectAware implementation="io.paddle.idea.project.PaddleUnlinkedProjectAware"/>
@@ -61,12 +67,15 @@
         <externalSystemOutputParserProvider implementation="io.paddle.idea.execution.parser.PaddleParserProvider"/>
 
         <externalSystem.runConfigurationEx implementation="io.paddle.idea.execution.PaddleRunConfigurationExtension"/>
-        <externalSystem.runConfigurationImporter implementation="io.paddle.idea.execution.PaddleRunConfigurationImporter"/>
+        <externalSystem.runConfigurationImporter
+                implementation="io.paddle.idea.execution.PaddleRunConfigurationImporter"/>
 
         <stepsBeforeRunProvider implementation="io.paddle.idea.execution.beforeRun.PaddleBeforeRunTaskProvider"/>
-        <externalSystem.beforeRunTaskImporter implementation="io.paddle.idea.execution.beforeRun.PaddleBeforeRunTaskImporter"/>
+        <externalSystem.beforeRunTaskImporter
+                implementation="io.paddle.idea.execution.beforeRun.PaddleBeforeRunTaskImporter"/>
 
-        <runLineMarkerContributor language="yaml" implementationClass="io.paddle.idea.execution.PaddleRunLineMarkerContributor"/>
+        <runLineMarkerContributor language="yaml"
+                                  implementationClass="io.paddle.idea.execution.PaddleRunLineMarkerContributor"/>
 
         <!-- Settings -->
         <applicationService serviceImplementation="io.paddle.idea.settings.global.PaddleAppSettings"/>
@@ -85,7 +94,8 @@
                        id="PaddlePythonDebugRunner" order="after PaddlePythonRunner"/>
 
         <!-- Not implemented in PyCharm  -->
-        <runAnything.executionProvider implementation="io.paddle.idea.execution.runAnything.PaddleRunAnythingProvider" order="first"/>
+        <runAnything.executionProvider implementation="io.paddle.idea.execution.runAnything.PaddleRunAnythingProvider"
+                                       order="first"/>
 
 
         <!-- Inspections  -->
@@ -135,7 +145,8 @@
                 text="Paddle Auth YAML"
                 description="Create new Paddle authentication configuration file"
                 icon="io.paddle.idea.ui.PaddleIcons.ToolWindow.Dark">
-            <add-to-group group-id="NewGroup" anchor="after" relative-to-action="io.paddle.idea.actions.CreatePaddleConfigAction"/>
+            <add-to-group group-id="NewGroup" anchor="after"
+                          relative-to-action="io.paddle.idea.actions.CreatePaddleConfigAction"/>
         </action>
     </actions>
 

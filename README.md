@@ -1,4 +1,7 @@
-# Paddle
+<h1> <img align="center" width="55" height="55" src="idea/src/main/resources/META-INF/pluginIcon.svg" 
+alt="Paddle"> 
+Paddle 
+</h1>
 
 Paddle is a fresh, extensible, and IDE-friendly build system for Python. It provides a declarative way for managing
 project dependencies, configuring execution
@@ -646,6 +649,107 @@ Here is a reference for all the built-in Paddle tasks available at the moment.
 - `pylint`: runs [Pylint](https://pylint.pycqa.org/en/latest/) linter on the `sources` of the Paddle
   project.
 
+## Example
+
+Let's consider the following example of a Paddle multi-project build: the parental project in the monorepo does not
+contain any source code and just serves as a container for the subprojects (let's say, different ML models). Also,
+the models share some common code (e.g., utils).
+The directory structure then could be the following:
+
+```
+  main-project/
+  │
+  ├──ml-model-bert/
+  │  ├──.paddle/
+  │  ├──.venv/
+  │  ├──src/
+  │  │   └──bert/
+  │  │      ├──__init__.py
+  │  │      ├──main.py
+  │  │      └──...
+  │  └──paddle.yaml
+  │  
+  ├──ml-model-gpt/
+  │  ├──.paddle/
+  │  ├──.venv/
+  │  ├──src/
+  │  │   └──gpt/
+  │  │      ├──__init__.py
+  │  │      ├──main.py
+  │  │      └──...
+  │  └──paddle.yaml
+  │  
+  ├──ml-common/
+  │  ├──.paddle/
+  │  ├──.venv/
+  │  ├──src/
+  │  │   └──common/
+  │  │      ├──__init__.py
+  │  │      ├──main.py
+  │  │      └──...
+  │  └──paddle.yaml
+  │
+  ├──paddle.auth.yaml
+  └──paddle.yaml
+```
+
+```yaml
+# main-project/paddle.yaml
+
+project: main-project
+
+subprojects:
+  - ml-model-bert
+  - ml-model-gpt
+  - ml-common
+```
+
+```yaml
+# main-project/ml-model-bert/paddle.yaml
+
+project: ml-model-bert
+
+subprojects:
+  - ml-common
+
+plugins:
+  enabled:
+    - python
+
+environment:
+  path: .venv
+  python: 3.9
+
+# ...
+```
+
+```yaml
+# main-project/ml-common/paddle.yaml
+
+project: ml-common
+
+plugins:
+  enabled:
+    - python
+
+environment:
+  path: .venv
+  python: 3.9
+
+# ...
+```
+
+It is generally encouraged to place Python packages (with `__init__.py` files) under the source root
+of the corresponding Paddle project. Then, if you will have this Paddle project listed as a dependency in
+the `subprojects` section of some other Paddle project, you will be able to import the Python package by just
+specifying its name relatively to source root:
+
+```python
+# main-project/ml-model-gpt/src/gpt/main.py
+
+from common.main import .
+```
+
 ## Troubleshooting
 
 #### Using PyCharm plugin
@@ -655,8 +759,8 @@ Here is a reference for all the built-in Paddle tasks available at the moment.
   appears, please make sure you have installed Paddle plugin in your
   PyCharm IDE (which should be 2022.1+, starting from the build number `221.5080`). If everything is correct, try
   restarting your IDE.
-- If the item still does not appear, don't hesitate to open an issue
-  or [contact us](#contact-us) directly.
+- If the existing Paddle project fails to load/initialize in the IDE, try removing `.idea` folder from your project and
+  rebuilding it from scratch.
 
 #### Running Paddle tasks
 
@@ -666,6 +770,11 @@ Here is a reference for all the built-in Paddle tasks available at the moment.
 - If the build fails to load packages from internal cache, you can try to clear it by removing the corresponding
   directory under the `~/.paddle/packages/` folder. The cache might be corrupted when some task execution is cancelled,
   so make sure that you have cleaned up the environment and caches before starting a dry Paddle run again.
+- You can also try removing local incremental caches (`.paddle`-folders) by running `cleanAll` task from the root
+  project.
+
+If the problem still exists, don't hesitate to open an issue
+or [contact us](#contact-us) directly.
 
 ## Contact us
 

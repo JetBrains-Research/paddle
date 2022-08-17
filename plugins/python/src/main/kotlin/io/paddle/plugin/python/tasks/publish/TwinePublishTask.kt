@@ -1,7 +1,10 @@
 package io.paddle.plugin.python.tasks.publish
 
 import io.paddle.plugin.python.PyDefaultVersions
-import io.paddle.plugin.python.extensions.*
+import io.paddle.plugin.python.extensions.Requirements
+import io.paddle.plugin.python.extensions.environment
+import io.paddle.plugin.python.extensions.publishEnvironment
+import io.paddle.plugin.python.extensions.requirements
 import io.paddle.plugin.python.tasks.PythonPluginTaskGroups
 import io.paddle.plugin.standard.extensions.roots
 import io.paddle.project.PaddleProject
@@ -35,6 +38,11 @@ class TwinePublishTask(project: PaddleProject) : IncrementalTask(project) {
     }
 
     override fun act() {
+        if (!project.roots.dist.exists()) {
+            project.terminal.warn("${project.routeAsString} does not contain distributions root. Skipping...")
+            return
+        }
+
         val repo = project.publishEnvironment.repo
             ?: throw ActException(
                 "Could not infer a repository to publish from existing configuration for project ${project.routeAsString}. " +
