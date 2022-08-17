@@ -1,5 +1,5 @@
 <idea-plugin>
-    <id>io.paddle</id>
+    <id>tanvd.paddle</id>
     <name>Paddle</name>
     <vendor>JetBrains Research</vendor>
 
