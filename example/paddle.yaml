@@ -9,7 +9,7 @@ metadata:
 
 subprojects:
   - subproject
-  - dependency
+  - some-dependency
 
 roots:
   sources: src/main

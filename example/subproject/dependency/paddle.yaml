@@ -1,4 +1,4 @@
-project: dependency
+project: some-dependency
 
 plugins:
   enabled:

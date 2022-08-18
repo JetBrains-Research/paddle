@@ -240,6 +240,11 @@ All these sections are available in every Paddle project.
 `project` is a unique name of the given Paddle project. If you are also using
 a Python plugin to build Python wheels, this name will be used as a package name.
 
+**Note:** in Python, packages should be named using *underscore_case*, while names of the Paddle projects could use
+any case in general.
+However, if you are planning to build your own Python packages (`.whl`-distributions), make sure you are using
+underscores for naming packages under the source root of the Paddle project.
+
 ```yaml
 project: example
 ```
@@ -284,7 +289,7 @@ roots:
   sources: src/main
   tests: src/test
   resources: src/resources
-  dist: build/wheels
+  dist: build
 ```
 
 - `sources`: the path to the directory with all the source files (`src/` by default). \
@@ -630,10 +635,18 @@ Here is a reference for all the built-in Paddle tasks available at the moment.
 - `lock`: creates a `paddle-lock.json` lockfile in the root directory of Paddle project.
 - `ci`: installs the snapshot versions of the packages specified in the `paddle-lock.json` lockfile.
 
-- `build`: builds a Python wheel from the `sources` of the Paddle project and saves it in the `dist`
+- `wheel`: builds a Python wheel from the `sources` of the Paddle project and saves it in the `dist`
   root.
   - This task auto-generates `setup.cfg` and `pyproject.toml` files for the Paddle project if they do not exist yet.
-  - Internally, the task uses `wheel` and `setuptools` Python packages.
+    You can always tweak them manually and re-run the task if needed.
+  - Be default, Paddle discovers all the Python packages under the source root of the Paddle project via
+    [`find_packages()`](https://setuptools.pypa.io/en/latest/userguide/package_discovery.html#finding-simple-packages)
+    , and then builds a single `.whl`-distribution using the name of the `project`.
+    However, to import these packages afterwards in the Python code, the top-level Python package names should be used
+    (e.g., the names of the corresponding directories under the source root).
+    See [the next section](#example-multi-project-build) for more details.
+  - Internally, the task just runs `python -m build` CLI command.
+
 - `twine`: publishes a wheel distribution to the specified PyPI repository.
   - Configuration for the task was covered in the [`tasks.publish`](#publish) subsection.
 - `run$<id>`: runs a Python script or module.

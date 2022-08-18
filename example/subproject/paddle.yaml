@@ -1,7 +1,7 @@
 project: subproject
 
 subprojects:
-  - dependency
+  - some-dependency
 
 roots:
   sources: src
