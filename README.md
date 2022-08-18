@@ -1,7 +1,7 @@
-<h1> <img style="vertical-align: middle;" width="50" height="50" 
+<h1> <img width="50" height="50" 
 src="idea/src/main/resources/META-INF/pluginIcon.svg" 
 alt="Paddle"> 
-Paddle 
+<div>Paddle</div> 
 </h1>
 
 [![JB Research](https://jb.gg/badges/research.svg)](https://research.jetbrains.org/)
