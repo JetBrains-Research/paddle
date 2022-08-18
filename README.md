@@ -1,7 +1,13 @@
-<h1> <img align="center" width="55" height="55" src="idea/src/main/resources/META-INF/pluginIcon.svg" 
+<h1> <img style="vertical-align: middle;" width="50" height="50" 
+src="idea/src/main/resources/META-INF/pluginIcon.svg" 
 alt="Paddle"> 
 Paddle 
 </h1>
+
+[![JB Research](https://jb.gg/badges/research.svg)](https://research.jetbrains.org/)
+[![Latest release](https://img.shields.io/github/v/release/TanVD/paddle?color=brightgreen&label=latest%20release)](https://github.com/TanVD/paddle/releases/latest)
+![build](https://github.com/TanVD/paddle/actions/workflows/gradle-build.yml/badge.svg)
+[![Downloads](https://img.shields.io/jetbrains/plugin/d/17452-paddle.svg)](https://plugins.jetbrains.com/plugin/17452-paddle)
 
 Paddle is a fresh, extensible, and IDE-friendly build system for Python. It provides a declarative way for managing
 project dependencies, configuring execution
