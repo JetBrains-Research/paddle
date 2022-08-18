@@ -391,11 +391,11 @@ repositories for every Paddle project by default, so you don't need to add it ma
 - `url`: a URL of the PyPI repository.
 - `uploadUrl` (*optional*): a URL of the PyPI repository to be used by `twine` later for publishing packages
   with the `publish` Paddle task.
+- `default` (*optional*): if True, this disables the default PyPI repo, and makes this particular
+  private repository the default fallback source when looking up for a package. The flag is set to `False` by default.
 - `secondary` (*optional*): by default, any custom repository from the `repositories` section will have
   precedence over PyPI. If you still want PyPI to be your primary source for your packages, you
-  can set this flag for your custom repositories to `True`.
-- `default` (*optional*): if True, this disables the default PyPI repo, and makes this particular
-  private repository the default fallback source when looking up for a package.
+  can set this flag for your custom repositories to `True` (`False` by default).
 
 **Note:** the repository list is configured for the current Paddle project only. If you have a
 multi-project Paddle build with nested projects, you should either specify the repositories in
@@ -426,7 +426,7 @@ The schema of the `paddle.auth.yaml` is the following:
   ```yaml
   repositories:
     - name: private-repo-name
-      type: netrc | keyring | profiles | none
+      type: netrc | keyring | profile | none
       username: your-username
   ```
 
@@ -438,7 +438,7 @@ The schema of the `paddle.auth.yaml` is the following:
   - `netrc`: use credentials from your
     local [`.netrc` file](https://www.gnu.org/software/inetutils/manual/html_node/The-_002enetrc-file.html).
   - `keyring`: use credentials from the available [`keyring` backend](https://pypi.org/project/keyring/).
-  - `profiles`: use credentials from the `profiles.yaml` file. The idea of Paddle profiles
+  - `profile`: use credentials from the `profiles.yaml` file. The idea of Paddle profiles
     is similar (in a certain sense) to the idea
     of [AWS CLI profiles](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-profiles.html): you can
     have a single file on

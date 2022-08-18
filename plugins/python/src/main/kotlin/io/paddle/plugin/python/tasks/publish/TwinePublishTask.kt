@@ -24,7 +24,7 @@ class TwinePublishTask(project: PaddleProject) : IncrementalTask(project) {
         get() = listOf(project.roots.dist.hashable())
 
     override val dependencies: List<Task>
-        get() = listOf(project.tasks.getOrFail("build")) + project.subprojects.getAllTasksById(this.id)
+        get() = listOf(project.tasks.getOrFail("wheel")) + project.subprojects.getAllTasksById(this.id)
 
     override fun initialize() {
         project.requirements.findByName("twine")
