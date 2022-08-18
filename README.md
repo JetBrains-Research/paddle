@@ -38,6 +38,7 @@ environment, running tasks, and much more.
 - [Tasks](#tasks)
   - [Core tasks](#core-tasks)
   - [Python tasks](#python-tasks)
+- [Example: multi-project build](#example-multi-project-build)
 - [Troubleshooting](#troubleshooting)
 - [Contact us](#contact-us)
 
@@ -638,7 +639,7 @@ Here is a reference for all the built-in Paddle tasks available at the moment.
 - `pylint`: runs [Pylint](https://pylint.pycqa.org/en/latest/) linter on the `sources` of the Paddle
   project.
 
-## Example
+## Example: multi-project build
 
 Let's consider the following example of a Paddle multi-project build: the parental project in the monorepo does not
 contain any source code and just serves as a container for the subprojects (let's say, different ML models). Also,
