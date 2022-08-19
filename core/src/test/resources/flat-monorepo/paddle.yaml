@@ -1,0 +1,5 @@
+project: monorepo
+
+subprojects:
+  - subproject-one
+  - subproject-two

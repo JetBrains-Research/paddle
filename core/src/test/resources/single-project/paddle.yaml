@@ -1,0 +1,5 @@
+project: single-project
+
+roots:
+  sources: src/main
+  tests: src/test
