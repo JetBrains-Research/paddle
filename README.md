@@ -74,7 +74,7 @@ environment, running tasks, and much more.
   This allows Paddle to save a significant amount of hard drive space, especially in the case of a multi-project build
   with several environments targeting the same Python package with different versions.
 - **Paddle is fully supported in the PyCharm IDE.**
-  You can use an old-fashioned command line interface, or choose a preferred brand-new
+  You can use an old-fashioned command line interface or choose a preferred brand-new
   plugin for [PyCharm](https://www.jetbrains.com/pycharm/),
   a popular IDE for Python developed by [JetBrains](https://www.jetbrains.com/).
 - **Paddle is an extensible general-purpose build system by its nature.**
@@ -128,8 +128,16 @@ anything else manually) and supports a bunch of features:
   ;
 - and more!
 
-If you are a hardcore command-line user and still want to use the CLI tool, you can download the needed native image
-asset from the release (Linux/macOS, x86) and run it as an executable on your local instance.
+If you are a hardcore command-line user and want to use the CLI tool, you can download it with 
+simple command:
+
+```shell
+curl -s 'https://raw.githubusercontent.com/tanvd/paddle/master/scripts/install.sh' -o ./install.sh && chmod +x install.sh && ./install.sh && rm ./install.sh
+```
+
+Paddle CLI wrapper will automatically detect your system and download necessary binary.
+Since right now native binaries are not supported for Windows and M1 platforms, wrapper will
+download JVM version in that case and will require JRE to run.
 
 You can verify your installation by running:
 
@@ -360,14 +368,13 @@ environment:
 
 - `path`: a relative path to the directory where the virtual environment will be created.
   - Note that Paddle does **not** install new packages into this virtual environment directly.
-    Instead, it uses an internal cache repository for the installed Python packages, and
-    creates
-    symbolic links from these files to your local virtual environment. This allows Paddle
-    to save a significant amount of hard drive space.
+    Instead, it uses an internal cache repository for the installed Python packages and
+    creates symbolic links from these files to your local virtual environment.
+    This allows Paddle to save a significant amount of hard drive space.
   - Under the hood, Paddle uses `pip` to install new packages, `venv` to create/manage
     virtual environments, and `pip-autoremove`to remove packages with their dependencies.
 - `python`: a version of the Python interpreter to be used.
-  - Is there is a suitable version of Python available from PATH on your local machine, Paddle
+  - If there is a suitable version of Python available from PATH on your local machine, Paddle
     will use it. If not, it will *try* to download and install the specified version of the
     Python interpreter from https://www.python.org/ftp/python.
   - To successfully complete this step, make sure that you've followed the prerequisites for
@@ -509,7 +516,7 @@ requirements:
       version: 4.0.1
 ```
 
-Each requirement **must** have a specified `name` to look for in the PyPI repository, as well as a
+Each requirement **must** have a specified `name` to look for in the PyPI repository, as well as an
 optional `version` property. If the version is not specified, Paddle will try to resolve it by
 itself when running the `resolveRequirements` task.
 
@@ -628,11 +635,11 @@ Here is a reference for all the built-in Paddle tasks available at the moment.
 
 - `resolveInterpreter`: finds or downloads a suitable Python interpreter.
 - `resolveRepositories`: runs indexing (or retrieves cached indexes) of the specified PyPI
-  repositories (it is needed for packages auto-completion in PyCharm).
+  repositories (it is needed for packages' auto-completion in PyCharm).
 - `resolveRequirements`: runs `pip`'s resolver to resolve a set of the given requirements.
 - `venv`: creates a local virtual environment in the Paddle project.
 - `install`: installs the resolved set of requirements.
-- `lock`: creates a `paddle-lock.json` lockfile in the root directory of Paddle project.
+- `lock`: creates a `paddle-lock.json` lockfile in the root directory of the Paddle project.
 - `ci`: installs the snapshot versions of the packages specified in the `paddle-lock.json` lockfile.
 
 - `wheel`: builds a Python wheel from the `sources` of the Paddle project and saves it in the `dist`
