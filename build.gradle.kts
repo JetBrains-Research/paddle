@@ -1,5 +1,5 @@
 group = "io.paddle"
-version = "0.4.2"
+version = "0.4.3"
 
 plugins {
     kotlin("jvm") version "1.7.10" apply false
