@@ -1,36 +1,58 @@
-package io.paddle.plugin.python.dependencies
+package io.paddle.plugin.python.extensions
 
-import io.paddle.plugin.python.PyLocations
-import io.paddle.plugin.python.dependencies.packages.*
+import io.paddle.plugin.python.dependencies.TempVenvManager
+import io.paddle.plugin.python.dependencies.VenvDir
+import io.paddle.plugin.python.dependencies.packages.CachedPyPackage
+import io.paddle.plugin.python.dependencies.packages.IResolvedPyPackage
+import io.paddle.plugin.python.dependencies.packages.PyPackage
 import io.paddle.plugin.python.utils.deepResolve
 import io.paddle.plugin.python.utils.exists
 import io.paddle.project.PaddleProject
 import io.paddle.tasks.Task
+import io.paddle.utils.ext.Extendable
+import kotlinx.coroutines.*
 import java.io.File
 import java.io.FileFilter
-import java.nio.file.*
-import java.util.*
+import java.nio.file.Files
+import java.nio.file.Path
+import java.nio.file.Paths
 import java.util.concurrent.ConcurrentHashMap
-import kotlin.concurrent.schedule
 import kotlin.io.path.name
 
-/**
- * A service class for managing Paddle's cache.
- *
- * @see PyLocations.packagesDir
- */
-object GlobalCacheRepository {
-    private const val CACHE_SYNC_PERIOD_MS: Long = 60000L
-    private val cachedPackages: MutableCollection<CachedPyPackage> = ConcurrentHashMap.newKeySet()
+val PaddleProject.globalCache: GlobalCacheRepository
+    get() = extensions.getOrFail(GlobalCacheRepository.Extension.key)
 
-    init {
-        Timer("CachedPackagesSynchronizer", true)
-            .schedule(delay = 0, period = CACHE_SYNC_PERIOD_MS) { updateCache() }
+/**
+ * A service class for managing Paddle's cache for installed Python packages.
+ */
+class GlobalCacheRepository private constructor(val project: PaddleProject) {
+    companion object {
+        private const val CACHE_SYNC_PERIOD_MS: Long = 60000L
     }
 
-    fun updateCache() {
+    private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
+    private val cachedPackages: MutableCollection<CachedPyPackage> = ConcurrentHashMap.newKeySet()
+
+    object Extension : PaddleProject.Extension<GlobalCacheRepository> {
+        override val key: Extendable.Key<GlobalCacheRepository> = Extendable.Key()
+
+        override fun create(project: PaddleProject): GlobalCacheRepository {
+            return GlobalCacheRepository(project)
+        }
+    }
+
+    init {
+        scope.launch {
+            while (true) {
+                sync()
+                delay(CACHE_SYNC_PERIOD_MS)
+            }
+        }
+    }
+
+    fun sync() {
         cachedPackages.clear()
-        PyLocations.packagesDir.toFile().listFiles()?.forEach { repoDir ->
+        project.pyLocations.packagesDir.toFile().listFiles()?.forEach { repoDir ->
             repoDir.listFiles(FileFilter { it.isDirectory })?.forEach { packageDir ->
                 packageDir.listFiles(FileFilter { it.isDirectory })?.forEach { versionDir ->
                     cachedPackages.add(CachedPyPackage.load(versionDir.toPath()))
@@ -40,21 +62,21 @@ object GlobalCacheRepository {
     }
 
     fun getPathToCachedPackage(pkg: PyPackage): Path =
-        PyLocations.packagesDir.deepResolve(
+        project.pyLocations.packagesDir.deepResolve(
             pkg.repo.uid,
             pkg.name,
             pkg.version
         )
 
-    fun findOrInstallPackage(pkg: PyPackage, project: PaddleProject): CachedPyPackage {
-        return cachedPackages.find { it.pkg == pkg && it.srcPath.exists() } ?: installToCache(pkg, project)
+    fun findOrInstallPackage(pkg: PyPackage): CachedPyPackage {
+        return cachedPackages.find { it.pkg == pkg && it.srcPath.exists() } ?: installToCache(pkg)
     }
 
-    private fun installToCache(pkg: PyPackage, project: PaddleProject): CachedPyPackage {
+    private fun installToCache(pkg: PyPackage): CachedPyPackage {
         val tempVenvManager = TempVenvManager.getInstance(project)
         return tempVenvManager.install(pkg).expose(
             onSuccess = {
-                copyPackageRecursivelyFromTempVenv(pkg, project).also {
+                copyPackageRecursivelyFromTempVenv(pkg).also {
                     tempVenvManager.uninstall(pkg)
                 }
             },
@@ -62,7 +84,7 @@ object GlobalCacheRepository {
         )
     }
 
-    private fun copyPackageRecursivelyFromTempVenv(pkg: PyPackage, project: PaddleProject): CachedPyPackage {
+    private fun copyPackageRecursivelyFromTempVenv(pkg: PyPackage): CachedPyPackage {
         val tmpVenvManager = TempVenvManager.getInstance(project)
         val targetPathToCache = getPathToCachedPackage(pkg)
 
@@ -74,7 +96,11 @@ object GlobalCacheRepository {
         return cachedPkg
     }
 
-    private fun copyPackageSourcesFromTempVenv(venvManager: TempVenvManager, pkg: IResolvedPyPackage, targetPathToCache: Path) {
+    private fun copyPackageSourcesFromTempVenv(
+        venvManager: TempVenvManager,
+        pkg: IResolvedPyPackage,
+        targetPathToCache: Path
+    ) {
         val packageSources = venvManager.getFilesRelatedToPackage(pkg)
         val sep = File.separatorChar
         packageSources.forEach {

@@ -9,22 +9,21 @@ import com.github.dockerjava.core.DefaultDockerClientConfig
 import com.github.dockerjava.core.DockerClientImpl
 import com.github.dockerjava.httpclient5.ApacheDockerHttpClient
 import io.paddle.execution.CommandExecutor
+import io.paddle.execution.EnvProvider
 import io.paddle.execution.ExecutionResult
 import io.paddle.project.PaddleProject
 import io.paddle.terminal.Terminal
-import io.paddle.terminal.TextOutput
 import io.paddle.utils.ext.Extendable
 import java.io.File
 import java.util.function.Consumer
 
-class DockerCommandExecutor(private val image: String, output: TextOutput) :
-    CommandExecutor(OutputConfiguration(output)) {
+class DockerCommandExecutor(private val image: String) : CommandExecutor {
     object Extension : PaddleProject.Extension<DockerCommandExecutor> {
         override val key: Extendable.Key<DockerCommandExecutor> = Extendable.Key()
 
         override fun create(project: PaddleProject): DockerCommandExecutor {
             val image: String? = project.config.get("executor.image")
-            return DockerCommandExecutor(image!!, project.output)
+            return DockerCommandExecutor(image!!)
         }
     }
 
@@ -32,14 +31,22 @@ class DockerCommandExecutor(private val image: String, output: TextOutput) :
     private val http =
         ApacheDockerHttpClient.Builder().dockerHost(config.dockerHost).sslConfig(config.sslConfig).build()
     private val client = DockerClientImpl.getInstance(config, http)
+    override val os: CommandExecutor.OsInfo
+        get() = TODO("Not yet implemented")
+    override val env: EnvProvider
+        get() = TODO("Not yet implemented")
+    override val runningProcesses: MutableSet<Process>
+        get() = TODO("Not yet implemented")
 
     override fun execute(
         command: String,
         args: Iterable<String>,
         workingDir: File,
         terminal: Terminal,
-        envVars: Map<String, String>,
-        log: Boolean
+        env: Map<String, String>,
+        log: Boolean,
+        systemOut: Consumer<String>,
+        systemErr: Consumer<String>
     ): ExecutionResult {
         val (name, tag) = image.split(":")
 
@@ -80,18 +87,5 @@ class DockerCommandExecutor(private val image: String, output: TextOutput) :
         val result = client.waitContainerCmd(container.id).exec(WaitContainerResultCallback()).awaitCompletion()
         client.removeContainerCmd(container.id).exec()
         return ExecutionResult(result.awaitStatusCode())
-    }
-
-    override fun execute(
-        command: String,
-        args: Iterable<String>,
-        workingDir: File,
-        terminal: Terminal,
-        envVars: Map<String, String>,
-        verbose: Boolean,
-        systemOut: Consumer<String>,
-        systemErr: Consumer<String>
-    ): ExecutionResult {
-        return execute(command, args, workingDir, terminal, envVars, verbose) // fixme: capture output
     }
 }

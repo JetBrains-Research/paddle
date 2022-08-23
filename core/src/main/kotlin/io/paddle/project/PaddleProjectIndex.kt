@@ -1,9 +1,11 @@
 package io.paddle.project
 
-import io.paddle.project.extensions.Descriptor
 import io.paddle.project.extensions.descriptor
 import io.paddle.utils.isPaddle
-import kotlinx.coroutines.*
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.runBlocking
 import java.io.File
 import java.util.concurrent.ConcurrentHashMap
 
@@ -35,9 +37,7 @@ internal class PaddleProjectIndex(rootDir: File) {
                     .filter { it.isPaddle }
                     .map { buildFile ->
                         async {
-                            PaddleProject(buildFile, rootDir).apply {
-                                extensions.register(Descriptor.Extension.key, Descriptor.Extension.create(this))
-                            }
+                            PaddleProject(buildFile, rootDir)
                         }
                     }
                     .toList()

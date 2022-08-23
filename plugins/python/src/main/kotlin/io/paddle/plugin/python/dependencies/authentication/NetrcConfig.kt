@@ -1,5 +1,6 @@
 package io.paddle.plugin.python.dependencies.authentication
 
+import io.paddle.execution.EnvProvider
 import io.paddle.plugin.python.dependencies.repositories.PyPackageRepository
 import io.paddle.plugin.python.utils.exists
 import io.paddle.utils.splitAndTrim
@@ -11,9 +12,9 @@ typealias NetrcHost = String
 
 class NetrcConfig(private val hosts: Map<NetrcHost, PyPackageRepository.Credentials>) {
     companion object {
-        fun findInstance(): NetrcConfig? {
-            val home: String? = System.getenv("HOME")
-            val netrcLocation = System.getenv("NETRC")?.let { Paths.get(it) }
+        fun findInstance(env: EnvProvider): NetrcConfig? {
+            val home: String? = env.get("HOME")
+            val netrcLocation = env.get("NETRC")?.let { Paths.get(it) }
                 ?: home?.let { Paths.get(it, ".netrc") }
             val netrcContent = netrcLocation?.takeIf { it.exists() }?.readText() ?: return null
             val lines = Parser.dropComments(netrcContent.lines())

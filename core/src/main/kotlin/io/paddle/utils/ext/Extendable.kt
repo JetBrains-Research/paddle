@@ -6,16 +6,21 @@ open class Extendable {
     @Suppress("unused")
     class Key<T>
 
-    fun <T: Any> register(key: Key<T>, value: T) {
+    fun <T : Any> register(key: Key<T>, value: T) {
         storage[key] = value
     }
 
     @Suppress("UNCHECKED_CAST")
-    fun <T: Any> get(key: Key<T>) : T? {
+    fun <T : Any> get(key: Key<T>): T? {
         return storage[key] as T?
     }
 
-    operator fun <T: Any> contains(key: Key<T>): Boolean {
+    inline fun <reified T : Any> getOrFail(key: Key<T>): T {
+        return checkNotNull(get(key)) { "Could not load extension ${T::class.qualifiedName}." }
+    }
+
+
+    operator fun <T : Any> contains(key: Key<T>): Boolean {
         return key in storage
     }
 }

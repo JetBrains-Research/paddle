@@ -31,4 +31,14 @@ dependencies {
     implementation("org.codehaus.plexus:plexus-utils:3.4.2")
 
     implementation("com.github.javakeyring:java-keyring:1.0.1")
+
+    testImplementation("org.junit.jupiter:junit-jupiter:5.8.1")
+    testImplementation("io.kotest:kotest-runner-junit5:5.4.1")
+    testImplementation("io.kotest:kotest-assertions-core:5.4.1")
+    testImplementation("io.kotest:kotest-property:5.4.1")
+    testImplementation("io.kotest.extensions:kotest-extensions-testcontainers:1.3.4")
+}
+
+tasks.withType<Test>().configureEach {
+    useJUnitPlatform()
 }

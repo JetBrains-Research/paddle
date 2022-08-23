@@ -1,9 +1,9 @@
 package io.paddle.execution.local
 
 import io.paddle.execution.CommandExecutor
+import io.paddle.execution.EnvProvider
 import io.paddle.execution.ExecutionResult
 import io.paddle.terminal.Terminal
-import io.paddle.terminal.TextOutput
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.yield
 import org.codehaus.plexus.util.cli.*
@@ -11,7 +11,15 @@ import java.io.File
 import java.util.concurrent.ConcurrentHashMap
 import java.util.function.Consumer
 
-open class LocalCommandExecutor(output: TextOutput) : CommandExecutor(OutputConfiguration(output)) {
+class LocalCommandExecutor : CommandExecutor {
+    override val os = object : CommandExecutor.OsInfo {
+        override val name: String = System.getProperty("os.name")
+        override val arch: String = System.getProperty("os.arch")
+        override val userHome: String = System.getProperty("user.home")
+    }
+
+    override val env = EnvProvider { System.getenv(it) }
+
     override val runningProcesses: MutableSet<Process> = ConcurrentHashMap.newKeySet()
 
     override fun execute(
@@ -19,22 +27,7 @@ open class LocalCommandExecutor(output: TextOutput) : CommandExecutor(OutputConf
         args: Iterable<String>,
         workingDir: File,
         terminal: Terminal,
-        envVars: Map<String, String>,
-        verbose: Boolean
-    ): ExecutionResult {
-        return execute(
-            command, args, workingDir, terminal, envVars, verbose,
-            systemOut = { if (configuration.printStdout) terminal.stdout(it + "\n") },
-            systemErr = { if (configuration.printStderr) terminal.stderr(it + "\n") },
-        )
-    }
-
-    override fun execute(
-        command: String,
-        args: Iterable<String>,
-        workingDir: File,
-        terminal: Terminal,
-        envVars: Map<String, String>,
+        env: Map<String, String>,
         verbose: Boolean,
         systemOut: Consumer<String>,
         systemErr: Consumer<String>
@@ -42,13 +35,11 @@ open class LocalCommandExecutor(output: TextOutput) : CommandExecutor(OutputConf
         if (verbose) {
             terminal.info("${workingDir.path} % $command ${args.joinToString(" ")}")
         }
-
         yield()
-
         return@runBlocking ExecutionResult(
             executeCommandLine(
                 Commandline().apply {
-                    envVars.forEach { addEnvironment(it.key, it.value) }
+                    env.forEach { addEnvironment(it.key, it.value) }
                     workingDirectory = workingDir
                     executable = command
                     addArguments(args.toList().toTypedArray())

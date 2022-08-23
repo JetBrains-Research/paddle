@@ -1,13 +1,18 @@
 package io.paddle.plugin.python.dependencies.resolvers
 
-import io.paddle.plugin.python.PyLocations
-import io.paddle.plugin.python.dependencies.index.PyPackageRepositoryIndexer
-import io.paddle.plugin.python.dependencies.index.distributions.*
+import io.paddle.plugin.python.dependencies.index.distributions.ArchivePyDistributionInfo
+import io.paddle.plugin.python.dependencies.index.distributions.PyDistributionInfo
+import io.paddle.plugin.python.dependencies.index.distributions.WheelPyDistributionInfo
+import io.paddle.plugin.python.dependencies.index.webIndexer
 import io.paddle.plugin.python.dependencies.packages.PyPackageVersion
 import io.paddle.plugin.python.dependencies.repositories.PyPackageRepository
 import io.paddle.plugin.python.extensions.globalInterpreter
+import io.paddle.plugin.python.extensions.pyLocations
 import io.paddle.plugin.python.extensions.repositories
-import io.paddle.plugin.python.utils.*
+import io.paddle.plugin.python.utils.PyPackageName
+import io.paddle.plugin.python.utils.PyPackageUrl
+import io.paddle.plugin.python.utils.cached
+import io.paddle.plugin.python.utils.getSecure
 import io.paddle.project.PaddleProject
 import io.paddle.tasks.Task
 import io.paddle.utils.hash.hashable
@@ -19,16 +24,21 @@ import kotlinx.serialization.builtins.serializer
 object PyDistributionsResolver {
     // See https://www.python.org/dev/peps/pep-0425/#id1
     // https://docs.python.org/3/distutils/apiref.html#distutils.util.get_platform
-    suspend fun resolve(name: PyPackageName, version: PyPackageVersion, repository: PyPackageRepository, project: PaddleProject): PyPackageUrl? =
+    suspend fun resolve(
+        name: PyPackageName,
+        version: PyPackageVersion,
+        repository: PyPackageRepository,
+        project: PaddleProject
+    ): PyPackageUrl? =
         cached(
-            storage = PyLocations.distResolverCachePath.toFile(),
+            storage = project.pyLocations.distResolverCachePath.toFile(),
             serializer = MapSerializer(String.serializer(), String.serializer())
         ) {
             val cacheInput = (listOf(name, version).map { it.hashable() } + repository.metadata).hashable().hash()
             getFromCache(cacheInput)?.let { return@cached it }
 
             val distributions = runBlocking {
-                PyPackageRepositoryIndexer.downloadDistributionsList(name, repository)
+                project.webIndexer.downloadDistributionsList(name, repository)
                     .filter { it.version == version }
             }
             val wheels = distributions.filterIsInstance<WheelPyDistributionInfo>()
@@ -43,8 +53,8 @@ object PyDistributionsResolver {
             val platformTags = wheels.map { it.platformTag }.toSet()
             platformTags.asSequence()
                 .map { it.split(".") }.flatten() // splitting compressed tags
-                .filter { OsUtils.family in it }
-                .filter { OsUtils.arch in it || "universal" in it || "86" in OsUtils.arch && "intel" in it }
+                .filter { project.executor.os.familyPep425 in it }
+                .filter { project.executor.os.archPep425 in it || "universal" in it || "86" in project.executor.os.archPep425 && "intel" in it }
                 .toList() + "any"
 
             data class Candidate(
@@ -61,7 +71,8 @@ object PyDistributionsResolver {
                 val abiTagRank = wheel.abiTag.split(".")
                     .mapNotNull { abiTag -> abiTags.indexOf(abiTag).takeIf { it >= 0 } }.minOrNull() ?: Int.MAX_VALUE
                 val platformTagRank = wheel.platformTag.split(".")
-                    .mapNotNull { platformTag -> platformTags.indexOf(platformTag).takeIf { it >= 0 } }.minOrNull() ?: Int.MAX_VALUE
+                    .mapNotNull { platformTag -> platformTags.indexOf(platformTag).takeIf { it >= 0 } }.minOrNull()
+                    ?: Int.MAX_VALUE
                 val currentCandidate = Candidate(pyTagRank, abiTagRank, platformTagRank, wheel)
 
                 if (pyTagRank < bestCandidate.pyTagRank) {
@@ -77,17 +88,22 @@ object PyDistributionsResolver {
                 ?: distributions.filterIsInstance<ArchivePyDistributionInfo>().firstOrNull()
                 ?: return@cached null
 
-            val distributionUrl = runBlocking { PyPackageRepositoryIndexer.getDistributionUrl(matchedDistributionInfo, repository) }
-                ?: throw Task.ActException(
-                    "Distribution ${matchedDistributionInfo.distributionFilename} " +
-                        "was not found in the repository ${repository.url.getSecure()}"
-                )
+            val distributionUrl =
+                runBlocking { project.webIndexer.getDistributionUrl(matchedDistributionInfo, repository) }
+                    ?: throw Task.ActException(
+                        "Distribution ${matchedDistributionInfo.distributionFilename} " +
+                                "was not found in the repository ${repository.url.getSecure()}"
+                    )
             updateCache(cacheInput, distributionUrl)
 
             return@cached distributionUrl
         }
 
-    suspend fun resolve(name: PyPackageName, version: PyPackageVersion, project: PaddleProject): Pair<PyPackageUrl, PyPackageRepository> {
+    suspend fun resolve(
+        name: PyPackageName,
+        version: PyPackageVersion,
+        project: PaddleProject
+    ): Pair<PyPackageUrl, PyPackageRepository> {
         val repos = project.repositories.resolved
         val primaryUrl = resolve(name, version, repos.primarySource, project)
         if (primaryUrl != null)

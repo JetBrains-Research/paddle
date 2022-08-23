@@ -1,9 +1,10 @@
 package io.paddle.plugin.python.extensions
 
 import io.paddle.execution.ExecutionResult
-import io.paddle.plugin.python.dependencies.*
-import io.paddle.plugin.python.dependencies.index.PyPackageRepositoryIndexer
+import io.paddle.plugin.python.dependencies.InstalledPackageInfoDir
+import io.paddle.plugin.python.dependencies.VenvDir
 import io.paddle.plugin.python.dependencies.index.distributions.WheelPyDistributionInfo
+import io.paddle.plugin.python.dependencies.index.webIndexer
 import io.paddle.plugin.python.dependencies.packages.CachedPyPackage
 import io.paddle.plugin.python.dependencies.packages.PyPackage
 import io.paddle.plugin.python.dependencies.repositories.PyPackageRepository
@@ -17,7 +18,6 @@ import io.paddle.utils.ext.Extendable
 import io.paddle.utils.hash.Hashable
 import io.paddle.utils.hash.hashable
 import kotlinx.coroutines.runBlocking
-import kotlinx.serialization.encodeToString
 import java.io.File
 import java.nio.file.Path
 import kotlin.io.path.absolutePathString
@@ -63,10 +63,10 @@ class Environment(val project: PaddleProject, val venv: VenvDir) : Hashable {
                 ?.let {
                     val version = it.name.substringAfter("setuptools-").substringBefore(".dist-info")
                     val distributionUrl = runBlocking {
-                        PyPackageRepositoryIndexer.getDistributionUrl(
+                        project.webIndexer.getDistributionUrl(
                             WheelPyDistributionInfo.fromString("setuptools-$version-py3-none-any.whl")!!,
                             PyPackageRepository.PYPI_REPOSITORY
-                        ) ?: PyPackageRepositoryIndexer.getDistributionUrl(
+                        ) ?: project.webIndexer.getDistributionUrl(
                             WheelPyDistributionInfo.fromString("setuptools-$version-py2.py3-none-any.whl")!!,
                             PyPackageRepository.PYPI_REPOSITORY
                         )
@@ -117,8 +117,8 @@ class Environment(val project: PaddleProject, val venv: VenvDir) : Hashable {
         // The package with the same name (but different version) had been installed previously and should be removed now
         venv.findPackageWithNameOrNull(pkg.name)?.let { uninstall(it) }
 
-        val cachedPkg = GlobalCacheRepository.findOrInstallPackage(pkg, project)
-        GlobalCacheRepository.createSymlinkToPackage(cachedPkg, venv)
+        val cachedPkg = project.globalCache.findOrInstallPackage(pkg)
+        project.globalCache.createSymlinkToPackage(cachedPkg, venv)
     }
 
     fun uninstall(pkg: PyPackage) {

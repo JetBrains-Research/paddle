@@ -1,8 +1,8 @@
 package io.paddle.plugin.python.dependencies.authentication
 
-import io.paddle.plugin.python.PyLocations
 import io.paddle.tasks.Task
 import io.paddle.utils.config.ConfigurationYAML
+import java.io.File
 
 
 /**
@@ -21,8 +21,7 @@ class PaddleProfilesConfig(private val profiles: List<Profile>) {
     data class Profile(val name: String, val token: String)
 
     companion object {
-        fun getInstance(): PaddleProfilesConfig? {
-            val profilesFile = PyLocations.profiles.takeIf { it.exists() } ?: return null
+        fun getInstance(profilesFile: File): PaddleProfilesConfig? {
             val config = try {
                 ConfigurationYAML.from(profilesFile)
             } catch (e: Throwable) {

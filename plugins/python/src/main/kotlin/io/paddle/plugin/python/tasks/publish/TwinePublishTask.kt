@@ -1,6 +1,7 @@
 package io.paddle.plugin.python.tasks.publish
 
 import io.paddle.plugin.python.PyDefaultVersions
+import io.paddle.plugin.python.dependencies.authentication.authProvider
 import io.paddle.plugin.python.extensions.Requirements
 import io.paddle.plugin.python.extensions.environment
 import io.paddle.plugin.python.extensions.publishEnvironment
@@ -54,12 +55,14 @@ class TwinePublishTask(project: PaddleProject) : IncrementalTask(project) {
             if (project.publishEnvironment.twine.verbose) add("--verbose")
         }
 
+        val credentials = project.authProvider.resolveCredentials(repo)
+
         project.executor.execute(
             project.environment.localInterpreterPath.absolutePathString(),
             listOf("-m", "twine", "upload", "--repository-url", repo.uploadUrl) + project.publishEnvironment.twine.targets + optionalArgs,
             project.workDir,
             project.terminal,
-            mapOf("TWINE_USERNAME" to repo.credentials.login, "TWINE_PASSWORD" to repo.credentials.password)
+            mapOf("TWINE_USERNAME" to credentials.login, "TWINE_PASSWORD" to credentials.password)
         ).orElse {
             throw ActException("Twine publishing failed. Exit code: $it")
         }

@@ -4,19 +4,16 @@ import com.github.fracpete.processoutput4j.output.StreamingProcessOutput
 import com.github.fracpete.rsync4j.RSync
 import com.github.fracpete.rsync4j.Ssh
 import io.paddle.execution.CommandExecutor
+import io.paddle.execution.EnvProvider
 import io.paddle.execution.ExecutionResult
 import io.paddle.plugin.ssh.output.RemoteOutputOwner
 import io.paddle.project.PaddleProject
 import io.paddle.terminal.Terminal
-import io.paddle.terminal.TextOutput
 import io.paddle.utils.ext.Extendable
 import java.io.File
 import java.util.function.Consumer
 
-class SshCommandExecutor(
-    private val host: String, private val user: String,
-    remoteDir: String, output: TextOutput
-) : CommandExecutor(OutputConfiguration(output)) {
+class SshCommandExecutor(private val host: String, private val user: String, remoteDir: String) : CommandExecutor {
     object Extension : PaddleProject.Extension<SshCommandExecutor> {
         override val key: Extendable.Key<SshCommandExecutor> = Extendable.Key()
 
@@ -24,7 +21,7 @@ class SshCommandExecutor(
             val host: String? = project.config.get("executor.host")
             val user: String? = project.config.get("executor.user")
             val dir: String? = project.config.get("executor.directory")
-            return SshCommandExecutor(host!!, user!!, dir!!, project.output)
+            return SshCommandExecutor(host!!, user!!, dir!!)
         }
     }
 
@@ -35,8 +32,10 @@ class SshCommandExecutor(
         args: Iterable<String>,
         workingDir: File,
         terminal: Terminal,
-        envVars: Map<String, String>,
-        log: Boolean
+        env: Map<String, String>,
+        verbose: Boolean,
+        systemOut: Consumer<String>,
+        systemErr: Consumer<String>
     ): ExecutionResult {
         terminal.stdout(
             "> Executor :remote-ssh: ${
@@ -103,16 +102,10 @@ class SshCommandExecutor(
         return ExecutionResult(rsyncFrom.start().waitFor())
     }
 
-    override fun execute(
-        command: String,
-        args: Iterable<String>,
-        workingDir: File,
-        terminal: Terminal,
-        envVars: Map<String, String>,
-        verbose: Boolean,
-        systemOut: Consumer<String>,
-        systemErr: Consumer<String>
-    ): ExecutionResult {
-        return execute(command, args, workingDir, terminal, envVars, verbose) // fixme: capture output
-    }
+    override val os: CommandExecutor.OsInfo
+        get() = TODO("Not yet implemented")
+    override val env: EnvProvider
+        get() = TODO("Not yet implemented")
+    override val runningProcesses: MutableSet<Process>
+        get() = TODO("Not yet implemented")
 }

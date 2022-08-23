@@ -3,17 +3,31 @@ package io.paddle.plugin.python.dependencies.index
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
+import io.paddle.plugin.python.dependencies.authentication.authProvider
 import io.paddle.plugin.python.dependencies.index.distributions.PyDistributionInfo
 import io.paddle.plugin.python.dependencies.index.metadata.JsonPackageMetadataInfo
 import io.paddle.plugin.python.dependencies.packages.PyPackage
 import io.paddle.plugin.python.dependencies.repositories.PyPackageRepository
 import io.paddle.plugin.python.utils.*
+import io.paddle.project.PaddleProject
 import io.paddle.tasks.Task
 import io.paddle.terminal.Terminal
+import io.paddle.utils.ext.Extendable
 import org.jsoup.Jsoup
 
+val PaddleProject.webIndexer: PyPackageRepositoryIndexer
+    get() = extensions.getOrFail(PyPackageRepositoryIndexer.Extension.key)
 
-object PyPackageRepositoryIndexer {
+class PyPackageRepositoryIndexer(val project: PaddleProject) {
+    object Extension : PaddleProject.Extension<PyPackageRepositoryIndexer> {
+        override val key: Extendable.Key<PyPackageRepositoryIndexer> = Extendable.Key()
+
+        override fun create(project: PaddleProject) = PyPackageRepositoryIndexer(project)
+    }
+
+    private val PyPackageRepository.credentials: PyPackageRepository.Credentials
+        get() = project.authProvider.resolveCredentials(this)
+
     suspend fun downloadPackagesNames(repository: PyPackageRepository): Collection<PyPackageName> {
         val client = CachedHttpClient.getInstance(repository.credentials)
         val response = client.get(repository.urlSimple)

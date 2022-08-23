@@ -19,6 +19,7 @@ object SshPlugin : Plugin {
         return emptyList()
     }
 
+    @Suppress("UNCHECKED_CAST")
     override fun extensions(project: PaddleProject): List<PaddleProject.Extension<Any>> {
         if (project.config.get<String?>("executor.type") != "ssh") {
             return listOf(JsonSchema.Extension) as List<PaddleProject.Extension<Any>>
