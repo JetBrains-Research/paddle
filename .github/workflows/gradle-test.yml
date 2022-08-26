@@ -1,4 +1,4 @@
-name: build
+name: test
 
 on: [ push, pull_request ]
 
@@ -15,5 +15,5 @@ jobs:
           java-version: 11
           distribution: 'adopt'
 
-      - name: 'Build with Gradle'
-        run: ./gradlew build
+      - name: 'Test with Gradle'
+        run: ./gradlew test

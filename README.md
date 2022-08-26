@@ -7,6 +7,7 @@ alt="Paddle">
 [![JB Research](https://jb.gg/badges/research.svg)](https://research.jetbrains.org/)
 [![Latest release](https://img.shields.io/github/v/release/TanVD/paddle?color=brightgreen&label=latest%20release)](https://github.com/TanVD/paddle/releases/latest)
 ![build](https://github.com/TanVD/paddle/actions/workflows/gradle-build.yml/badge.svg)
+![tests](https://github.com/TanVD/paddle/actions/workflows/gradle-test.yml/badge.svg)
 [![Downloads](https://img.shields.io/jetbrains/plugin/d/17452-paddle.svg)](https://plugins.jetbrains.com/plugin/17452-paddle)
 
 Paddle is a fresh, extensible, and IDE-friendly build system for Python. It provides a declarative way for managing
