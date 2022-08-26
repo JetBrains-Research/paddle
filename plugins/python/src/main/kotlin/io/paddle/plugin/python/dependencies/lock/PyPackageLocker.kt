@@ -1,12 +1,19 @@
 package io.paddle.plugin.python.dependencies.lock
 
 import io.paddle.plugin.python.dependencies.PyInterpreter
-import io.paddle.plugin.python.dependencies.index.PyPackageRepositoryIndexer
-import io.paddle.plugin.python.dependencies.lock.models.*
+import io.paddle.plugin.python.dependencies.index.webIndexer
+import io.paddle.plugin.python.dependencies.lock.models.LockedPyDistribution
+import io.paddle.plugin.python.dependencies.lock.models.LockedPyPackage
+import io.paddle.plugin.python.dependencies.lock.models.LockedPyPackageIdentifier
 import io.paddle.plugin.python.dependencies.packages.PyPackage
 import io.paddle.plugin.python.dependencies.repositories.PyPackageRepository
-import io.paddle.plugin.python.extensions.*
-import io.paddle.plugin.python.utils.*
+import io.paddle.plugin.python.extensions.environment
+import io.paddle.plugin.python.extensions.globalInterpreter
+import io.paddle.plugin.python.extensions.requirements
+import io.paddle.plugin.python.utils.getSecure
+import io.paddle.plugin.python.utils.parallelForEach
+import io.paddle.plugin.python.utils.parallelMap
+import io.paddle.plugin.python.utils.trimmedEquals
 import io.paddle.project.PaddleProject
 import io.paddle.tasks.Task
 import kotlinx.coroutines.supervisorScope
@@ -110,7 +117,7 @@ object PyPackageLocker {
     }
 
     private suspend fun getMetadata(pkg: PyPackage, project: PaddleProject) = try {
-        PyPackageRepositoryIndexer.downloadMetadata(pkg, project.terminal)
+        project.webIndexer.downloadMetadata(pkg, project.terminal)
     } catch (e: Throwable) {
         project.terminal.warn("Failed to download metadata for package ${pkg.name}==${pkg.version} from ${pkg.repo.url.getSecure()}")
         e.message?.let { project.terminal.warn(it) }

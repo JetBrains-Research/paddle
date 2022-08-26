@@ -1,15 +1,11 @@
 package io.paddle.plugin.python.dependencies.resolvers
 
-import io.paddle.plugin.python.PaddlePythonRegistry
-import io.paddle.plugin.python.PyLocations
-import io.paddle.plugin.python.dependencies.index.PyPackageRepositoryIndexer
 import io.paddle.plugin.python.dependencies.index.distributions.ArchivePyDistributionInfo
 import io.paddle.plugin.python.dependencies.index.distributions.WheelPyDistributionInfo
+import io.paddle.plugin.python.dependencies.index.webIndexer
 import io.paddle.plugin.python.dependencies.packages.PyPackage
 import io.paddle.plugin.python.dependencies.repositories.PyPackageRepository
-import io.paddle.plugin.python.extensions.environment
-import io.paddle.plugin.python.extensions.repositories
-import io.paddle.plugin.python.extensions.requirements
+import io.paddle.plugin.python.extensions.*
 import io.paddle.plugin.python.utils.PyPackageUrl
 import io.paddle.plugin.python.utils.cached
 import io.paddle.plugin.python.utils.getSecure
@@ -38,7 +34,7 @@ object PipResolver {
         Regex("^Requirement already satisfied: (?<name>(.*?)?)(==| |<=|>=|<|>|~=|===|!=)(.*)in .*$")
 
     fun resolve(project: PaddleProject): Set<PyPackage> = cached(
-        storage = PyLocations.pipResolverCachePath.toFile(),
+        storage = project.pyLocations.pipResolverCachePath.toFile(),
         serializer = MapSerializer(String.serializer(), SetSerializer(PyPackage.serializer()))
     ) {
         val requirementsAsPipArgs =
@@ -121,12 +117,12 @@ object PipResolver {
 
             val repo = if (repoUrl == "None") { // it was resolved as a local file distribution file://...
                 runBlocking {
-                    PyPackageRepositoryIndexer.getDistributionUrl(
+                    project.webIndexer.getDistributionUrl(
                         pyDistributionInfo,
                         PyPackageRepository.PYPI_REPOSITORY
                     )
                 } // if null, it was not found in the PyPi repo
-                    ?: if (PaddlePythonRegistry.autoRemove) {
+                    ?: if (project.pythonRegistry.autoRemove) {
                         val localDistribution = File(URI(distributionUrl))
                         if (!localDistribution.exists()) {
                             throw Task.ActException("Failed to delete local distribution $distributionUrl: file not found.")

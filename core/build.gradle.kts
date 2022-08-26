@@ -21,4 +21,10 @@ dependencies {
     implementation("org.yaml:snakeyaml:1.30")
     implementation("org.snakeyaml:snakeyaml-engine:2.3")
     implementation(kotlin("reflect"))
+
+    testImplementation(kotlin("test"))
+}
+
+tasks.test {
+    useJUnitPlatform()
 }

@@ -1,7 +1,9 @@
 package io.paddle.plugin.python.tasks.install
 
-import io.paddle.plugin.python.dependencies.GlobalCacheRepository
-import io.paddle.plugin.python.extensions.*
+import io.paddle.plugin.python.extensions.environment
+import io.paddle.plugin.python.extensions.globalCache
+import io.paddle.plugin.python.extensions.repositories
+import io.paddle.plugin.python.extensions.requirements
 import io.paddle.plugin.python.tasks.PythonPluginTaskGroups
 import io.paddle.project.PaddleProject
 import io.paddle.tasks.Task
@@ -26,7 +28,7 @@ class InstallTask(project: PaddleProject) : IncrementalTask(project) {
     override fun act() {
         project.terminal.info("Installing requirements...")
         val duration = measureTimeMillis {
-            GlobalCacheRepository.updateCache()
+            project.globalCache.sync()
             project.requirements.resolved
                 .minus(project.environment.venv.pyPackages)
                 .forEach { project.environment.install(it) }

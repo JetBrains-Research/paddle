@@ -5,6 +5,7 @@ import com.intellij.codeInsight.lookup.LookupElementBuilder
 import com.intellij.patterns.PlatformPatterns
 import com.intellij.util.ProcessingContext
 import io.paddle.plugin.python.dependencies.PyInterpreter
+import io.paddle.plugin.python.extensions.globalInterpreter
 import io.paddle.plugin.python.hasPython
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.yaml.psi.YAMLDocument
@@ -15,8 +16,14 @@ class PyInterpreterVersionCompletionContributor : CompletionContributor() {
             CompletionType.BASIC,
             PlatformPatterns.psiElement()
                 .inFile(PlatformPatterns.psiFile().withName(PlatformPatterns.string().equalTo("paddle.yaml")))
-                .withSuperParent(2, PlatformPatterns.psiElement().withText(PlatformPatterns.string().startsWith("python")))
-                .withSuperParent(4, PlatformPatterns.psiElement().withText(PlatformPatterns.string().startsWith("environment")))
+                .withSuperParent(
+                    2,
+                    PlatformPatterns.psiElement().withText(PlatformPatterns.string().startsWith("python"))
+                )
+                .withSuperParent(
+                    4,
+                    PlatformPatterns.psiElement().withText(PlatformPatterns.string().startsWith("environment"))
+                )
                 .withSuperParent(6, YAMLDocument::class.java),
             PyInterpreterVersionCompletionProvider()
         )
@@ -32,18 +39,24 @@ class PyInterpreterVersionCompletionProvider : CompletionProvider<CompletionPara
         }
     }
 
-    override fun addCompletions(parameters: CompletionParameters, context: ProcessingContext, result: CompletionResultSet) = runBlocking {
+    override fun addCompletions(
+        parameters: CompletionParameters,
+        context: ProcessingContext,
+        result: CompletionResultSet
+    ) = runBlocking {
         val paddleProject = parameters.extractPaddleProject() ?: return@runBlocking
         if (!paddleProject.hasPython) return@runBlocking
 
         val prefix = parameters.position.text.trim().removeSuffix(CompletionUtilCore.DUMMY_IDENTIFIER_TRIMMED)
         val remoteVersions = PyInterpreter.Version.getAvailableRemoteVersions()
 
-        val localVariants = PyInterpreter.Version.cachedVersions.map { VersionTuple(it, VersionTuple.CACHED) } +
-            PyInterpreter.Version.locallyInstalledVersions.map { VersionTuple(it, VersionTuple.LOCAL) }
+        val cachedVariants =
+            paddleProject.globalInterpreter.cachedVersions.map { VersionTuple(it, VersionTuple.CACHED) }
+        val localVariants =
+            paddleProject.globalInterpreter.localVersions.map { VersionTuple(it, VersionTuple.LOCAL) }
 
         result.withPrefixMatcher(PlainPrefixMatcher(prefix, true)).addAllElements(
-            localVariants
+            (cachedVariants + localVariants)
                 .map {
                     PrioritizedLookupElement.withPriority(
                         LookupElementBuilder.create(it.version.number).withTypeText(it.typeText, true),

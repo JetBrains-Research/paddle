@@ -48,3 +48,11 @@ fun File.isVenv(): Boolean {
         && resolve("include").exists()
         && resolve("pyvenv.cfg").exists()
 }
+
+fun File.deepResolve(vararg relatives: String): File {
+    return this.resolve(relatives.joinToString(File.separator))
+}
+
+fun Path.deepResolve(vararg relatives: String): Path {
+    return this.resolve(relatives.joinToString(File.separator))
+}

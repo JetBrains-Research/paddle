@@ -1,16 +1,19 @@
 package io.paddle.plugin.python.dependencies.repositories
 
-import io.paddle.plugin.python.PyLocations
 import io.paddle.plugin.python.dependencies.authentication.AuthInfo
-import io.paddle.plugin.python.dependencies.authentication.AuthenticationProvider
-import io.paddle.plugin.python.dependencies.index.PyPackageRepositoryIndexer
 import io.paddle.plugin.python.dependencies.index.distributions.PyDistributionInfo
+import io.paddle.plugin.python.dependencies.index.webIndexer
 import io.paddle.plugin.python.dependencies.index.wordlist.PackedWordList
 import io.paddle.plugin.python.dependencies.index.wordlist.PackedWordListSerializer
 import io.paddle.plugin.python.extensions.Repositories
+import io.paddle.plugin.python.extensions.pyLocations
 import io.paddle.plugin.python.utils.*
-import io.paddle.utils.hash.*
-import kotlinx.serialization.*
+import io.paddle.project.PaddleProject
+import io.paddle.utils.hash.Hashable
+import io.paddle.utils.hash.StringHashable
+import io.paddle.utils.hash.hashable
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
 import java.io.File
 
 @Serializable
@@ -62,17 +65,8 @@ class PyPackageRepository(
         }
     }
 
-    val authenticatedUrl: PyPackagesRepositoryUrl
-        get() = credentials.authenticate(url)
-
     @Transient
     val urlSimple: PyPackagesRepositoryUrl = url.join("simple")
-
-    val authenticatedUrlSimple: PyPackagesRepositoryUrl
-        get() = credentials.authenticate(urlSimple)
-
-    val credentials: Credentials
-        get() = AuthenticationProvider.resolveCredentials(url, authInfos)
 
     val metadata = Metadata(url, name, authInfos, uploadUrl)
 
@@ -93,9 +87,9 @@ class PyPackageRepository(
     @Transient
     val cacheFileName: String = "$uid.json"
 
-    suspend fun updateIndex() {
+    suspend fun updateIndex(project: PaddleProject) {
         val names = try {
-            PyPackageRepositoryIndexer.downloadPackagesNames(this)
+            project.webIndexer.downloadPackagesNames(this)
         } catch (e: Throwable) {
             throw IndexUpdateException("Failed to update index for repository ${urlSimple.getSecure()}.")
         }
@@ -118,6 +112,7 @@ class PyPackageRepository(
 
     suspend fun findAvailableDistributionsByPackageName(
         packageName: PyPackageName,
+        project: PaddleProject,
         useCache: Boolean = true
     ): List<PyDistributionInfo> {
         if (useCache && packageName in distributionsCache) {
@@ -125,7 +120,7 @@ class PyPackageRepository(
         }
 
         val distributions = try {
-            PyPackageRepositoryIndexer.downloadDistributionsList(packageName, this)
+            project.webIndexer.downloadDistributionsList(packageName, this)
         } catch (e: Throwable) {
             throw IndexUpdateException("Failed to download distributions list for package $packageName from repository ${urlSimple.getSecure()}.")
         }
@@ -133,8 +128,8 @@ class PyPackageRepository(
         return distributions.also { if (useCache) distributionsCache[packageName] = it }
     }
 
-    fun saveCache() {
-        PyLocations.indexDir.resolve(this.cacheFileName).toFile()
+    fun saveCache(project: PaddleProject) {
+        project.pyLocations.indexDir.resolve(this.cacheFileName).toFile()
             .writeText(jsonParser.encodeToString(serializer(), this))
     }
 

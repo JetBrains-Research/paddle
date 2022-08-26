@@ -1,56 +1,49 @@
 package io.paddle.execution
 
 import io.paddle.terminal.Terminal
-import io.paddle.terminal.TextOutput
+import org.codehaus.plexus.util.Os
 import java.io.File
 import java.util.function.Consumer
 
-abstract class CommandExecutor(val configuration: OutputConfiguration) {
-    data class OutputConfiguration(
-        val output: TextOutput,
-        val printStdout: Boolean = true,
-        val printStderr: Boolean = true
-    )
+interface CommandExecutor {
+    val os: OsInfo
 
-    open val runningProcesses: MutableSet<Process> = hashSetOf()
+    val env: EnvProvider
 
-    abstract fun execute(
+    val runningProcesses: MutableSet<Process>
+
+    fun execute(
         command: String,
         args: Iterable<String>,
         workingDir: File,
         terminal: Terminal,
-        envVars: Map<String, String> = emptyMap(),
-        verbose: Boolean = true
-    ): ExecutionResult
-
-    abstract fun execute(
-        command: String,
-        args: Iterable<String>,
-        workingDir: File,
-        terminal: Terminal,
-        envVars: Map<String, String> = emptyMap(),
+        env: Map<String, String> = emptyMap(),
         verbose: Boolean = true,
-        systemOut: Consumer<String>,
-        systemErr: Consumer<String>
+        systemOut: Consumer<String> = Consumer { terminal.stdout(it) },
+        systemErr: Consumer<String> = Consumer { terminal.stderr(it) }
     ): ExecutionResult
-}
 
-class ExecutionResult(private val code: Int) {
-    fun then(action: (Int) -> ExecutionResult): ExecutionResult =
-        if (code == 0) action.invoke(code)
-        else this
+    interface OsInfo {
+        val name: String
+        val arch: String
+        val userHome: String
 
-    fun orElse(action: (Int) -> ExecutionResult): ExecutionResult =
-        if (code == 0) this
-        else action.invoke(code)
+        val familyPep425: String
+            get() = when {
+                name.lowercase() == Os.FAMILY_WINDOWS -> "win"
+                name.lowercase() == Os.FAMILY_MAC -> "mac"
+                name.lowercase() == Os.FAMILY_UNIX -> "linux"
+                else -> error("Unknown OS family.")
+            }
 
-    fun orElseDo(onFail: (Int) -> Unit) {
-        if (code != 0) {
-            onFail.invoke(code)
-        }
+        val archPep425: String
+            get() = when {
+                "86" in arch && "64" in arch -> "x86_64"
+                "64" in arch && ("arm" in arch || "aarch" in arch) -> "arm64"
+                "64" in arch && "amd" in arch -> "amd64"
+                "32" in arch -> "32"
+                "86" in arch -> "86"
+                else -> error("Unknown OS architecture.")
+            }
     }
-
-    fun <T> expose(onSuccess: (Int) -> T, onFail: (Int) -> T): T =
-        if (code == 0) onSuccess.invoke(code)
-        else onFail.invoke(code)
 }

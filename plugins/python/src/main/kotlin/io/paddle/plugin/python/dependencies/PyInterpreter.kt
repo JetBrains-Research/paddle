@@ -5,7 +5,7 @@ import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
-import io.paddle.plugin.python.PyLocations
+import io.paddle.plugin.python.extensions.pyLocations
 import io.paddle.plugin.python.utils.*
 import io.paddle.project.PaddleProject
 import io.paddle.tasks.Task
@@ -32,7 +32,7 @@ class PyInterpreter(val path: Path, val version: Version) {
         }
 
         private fun findCachedInstallation(userDefinedVersion: Version, project: PaddleProject): PyInterpreter? {
-            val interpreterDir = PyLocations.interpretersDir.toFile().listFiles()
+            val interpreterDir = project.pyLocations.interpretersDir.toFile().listFiles()
                 ?.filter { it.isDirectory && Version(it.name).matches(userDefinedVersion) }
                 ?.maxByOrNull { Version(it.name) }
             val execFile = interpreterDir?.deepResolve(
@@ -68,21 +68,21 @@ class PyInterpreter(val path: Path, val version: Version) {
             }
         }
 
-        private fun getVersion(execFile: File): Version {
+        fun getVersion(pythonExecutable: File): Version {
             var currentVersionNumber: String? = null
             val processOutput = { line: String ->
                 currentVersionNumber = line.substringAfter("Python ", "").takeIf { it != "" }
             }
             CommandLineUtils.executeCommandLine(
                 Commandline().apply {
-                    executable = execFile.absolutePath
+                    executable = pythonExecutable.absolutePath
                     addArguments(listOf("--version").toTypedArray())
                 },
                 processOutput,
                 processOutput
             )
             return currentVersionNumber?.let { Version(it) }
-                ?: throw Task.ActException("Failed to determine version for interpreter: ${execFile.absolutePath}")
+                ?: throw Task.ActException("Failed to determine version for interpreter: ${pythonExecutable.absolutePath}")
         }
 
         // TODO: implement layers caching
@@ -93,7 +93,8 @@ class PyInterpreter(val path: Path, val version: Version) {
                         ?: throw Task.ActException("Can't find an appropriate version at $PYTHON_DISTRIBUTIONS_BASE_URL for version $userDefinedVersion")
 
                 project.terminal.info("Downloading interpreter ${matchedVersion.fullName}...")
-                val workDir = PyLocations.interpretersDir.resolve(matchedVersion.number).toFile().also { it.mkdirs() }
+                val workDir =
+                    project.pyLocations.interpretersDir.resolve(matchedVersion.number).toFile().also { it.mkdirs() }
 
                 val pythonDistName = "Python-${matchedVersion}"
                 val archiveDistName = "$pythonDistName.tgz"
@@ -158,11 +159,11 @@ class PyInterpreter(val path: Path, val version: Version) {
                 }
 
                 project.executor.run {
-                    execute("./configure", configureArgs, repoDir, envVars = envVars, terminal = project.terminal)
+                    execute("./configure", configureArgs, repoDir, env = envVars, terminal = project.terminal)
                         .then {
-                            execute("make", emptyList(), repoDir, envVars = envVars, terminal = project.terminal)
+                            execute("make", emptyList(), repoDir, env = envVars, terminal = project.terminal)
                         }.then {
-                            execute("make", listOf("install"), repoDir, envVars = envVars, terminal = project.terminal)
+                            execute("make", listOf("install"), repoDir, env = envVars, terminal = project.terminal)
                         }.orElseDo { code ->
                             throw Task.ActException("Failed to install interpreter $pythonDistName. Exit code is $code")
                         }
@@ -236,13 +237,7 @@ class PyInterpreter(val path: Path, val version: Version) {
                     .toSet()
             }
 
-            val cachedVersions: Collection<Version>
-                get() = PyLocations.interpretersDir.toFile().listFiles()
-                    ?.filter { it.isDirectory }
-                    ?.map { Version(it.name) }
-                    ?: emptyList()
-
-            val locallyInstalledVersions: Collection<Version>
+            val localVersions: Collection<Version>
                 get() = when {
                     Os.isFamily(Os.FAMILY_MAC) || Os.isFamily(Os.FAMILY_UNIX) ->
                         System.getenv("PATH").split(":").flatMap { path ->

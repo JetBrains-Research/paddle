@@ -6,8 +6,8 @@ import com.intellij.openapi.externalSystem.service.ui.command.line.CompletionTab
 import com.intellij.openapi.externalSystem.service.ui.completion.TextCompletionInfo
 import com.intellij.openapi.externalSystem.service.ui.project.path.WorkingDirectoryField
 import com.intellij.openapi.observable.properties.AtomicLazyProperty
+import com.intellij.openapi.observable.util.whenTextChanged
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.roots.ui.whenTextModified
 import io.paddle.project.PaddleProjectProvider
 import java.io.File
 import javax.swing.Icon
@@ -21,10 +21,12 @@ class PaddleCommandLineInfo(project: Project, workingDirectoryField: WorkingDire
     override val settingsHint: String = "Example: resolveInterpreter"
     override val settingsName: String = "Tasks and arguments"
 
-    override val tablesInfo: List<CompletionTableInfo> = listOf(PaddleTasksCompletionTableInfo(project, workingDirectoryField))
+    override val tablesInfo: List<CompletionTableInfo> =
+        listOf(PaddleTasksCompletionTableInfo(project, workingDirectoryField))
 
 
-    class PaddleTasksCompletionTableInfo(val project: Project, val workingDirectoryField: WorkingDirectoryField) : CompletionTableInfo {
+    class PaddleTasksCompletionTableInfo(val project: Project, val workingDirectoryField: WorkingDirectoryField) :
+        CompletionTableInfo {
         override val emptyState: String = "No Paddle tasks"
 
         override val dataColumnIcon: Icon = AllIcons.General.Gear
@@ -51,8 +53,8 @@ class PaddleCommandLineInfo(project: Project, workingDirectoryField: WorkingDire
         }
 
         init {
-            workingDirectoryField.whenTextModified {
-                completionInfoProperty.reset()
+            workingDirectoryField.whenTextChanged {
+                completionInfoProperty.set(emptyList())
             }
         }
     }

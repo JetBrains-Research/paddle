@@ -5,6 +5,7 @@ import io.paddle.execution.local.LocalCommandExecutor
 import io.paddle.plugin.Plugin
 import io.paddle.plugin.standard.extensions.Plugins
 import io.paddle.plugin.standard.extensions.plugins
+import io.paddle.project.extensions.Descriptor
 import io.paddle.project.extensions.Subprojects
 import io.paddle.schema.extensions.BaseJsonSchemaExtension
 import io.paddle.schema.extensions.JsonSchema
@@ -58,13 +59,16 @@ class PaddleProject internal constructor(
     var output: TextOutput = output
         set(value) {
             field = value
-            executor = LocalCommandExecutor(value)
+            executor = LocalCommandExecutor()
             terminal = Terminal(value)
             subprojects.forEach { it.output = value }
         }
-    var executor: CommandExecutor = LocalCommandExecutor(output)
+    var executor: CommandExecutor = LocalCommandExecutor()
     var terminal = Terminal(output)
 
+    init {
+        extensions.register(Descriptor.Extension.key, Descriptor.Extension.create(this))
+    }
 
     internal fun load(index: PaddleProjectIndex) {
         subprojects = Subprojects.create(this, index)

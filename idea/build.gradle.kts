@@ -18,6 +18,7 @@ dependencies {
     implementation(project(":plugins:ssh")) {
         exclude("org.slf4j")
     }
+    implementation("io.kotest:kotest-runner-junit5-jvm:5.4.1")
 }
 
 intellij {

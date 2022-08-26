@@ -1,0 +1,4 @@
+project: subproject-one
+
+subprojects:
+  - common
