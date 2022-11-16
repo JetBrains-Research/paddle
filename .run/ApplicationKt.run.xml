@@ -1,0 +1,12 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="ApplicationKt" type="JetRunConfigurationType" nameIsGenerated="true">
+    <option name="MAIN_CLASS_NAME" value="io.paddle.ApplicationKt" />
+    <module name="paddle.cli.main" />
+    <option name="PROGRAM_PARAMETERS" value="install" />
+    <shortenClasspath name="NONE" />
+    <option name="WORKING_DIRECTORY" value="example" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>
