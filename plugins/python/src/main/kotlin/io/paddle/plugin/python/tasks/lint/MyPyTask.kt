@@ -24,18 +24,13 @@ class MyPyTask(project: PaddleProject) : IncrementalTask(project) {
         get() = listOf(project.tasks.getOrFail("install"))
 
     override fun initialize() {
-        project.requirements.findByName("mypy")
-            ?: project.requirements.descriptors.add(
-                Requirements.Descriptor(
-                    name = "mypy",
-                    versionSpecifier = PyDefaultVersions.MYPY,
-                    type = Requirements.Descriptor.Type.DEV
-                )
-            )
         project.tasks.clean.locations.add(File(project.workDir, ".mypy_cache"))
     }
 
     override fun act() {
+        project.requirements.findByName("mypy")
+            ?: throw ActException("Package mypy is not installed. Please, add it to the requirements.dev section.")
+
         val files = (project.subprojects.map { it.roots.sources } + project.roots.sources).flatMap { src ->
             src.walkTopDown().asSequence().filter { file -> file.absolutePath.endsWith(".py") }
         }

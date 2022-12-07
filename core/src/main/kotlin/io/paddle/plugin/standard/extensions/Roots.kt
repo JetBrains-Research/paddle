@@ -15,22 +15,26 @@ val PaddleProject.roots: Roots
  * Note: it is supposed that each project has only one root of each type,
  * but inside these folders there could be any number of python packages.
  */
-class Roots(val sources: File, val tests: File, val resources: File, val dist: File) {
+class Roots(val sources: File, val tests: File, val srcResources: File, val testsResources: File, val dist: File) {
     object Extension : PaddleProject.Extension<Roots> {
         override val key: Extendable.Key<Roots> = Extendable.Key()
 
         override fun create(project: PaddleProject): Roots {
             val config = object : ConfigurationView("roots", project.config) {
                 val sources by string("sources", default = "src")
+                val srcResources by string("resources", default = "src/resources")
+
                 val tests by string("tests", default = "tests")
-                val resources by string("resources", default = "resources")
+                val testsResources by string("testsResources", default = "tests/resources")
+
                 val dist by string("dist", default = "dist")
             }
 
             return Roots(
                 sources = File(project.workDir, config.sources),
                 tests = File(project.workDir, config.tests),
-                resources = File(project.workDir, config.resources),
+                srcResources = File(project.workDir, config.srcResources),
+                testsResources = File(project.workDir, config.testsResources),
                 dist = File(project.workDir, config.dist)
             )
         }

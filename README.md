@@ -298,6 +298,7 @@ roots:
   sources: src/main
   tests: src/test
   resources: src/resources
+  testsResources: test/resources
   dist: build
 ```
 
@@ -307,7 +308,8 @@ roots:
   Generally speaking, this is not encouraged: the preferred way is "one Python package == one
   Paddle project".
 - `tests`: the path to the directory with tests  (`tests/` by default).
-- `resources`: the path to the directory with the project's resources (`resources/` by default).
+- `resources`: the path to the directory with the project's resources (`src/resources/` by default).
+- `testsResources`: the path to the directory with the project's test resources (`tests/resources/` by default).
 - `dist`: the path to the directory where the distribution files (e.g., `.whl`) are built and stored
   (`dist/` by default).
 - All the specified paths should be relative to the Paddle project's root directory.

@@ -42,14 +42,14 @@ internal class PaddleSingleProjectConfigurationTest {
 
     @Test
     fun `test default resources root initialization`() {
-        assertEquals(rootDir.resolve("resources"), project.roots.resources)
-        assertFalse(project.roots.resources.exists())
+        assertEquals(rootDir.resolve("resources"), project.roots.srcResources)
+        assertFalse(project.roots.srcResources.exists())
     }
 
     @Test
     fun `test default distributions root initialization`() {
         assertEquals(rootDir.resolve("dist"), project.roots.dist)
-        assertFalse(project.roots.resources.exists())
+        assertFalse(project.roots.srcResources.exists())
     }
 
     @Test

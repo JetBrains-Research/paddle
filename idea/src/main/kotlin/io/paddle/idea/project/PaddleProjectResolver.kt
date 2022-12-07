@@ -189,7 +189,8 @@ class PaddleProjectResolver : ExternalSystemProjectResolver<PaddleExecutionSetti
 
         rootData.storePath(ExternalSystemSourceType.SOURCE, project.roots.sources.canonicalPath)
         rootData.storePath(ExternalSystemSourceType.TEST, project.roots.tests.canonicalPath)
-        rootData.storePath(ExternalSystemSourceType.RESOURCE, project.roots.resources.canonicalPath)
+        rootData.storePath(ExternalSystemSourceType.RESOURCE, project.roots.srcResources.canonicalPath)
+        rootData.storePath(ExternalSystemSourceType.TEST_RESOURCE, project.roots.testsResources.canonicalPath)
 
         rootData.storePath(ExternalSystemSourceType.EXCLUDED, project.roots.dist.canonicalPath)
         rootData.storePath(ExternalSystemSourceType.EXCLUDED, project.workDir.resolve(".paddle").canonicalPath)

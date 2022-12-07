@@ -1,6 +1,6 @@
 FROM ubuntu:20.04 as downloader
 
-ARG VERSION='0.4.2'
+ARG VERSION='0.4.4'
 
 RUN apt-get update && apt-get -y install wget
 

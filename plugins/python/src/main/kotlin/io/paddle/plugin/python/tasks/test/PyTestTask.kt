@@ -53,14 +53,6 @@ class PyTestTask(
         get() = listOf(project.tasks.getOrFail("install"))
 
     override fun initialize() {
-        project.requirements.findByName("pytest")
-            ?: project.requirements.descriptors.add(
-                Requirements.Descriptor(
-                    name = "pytest",
-                    versionSpecifier = PyDefaultVersions.PYTEST,
-                    type = Requirements.Descriptor.Type.DEV
-                )
-            )
         project.tasks.clean.locations.addAll(
             project.workDir.walkTopDown()
                 .filter { it.isDirectory && it.name == ".pytest_cache" }
@@ -68,6 +60,9 @@ class PyTestTask(
     }
 
     override fun act() {
+        project.requirements.findByName("pytest")
+            ?: throw ActException("Package pytest is not installed. Please, add it to the requirements.dev section.")
+
         if (targets.isEmpty()) {
             project.terminal.error("No pytest targets detected. Stopping...")
             throw ActException("Pytest tests has failed.")

@@ -1,7 +1,7 @@
 package io.paddle.plugin.python.tasks.lint
 
-import io.paddle.plugin.python.PyDefaultVersions
-import io.paddle.plugin.python.extensions.*
+import io.paddle.plugin.python.extensions.environment
+import io.paddle.plugin.python.extensions.requirements
 import io.paddle.plugin.standard.extensions.roots
 import io.paddle.plugin.standard.tasks.clean
 import io.paddle.project.PaddleProject
@@ -24,18 +24,13 @@ class PyLintTask(project: PaddleProject) : IncrementalTask(project) {
         get() = listOf(project.tasks.getOrFail("install"))
 
     override fun initialize() {
-        project.requirements.findByName("pylint")
-            ?: project.requirements.descriptors.add(
-                Requirements.Descriptor(
-                    name = "pylint",
-                    versionSpecifier = PyDefaultVersions.PYLINT,
-                    type = Requirements.Descriptor.Type.DEV
-                )
-            )
         project.tasks.clean.locations.add(File(project.workDir, ".pylint_cache"))
     }
 
     override fun act() {
+        project.requirements.findByName("pylint")
+            ?: throw ActException("Package pylint is not installed. Please, add it to the requirements.dev section.")
+
         val files = (project.subprojects.map { it.roots.sources } + project.roots.sources).flatMap { src ->
             src.walkTopDown().asSequence().filter { file -> file.absolutePath.endsWith(".py") }
         }

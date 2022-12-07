@@ -1,11 +1,7 @@
 package io.paddle.plugin.python.tasks.publish
 
-import io.paddle.plugin.python.PyDefaultVersions
 import io.paddle.plugin.python.dependencies.authentication.authProvider
-import io.paddle.plugin.python.extensions.Requirements
-import io.paddle.plugin.python.extensions.environment
-import io.paddle.plugin.python.extensions.publishEnvironment
-import io.paddle.plugin.python.extensions.requirements
+import io.paddle.plugin.python.extensions.*
 import io.paddle.plugin.python.tasks.PythonPluginTaskGroups
 import io.paddle.plugin.standard.extensions.roots
 import io.paddle.project.PaddleProject
@@ -28,17 +24,12 @@ class TwinePublishTask(project: PaddleProject) : IncrementalTask(project) {
         get() = listOf(project.tasks.getOrFail("wheel")) + project.subprojects.getAllTasksById(this.id)
 
     override fun initialize() {
-        project.requirements.findByName("twine")
-            ?: project.requirements.descriptors.add(
-                Requirements.Descriptor(
-                    name = "twine",
-                    versionSpecifier = PyDefaultVersions.TWINE,
-                    type = Requirements.Descriptor.Type.DEV
-                )
-            )
     }
 
     override fun act() {
+        project.requirements.findByName("twine")
+            ?: throw ActException("Package twine is not installed. Please, add it to the requirements.dev section.")
+
         if (!project.roots.dist.exists()) {
             project.terminal.warn("${project.routeAsString} does not contain distributions root. Skipping...")
             return

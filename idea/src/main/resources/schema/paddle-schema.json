@@ -61,6 +61,10 @@
           "description": "A directory to place different resources",
           "type": "string"
         },
+        "testsResources": {
+          "description": "A directory to place tests resources",
+          "type": "string"
+        },
         "dist": {
           "description": "A build directory where distribution package will be created",
           "type": "string"
