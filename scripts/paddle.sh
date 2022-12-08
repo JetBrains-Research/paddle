@@ -2,8 +2,8 @@
 
 APP_NAME=Paddle
 
-LATEST_BUILD_INFO=$(curl -s https://api.github.com/repos/tanvd/paddle/releases/latest)
-CHANGELOG_URL='https://github.com/tanvd/paddle/blob/master/CHANGELOG.md'
+LATEST_BUILD_INFO=$(curl -s https://api.github.com/repos/JetBrains-Research/paddle/releases/latest)
+CHANGELOG_URL='https://github.com/JetBrains-Research/paddle/blob/master/CHANGELOG.md'
 PADDLE_HOME=$HOME/.local/share/paddle
 FIRST_ARG=$1
 

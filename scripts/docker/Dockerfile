@@ -4,7 +4,7 @@ ARG VERSION='0.4.4'
 
 RUN apt-get update && apt-get -y install wget
 
-RUN wget -O /paddle "https://github.com/TanVD/paddle/releases/download/v${VERSION}/paddle-${VERSION}-linux" && chmod +x /paddle
+RUN wget -O /paddle "https://github.com/JetBrains-Research/paddle/releases/download/v${VERSION}/paddle-${VERSION}-linux" && chmod +x /paddle
 
 FROM ubuntu:20.04 as paddle
 

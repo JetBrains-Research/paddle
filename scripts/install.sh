@@ -4,7 +4,7 @@ set -e
 
 BIN_PATH=$HOME/.local/bin
 BIN_NAME=paddle
-WRAPPER_URL='https://raw.githubusercontent.com/tanvd/paddle/master/scripts/paddle.sh'
+WRAPPER_URL='https://raw.githubusercontent.com/JetBrains-Research/paddle/master/scripts/paddle.sh'
 
 download_wrapper() {
   mkdir -p "${BIN_PATH}"
