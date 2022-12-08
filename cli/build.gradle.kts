@@ -9,6 +9,7 @@ plugins {
     id("com.github.breadmoirai.github-release") version "2.2.12" apply true
     id("tanvd.kosogor") version "1.0.12" apply true
     id("org.graalvm.buildtools.native") version "0.9.13"
+    application
 }
 
 dependencies {
@@ -78,4 +79,9 @@ graalvmNative {
 
 tasks.named<BuildNativeImageTask>("nativeCompile") {
     classpathJar.set(shadowJar.task.archiveFile)
+}
+
+application {
+    mainClass.set("io.paddle.ApplicationKt")
+    tasks.run.get().workingDir = rootProject.projectDir.resolve("example")
 }
