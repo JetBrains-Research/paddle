@@ -19,7 +19,7 @@ environment, running tasks, and much more.
 - [Why should I use Paddle?](#why-should-i-use-paddle)
 - [Getting started](#getting-started)
   - [Prerequisites](#prerequisites)
-  - [Installation](#installation)
+  - [Installation](#plugin-installation)
   - [Quick start](#quick-start)
 - [Key concepts](#key-concepts)
   - [Project](#project-concept)
@@ -108,7 +108,7 @@ a [native image](https://www.graalvm.org/22.1/reference-manual/native-image/) us
 macOS. You can
 still use plain `paddle-$version-all.jar` build with Java 8 (or higher).
 
-### Installation
+### Plugin Installation
 
 The preferable way to install Paddle is to download a PyCharm plugin from
 the [JetBrains Marketplace](https://plugins.jetbrains.com/plugin/17452-paddle).
@@ -129,16 +129,23 @@ anything else manually) and supports a bunch of features:
   ;
 - and more!
 
-If you are a hardcore command-line user and want to use the CLI tool, you can download it with 
-simple command:
+### CLI
+
+If you want to use the native binary image of the CLI tool, you can download it with the following simple commands:
 
 ```shell
 curl -s 'https://raw.githubusercontent.com/JetBrains-Research/paddle/master/scripts/install.sh' -o ./install.sh && chmod +x install.sh && ./install.sh && rm ./install.sh
 ```
-
 Paddle CLI wrapper will automatically detect your system and download necessary binary.
-Since right now native binaries are not supported for Windows and M1 platforms, wrapper will
-download JVM version in that case and will require JRE to run.
+
+
+Since right now native binaries are not supported for all OS types and platforms,
+you can directly download JVM version of the tool. 
+```shell
+curl -s 'https://raw.githubusercontent.com/JetBrains-Research/paddle/master/scripts/install.sh' -o ./install.sh && chmod +x install.sh && ./install.sh jar && rm ./install.sh
+```
+
+**Note**: it requires JRE to run.
 
 You can verify your installation by running:
 

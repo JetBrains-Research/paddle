@@ -7,20 +7,6 @@ CHANGELOG_URL='https://github.com/JetBrains-Research/paddle/blob/master/CHANGELO
 PADDLE_SHARE=$HOME/.local/share/paddle
 FIRST_ARG=$1
 
-get_bin_type() {
-  local return=''
-  if [[ "$OSTYPE" == "linux-gnu"* ]]; then
-    return='linux'
-  elif [[ "$OSTYPE" == "darwin"* ]]; then
-    return='mac'
-  elif [[ "$OSTYPE" == "cygwin" ]]; then
-    return='linux'
-  else
-    return='jar'
-  fi
-  echo "$return"
-}
-
 check_prerequisites() {
   local required_utils=$1
 
@@ -46,14 +32,10 @@ check_for_updates() {
   latest_ver=$(echo "${LATEST_BUILD_INFO}" | jq -r '.name')
 
   local bin_type
-  bin_type=$(get_bin_type)
+  bin_type='jar'
 
   local bin_name
-  if [[ "$bin_type" == "linux" || "$bin_type" == "mac" ]]; then
-    bin_name=${PADDLE_SHARE}/${APP_NAME}
-  else
-    bin_name="${PADDLE_SHARE}/${APP_NAME}.jar"
-  fi
+  bin_name="${PADDLE_SHARE}/${APP_NAME}.jar"
 
   if [[ ${latest_ver} == "" || ${latest_ver} == "null" ]]; then
     echo "WARNING: Couldn't connect to GitHub to check for updates."
@@ -81,15 +63,9 @@ check_for_updates() {
         fi
       done
       curl "$url_to_use" -L -s -o "${bin_name}" && echo "${latest_ver}" > "${PADDLE_SHARE}/version"
-
-      if [[ $bin_type == "mac" || $bin_type == "linux" ]]; then
-        chmod +x "${PADDLE_SHARE}/${APP_NAME}"
-      fi
-
       echo "Updated!"
     else
       echo "${latest_ver}" >"${PADDLE_SHARE}/skip-update"
-
       echo "Update to ${latest_ver} skipped."
       echo "You can always check for updates by running \"${APP_NAME} check-updates\""
     fi
@@ -104,14 +80,8 @@ check_for_updates() {
 }
 
 execute() {
-  local bin_type
-  bin_type=$(get_bin_type)
-  if [[ "$bin_type" == "linux" || "$bin_type" == "mac" ]]; then
-    "${PADDLE_SHARE}/${APP_NAME}" "$@"
-  else
-    check_prerequisites "java"
-    java -jar "${PADDLE_SHARE}/${APP_NAME}.jar" "$@"
-  fi
+  check_prerequisites "java"
+  java -jar "${PADDLE_SHARE}/${APP_NAME}.jar" "$@"
 }
 
 main() {

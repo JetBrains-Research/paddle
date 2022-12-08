@@ -4,11 +4,19 @@ set -e
 
 BIN_PATH=$HOME/.local/bin
 BIN_NAME=paddle
-WRAPPER_URL='https://raw.githubusercontent.com/JetBrains-Research/paddle/master/scripts/paddle.sh'
+PADDLE_WRAPPER_URL='https://raw.githubusercontent.com/JetBrains-Research/paddle/master/scripts/paddle.sh' # native image wrapper
+PADDLE_JAR_WRAPPER_URL='https://raw.githubusercontent.com/JetBrains-Research/paddle/master/scripts/paddle-jar.sh' # jar wrapper
+FIRST_ARG=$1
 
 download_wrapper() {
   mkdir -p "${BIN_PATH}"
-  curl -s ${WRAPPER_URL} -o "${BIN_PATH}/${BIN_NAME}"
+
+  if [[ ${FIRST_ARG} == "jar" ]]; then
+    curl -s ${PADDLE_JAR_WRAPPER_URL} -o "${BIN_PATH}/${BIN_NAME}"
+  else
+    curl -s ${PADDLE_WRAPPER_URL} -o "${BIN_PATH}/${BIN_NAME}"
+  fi
+
   chmod +x "${BIN_PATH}/${BIN_NAME}"
 }
 
