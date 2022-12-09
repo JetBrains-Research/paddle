@@ -12,6 +12,14 @@ plugins {
     application
 }
 
+application {
+    mainClass.set("io.paddle.ApplicationKt")
+    @Suppress("DEPRECATION")
+    mainClassName = "io.paddle.ApplicationKt" // required by shadowJar
+    tasks.run.get().workingDir = rootProject.projectDir.resolve("example")
+}
+
+
 dependencies {
     implementation(project(":core"))
     implementation(project(":plugins:python"))
@@ -81,7 +89,5 @@ tasks.named<BuildNativeImageTask>("nativeCompile") {
     classpathJar.set(shadowJar.task.archiveFile)
 }
 
-application {
-    mainClass.set("io.paddle.ApplicationKt")
-    tasks.run.get().workingDir = rootProject.projectDir.resolve("example")
-}
+
+
