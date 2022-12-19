@@ -9,7 +9,16 @@ plugins {
     id("com.github.breadmoirai.github-release") version "2.2.12" apply true
     id("tanvd.kosogor") version "1.0.12" apply true
     id("org.graalvm.buildtools.native") version "0.9.13"
+    application
 }
+
+application {
+    mainClass.set("io.paddle.ApplicationKt")
+    @Suppress("DEPRECATION")
+    mainClassName = "io.paddle.ApplicationKt" // required by shadowJar
+    tasks.run.get().workingDir = rootProject.projectDir.resolve("example")
+}
+
 
 dependencies {
     implementation(project(":core"))
@@ -79,3 +88,6 @@ graalvmNative {
 tasks.named<BuildNativeImageTask>("nativeCompile") {
     classpathJar.set(shadowJar.task.archiveFile)
 }
+
+
+

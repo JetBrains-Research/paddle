@@ -1,10 +1,10 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="Example Build" type="JetRunConfigurationType">
+  <configuration default="false" name="Example: Run Paddle CLI (Kotlin)" type="JetRunConfigurationType">
     <option name="MAIN_CLASS_NAME" value="io.paddle.ApplicationKt" />
-    <module name="paddle.app.main" />
-    <option name="PROGRAM_PARAMETERS" value="linter:pylint" />
+    <module name="paddle.cli.main" />
+    <option name="PROGRAM_PARAMETERS" value="run$main" />
     <shortenClasspath name="NONE" />
-    <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/example" />
+    <option name="WORKING_DIRECTORY" value="example" />
     <method v="2">
       <option name="Make" enabled="true" />
     </method>

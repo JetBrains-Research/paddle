@@ -21,6 +21,7 @@ class PythonScriptCommandLineStateProvider : PaddleTaskRunProfileStateProvider<R
             scriptParameters = task.arguments.joinToString(" ")
             sdkHome = module.pythonSdk?.homePath
             isModuleMode = task.isModuleMode
+            workingDirectory = context.moduleDir.absolutePath
         }
 
         updateBeforeRunTasks(task, context)
