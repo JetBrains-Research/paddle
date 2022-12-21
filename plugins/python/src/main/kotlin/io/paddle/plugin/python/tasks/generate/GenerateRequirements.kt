@@ -1,4 +1,4 @@
-package io.paddle.plugin.python.tasks.resolve
+package io.paddle.plugin.python.tasks.generate
 
 import io.paddle.plugin.python.extensions.requirements
 import io.paddle.plugin.python.tasks.PythonPluginTaskGroups
@@ -8,7 +8,7 @@ import io.paddle.tasks.incremental.IncrementalTask
 import java.io.File
 
 class GenerateRequirements(project: PaddleProject) : IncrementalTask(project) {
-    override val group: String = PythonPluginTaskGroups.RESOLVE
+    override val group: String = PythonPluginTaskGroups.GENERATE
     override val id: String = "requirements"
     override val dependencies: List<Task>
         get() = listOf(

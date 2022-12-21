@@ -4,6 +4,7 @@ import io.paddle.plugin.Plugin
 import io.paddle.plugin.python.dependencies.authentication.AuthenticationProvider
 import io.paddle.plugin.python.dependencies.index.PyPackageRepositoryIndexer
 import io.paddle.plugin.python.extensions.*
+import io.paddle.plugin.python.tasks.generate.GenerateRequirements
 import io.paddle.plugin.python.tasks.install.CiTask
 import io.paddle.plugin.python.tasks.install.InstallTask
 import io.paddle.plugin.python.tasks.install.LockTask
