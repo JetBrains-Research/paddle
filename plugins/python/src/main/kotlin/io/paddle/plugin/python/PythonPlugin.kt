@@ -10,9 +10,7 @@ import io.paddle.plugin.python.tasks.install.LockTask
 import io.paddle.plugin.python.tasks.lint.MyPyTask
 import io.paddle.plugin.python.tasks.lint.PyLintTask
 import io.paddle.plugin.python.tasks.publish.TwinePublishTask
-import io.paddle.plugin.python.tasks.resolve.ResolveInterpreterTask
-import io.paddle.plugin.python.tasks.resolve.ResolveRepositoriesTask
-import io.paddle.plugin.python.tasks.resolve.ResolveRequirementsTask
+import io.paddle.plugin.python.tasks.resolve.*
 import io.paddle.plugin.python.tasks.run.RunTask
 import io.paddle.plugin.python.tasks.test.PyTestTask
 import io.paddle.plugin.python.tasks.venv.VenvTask
@@ -45,7 +43,8 @@ object PythonPlugin : Plugin {
             MyPyTask(project),
             PyLintTask(project),
             WheelTask(project),
-            TwinePublishTask(project)
+            TwinePublishTask(project),
+            GenerateRequirements(project)
         ) + RunTask.from(project) + PyTestTask.from(project)
     }
 
