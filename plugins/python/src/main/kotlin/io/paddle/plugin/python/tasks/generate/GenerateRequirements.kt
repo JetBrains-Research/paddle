@@ -17,6 +17,6 @@ class GenerateRequirements(project: PaddleProject) : AbstractGenerateTask(projec
     }
 
     companion object {
-        private const val REQUIREMENTS_FILE = "requirements.txt"
+        const val REQUIREMENTS_FILE = "requirements.txt"
     }
 }
