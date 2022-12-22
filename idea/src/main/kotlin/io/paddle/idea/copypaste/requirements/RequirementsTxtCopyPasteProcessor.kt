@@ -1,4 +1,4 @@
-package io.paddle.idea.copypaste
+package io.paddle.idea.copypaste.requirements
 
 import com.intellij.codeInsight.editorActions.CopyPastePostProcessor
 import com.intellij.codeInsight.editorActions.TextBlockTransferableData

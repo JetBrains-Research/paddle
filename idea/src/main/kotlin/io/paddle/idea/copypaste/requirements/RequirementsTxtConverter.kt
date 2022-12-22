@@ -1,4 +1,4 @@
-package io.paddle.idea.copypaste
+package io.paddle.idea.copypaste.requirements
 
 import io.paddle.plugin.python.dependencies.packages.PyPackageMetadata
 import io.paddle.plugin.python.utils.*

@@ -124,7 +124,8 @@
         <ignoredFileProvider implementation="io.paddle.idea.vcs.PaddleIgnoredFileProvider"/>
 
         <!-- Copy-paste handlers -->
-        <copyPastePostProcessor implementation="io.paddle.idea.copypaste.RequirementsTxtCopyPasteProcessor"/>
+        <copyPastePostProcessor implementation="io.paddle.idea.copypaste.requirements.RequirementsTxtCopyPasteProcessor"/>
+        <copyPastePostProcessor implementation="io.paddle.idea.copypaste.poetry.PoetryCopyPasteProcessor"/>
     </extensions>
 
     <actions>
