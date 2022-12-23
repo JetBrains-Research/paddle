@@ -1,40 +1,18 @@
 package io.paddle.idea.copypaste.requirements
 
+import io.paddle.idea.copypaste.common.ConverterBase
 import io.paddle.plugin.python.dependencies.packages.PyPackageMetadata
 import io.paddle.plugin.python.utils.*
-import org.yaml.snakeyaml.DumperOptions
-import org.yaml.snakeyaml.Yaml
-import java.io.StringWriter
 
 @Suppress("UNCHECKED_CAST")
-class RequirementsTxtConverter private constructor(val requirements: List<String>, private val paddleConfig: MutableMap<String, Any>) {
-    val yaml: String
-        get() {
-            val writer = StringWriter()
-            Yaml(yamlDumpOptions).dump(paddleConfig, writer)
-            return writer.toString() + "\n"
-        }
+class RequirementsTxtConverter private constructor(paddleConfig: MutableMap<String, Any>) : ConverterBase(paddleConfig) {
 
-    val requirementsYaml: String
-        get() {
-            val writer = StringWriter()
-            Yaml(yamlDumpOptions).dump(paddleConfig.filterKeys { it == "requirements" }, writer)
-            return writer.toString() + "\n"
-        }
-
-    val repositoriesYaml: String
-        get() {
-            val writer = StringWriter()
-            Yaml(yamlDumpOptions).dump(paddleConfig.filterKeys { it == "repositories" }, writer)
-            return writer.toString() + "\n"
-        }
-
-    private val yamlDumpOptions = DumperOptions().apply { defaultFlowStyle = DumperOptions.FlowStyle.BLOCK }
+    override val sections = setOf("requirements", "repositories")
 
     companion object {
-        fun from(requirements: List<String>, paddleConfig: MutableMap<String, Any> = hashMapOf()): RequirementsTxtConverter {
+        private fun from(requirements: List<String>, paddleConfig: MutableMap<String, Any> = hashMapOf()): RequirementsTxtConverter {
             parseRequirementsTxt(requirements, paddleConfig)
-            return RequirementsTxtConverter(requirements, paddleConfig)
+            return RequirementsTxtConverter(paddleConfig)
         }
 
         fun from(fileText: String, paddleConfig: MutableMap<String, Any> = hashMapOf()): RequirementsTxtConverter {
@@ -82,12 +60,7 @@ class RequirementsTxtConverter private constructor(val requirements: List<String
                     line.substringAfter("--index-url ").getSimple()
             val name: String = url.getDefaultName()
 
-            val repos = config.getOrPut("repositories") { ArrayList<Map<String, Any>>() } as MutableList<Map<String, Any>>
-            if (isExtra && !repos.any { it["name"] == name && it["url"] == url && it["secondary"] == "True" }) {
-                repos.add(linkedMapOf("name" to name, "url" to url, "secondary" to "True"))
-            } else if (!isExtra && !repos.any { it["name"] == name && it["url"] == url && it["default"] == "True" }) {
-                repos.add(linkedMapOf("name" to name, "url" to url, "default" to "True"))
-            }
+            putRepo(config, isExtra, name, url)
         }
     }
 }

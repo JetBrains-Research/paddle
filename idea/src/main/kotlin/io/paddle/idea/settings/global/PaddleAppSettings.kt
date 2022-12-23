@@ -3,6 +3,8 @@ package io.paddle.idea.settings.global
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.*
 import com.intellij.util.xmlb.XmlSerializerUtil
+import io.paddle.idea.copypaste.common.ConverterType
+import kotlin.reflect.KMutableProperty0
 
 @State(
     name = "io.paddle.idea.settings.global.PaddleAppSettings",
@@ -22,6 +24,12 @@ class PaddleAppSettings : PersistentStateComponent<PaddleAppSettings> {
     companion object {
         fun getInstance(): PaddleAppSettings =
             ApplicationManager.getApplication().getService(PaddleAppSettings::class.java)
+
+        fun getDontShowDialogOnPasteBind(converterType: ConverterType): KMutableProperty0<Boolean> =
+            when (converterType) {
+                ConverterType.Poetry -> getInstance()::isDontShowDialogOnPoetryPaste
+                ConverterType.RequirementsTxt -> getInstance()::isDontShowDialogOnRequirementTxtPaste
+            }
     }
 
     override fun getState(): PaddleAppSettings = this

@@ -3,38 +3,16 @@ package io.paddle.idea.copypaste.poetry
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.node.ArrayNode
 import com.fasterxml.jackson.dataformat.toml.TomlMapper
+import io.paddle.idea.copypaste.common.ConverterBase
 import io.paddle.plugin.python.utils.*
-import org.yaml.snakeyaml.DumperOptions
-import org.yaml.snakeyaml.Yaml
-import java.io.StringWriter
 
 @Suppress("UNCHECKED_CAST")
-class PoetryConverter private constructor(val requirements: JsonNode, private val paddleConfig: MutableMap<String, Any>) {
+class PoetryConverter private constructor(paddleConfig: MutableMap<String, Any>) : ConverterBase(paddleConfig) {
 
-    val yaml: String
-        get() {
-            val writer = StringWriter()
-            Yaml(yamlDumpOptions).dump(paddleConfig, writer)
-            return writer.toString() + "\n"
-        }
-
-    fun getYamlSectionString(section: String): String {
-        val sectionMap = paddleConfig.filterKeys { it == section }
-        if (sectionMap.isEmpty()) return ""
-
-        val writer = StringWriter()
-        Yaml(yamlDumpOptions).dump(sectionMap, writer)
-        return writer.toString() + "\n"
-    }
-
-
-    val sections: Set<String> = setOf(
+    override val sections: Set<String> = setOf(
         "metadata", "environment", "requirements", "repositories"
     )
 
-    private val yamlDumpOptions = DumperOptions().apply {
-        defaultFlowStyle = DumperOptions.FlowStyle.BLOCK
-    }
 
     companion object {
         fun from(fileText: String, paddleConfig: MutableMap<String, Any> = hashMapOf()): PoetryConverter {
@@ -44,7 +22,7 @@ class PoetryConverter private constructor(val requirements: JsonNode, private va
 
         private fun from(tomlTree: JsonNode, paddleConfig: MutableMap<String, Any>): PoetryConverter {
             parsePoetryPyprojectToml(tomlTree, paddleConfig)
-            return PoetryConverter(tomlTree, paddleConfig)
+            return PoetryConverter(paddleConfig)
         }
 
 
@@ -80,9 +58,7 @@ class PoetryConverter private constructor(val requirements: JsonNode, private va
                     addRequirements(reqs, node, dependencyName, "dev", config)
                 }
 
-                val repos: MutableList<Map<String, Any>> by lazy {
-                    config.getOrPut("repositories") { ArrayList<Map<String, Any>>() } as MutableList<Map<String, Any>>
-                }
+
 
                 (get("source") as? ArrayNode)?.forEach { node ->
                     val repo = node.fields().asSequence().map {
@@ -90,13 +66,11 @@ class PoetryConverter private constructor(val requirements: JsonNode, private va
                     }.toMap()
 
                     val name = repo["name"] as String
-                    val url = repo["url"] as String
+                    val url: PyPackagesRepositoryUrl = (repo["url"] as String).getSimple()
                     val isExtra = repo["secondary"] as Boolean
-                    if (isExtra && !repos.any { it["name"] == name && it["url"] == url && it["secondary"] == "True" }) {
-                        repos.add(linkedMapOf("name" to name, "url" to url, "secondary" to "True"))
-                    } else if (!isExtra && !repos.any { it["name"] == name && it["url"] == url && it["default"] == "True" }) {
-                        repos.add(linkedMapOf("name" to name, "url" to url, "default" to "True"))
-                    }
+                    
+                    putRepo(config, isExtra, name, url)
+
                 }
             } ?: requirementsData.run { // in case user copied part of requirements
                 fields()?.asSequence()?.forEach { (name, node) ->
