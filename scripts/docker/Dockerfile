@@ -1,73 +1,24 @@
 FROM ubuntu:20.04 as downloader
 
-ARG VERSION='0.4.5'
+ARG PADDLE_VERSION='0.4.5'
 
 RUN apt-get update && apt-get -y install wget
-
-RUN wget -O /paddle "https://github.com/JetBrains-Research/paddle/releases/download/v${VERSION}/paddle-${VERSION}-linux" && chmod +x /paddle
-
-FROM ubuntu:20.04 as paddle
-
-RUN useradd -ms /bin/bash paddle
-USER paddle
-WORKDIR /home/paddle
-
-COPY --from=downloader /paddle /bin/paddle
-ENV PATH="${PATH}:/bin/paddle"
-
-ENTRYPOINT ["/bin/paddle"]
-
-FROM python:2.7-buster as paddle-py-2-7
-
-RUN useradd -ms /bin/bash paddle
-USER paddle
-WORKDIR /home/paddle
-
-COPY --from=downloader /paddle /bin/paddle
-ENV PATH="${PATH}:/bin/paddle"
-
-ENTRYPOINT ["/bin/paddle"]
-
-FROM python:3.7-buster as paddle-py-3-7
-
-RUN useradd -ms /bin/bash paddle
-USER paddle
-WORKDIR /home/paddle
-
-COPY --from=downloader /paddle /bin/paddle
-ENV PATH="${PATH}:/bin/paddle"
-
-ENTRYPOINT ["/bin/paddle"]
-
-FROM python:3.8-buster as paddle-py-3-8
-
-RUN useradd -ms /bin/bash paddle
-USER paddle
-WORKDIR /home/paddle
-
-COPY --from=downloader /paddle /bin/paddle
-ENV PATH="${PATH}:/bin/paddle"
-
-ENTRYPOINT ["/bin/paddle"]
+RUN wget -O /paddle.jar "https://github.com/JetBrains-Research/paddle/releases/download/v${PADDLE_VERSION}/paddle-${PADDLE_VERSION}-all.jar"
 
 FROM python:3.9-buster as paddle-py-3-9
 
-RUN useradd -ms /bin/bash paddle
-USER paddle
-WORKDIR /home/paddle
+# Install OpenJDK-11
+RUN apt-get update && \
+    apt-get install -y openjdk-11-jre-headless && \
+    apt-get clean;
 
-COPY --from=downloader /paddle /bin/paddle
-ENV PATH="${PATH}:/bin/paddle"
+# Fix certificate issues
+RUN apt-get update && \
+    apt-get install ca-certificates-java && \
+    apt-get clean && \
+    update-ca-certificates -f;
 
-ENTRYPOINT ["/bin/paddle"]
+COPY --from=downloader /paddle.jar /paddle.jar
+RUN echo "java -jar /paddle.jar \$@" >> /bin/paddle && chmod +x /bin/paddle
 
-FROM python:3.10-buster as paddle-py-3-10
-
-RUN useradd -ms /bin/bash paddle
-USER paddle
-WORKDIR /home/paddle
-
-COPY --from=downloader /paddle /bin/paddle
-ENV PATH="${PATH}:/bin/paddle"
-
-ENTRYPOINT ["/bin/paddle"]
+ENTRYPOINT ["paddle"]
