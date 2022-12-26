@@ -24,6 +24,7 @@ tasks:
   run:
     - entrypoint: main.py
       id: main
+
   test:
     pytest:
       - id: some_tests

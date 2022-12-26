@@ -45,7 +45,7 @@ class PyTestTask(
         }
     }
 
-    override val id: String = "pytest$$name"
+    override val id: String = name
 
     override val group: String = TaskDefaultGroups.TEST
 

@@ -34,8 +34,8 @@ class PaddleRunConfigurationProducer : AbstractExternalSystemRunConfigurationPro
 
         configuration.settings.taskNames = listOf(
             when {
-                element.getSuperParent(5)?.text?.startsWith("pytest") ?: false -> "pytest$$taskId"
-                element.getSuperParent(5)?.text?.startsWith("run") ?: false -> "run$$taskId"
+                element.getSuperParent(5)?.text?.startsWith("pytest") ?: false -> taskId
+                element.getSuperParent(5)?.text?.startsWith("run") ?: false -> taskId
                 element.text.startsWith("twine") -> "twine"
                 element.text.startsWith("requirements") -> "install"
                 else -> return false
@@ -61,7 +61,7 @@ class PaddleRunConfigurationProducer : AbstractExternalSystemRunConfigurationPro
         val taskNames = configuration.settings.taskNames.takeIf { it.isNotEmpty() } ?: return false
 
         return when (taskNames.first()) {
-            "run$$taskId", "pytest$$taskId" -> true
+            taskId, taskId -> true
             "twine" -> context.location?.psiElement?.text?.startsWith("twine") ?: false
             "install" -> context.location?.psiElement?.text?.startsWith("requirements") ?: false
             else -> false

@@ -28,7 +28,7 @@ job("Paddle / Release / Docker") {
         }
     }
 
-    val version = "0.4.4"
+    val version = "0.4.5"
 
     val types = listOf("2.7", "3.7", "3.8", "3.9", "3.10").map { "paddle-py-${it.replace(".", "-")}" } + listOf("paddle")
 

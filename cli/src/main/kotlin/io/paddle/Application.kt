@@ -6,6 +6,7 @@ import com.github.ajalt.clikt.parameters.arguments.optional
 import com.github.ajalt.clikt.parameters.options.flag
 import com.github.ajalt.clikt.parameters.options.option
 import io.paddle.project.PaddleProjectProvider
+import io.paddle.project.extensions.descriptor
 import io.paddle.tasks.Task
 import java.io.File
 
@@ -29,7 +30,7 @@ class Paddle : CliktCommand() {
 
                 var current = project
                 for (name in names.dropLast(1)) {
-                    current = current.subprojects.getByName(name) ?: error("Could not find project :$name")
+                    current = current.subprojects.getByName(name) ?: error("Could not find project :$name among subprojects of the current project :${current.descriptor.name}")
                 }
 
                 current.execute(taskId)

@@ -36,7 +36,7 @@ class RunTask(val name: String, val entrypoint: String, val arguments: List<Stri
         }
     }
 
-    override val id: String = "run$$name"
+    override val id: String = name
 
     override val group: String = TaskDefaultGroups.RUN
 
