@@ -2,13 +2,11 @@ package io.paddle
 
 import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.parameters.arguments.argument
-import com.github.ajalt.clikt.parameters.arguments.optional
-import com.github.ajalt.clikt.parameters.options.flag
-import com.github.ajalt.clikt.parameters.options.option
 import io.paddle.project.PaddleProjectProvider
 import io.paddle.project.extensions.descriptor
 import io.paddle.tasks.Task
 import java.io.File
+import kotlin.system.exitProcess
 
 class Paddle : CliktCommand() {
     private val taskRoute by argument(
@@ -38,7 +36,7 @@ class Paddle : CliktCommand() {
                 project.execute(taskId = taskRoute)
             }
         } catch (e: Task.ActException) {
-            return
+            exitProcess(1)
         }
     }
 }
