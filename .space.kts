@@ -28,19 +28,19 @@ job("Paddle / Release / Docker") {
         }
     }
 
-    val version = "0.4.5"
+    val version = "0.4.6"
 
-    val types = listOf("2.7", "3.7", "3.8", "3.9", "3.10").map { "paddle-py-${it.replace(".", "-")}" } + listOf("paddle")
+    val types = listOf("3.9").map { "paddle-py-${it.replace(".", "-")}" }
 
     for (type in types) {
-        docker {
+        kaniko {
             build {
                 context = "."
-                file = "./scripts/docker/Dockerfile"
+                dockerfile = "./scripts/docker/Dockerfile"
                 target = type
                 args["VERSION"] = version
             }
-            push(" registry.jetbrains.team/p/paddle/docker/${type}") {
+            push("registry.jetbrains.team/p/paddle/docker/${type}") {
                 tags(version)
             }
         }
