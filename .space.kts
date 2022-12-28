@@ -30,7 +30,7 @@ job("Paddle / Release / Docker") {
 
     val version = "0.4.7"
 
-    val types = listOf("3.9").map { "paddle-py-${it.replace(".", "-")}" }
+    val types = listOf("3.10, 3.9, 3.8, 2.7").map { "paddle-py-${it.replace(".", "-")}" }
 
     for (type in types) {
         kaniko {
