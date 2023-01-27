@@ -19,10 +19,10 @@ class Requirements(val project: PaddleProject, val descriptors: MutableList<Desc
     val resolved: Collection<PyPackage> by lazy {
         val installedPackages = project.environment.venv.pyPackages
         val resolvedPackages = try {
-            PipResolver.resolve(project)
+            PipResolver.resolve(project, false)
         } catch (e: PipResolver.RetrySignal) {
             project.terminal.warn("Retrying resolve...")
-            PipResolver.resolve(project)
+            PipResolver.resolve(project, e.disableCache)
         }
 
         // Uninstall packages which were removed from requirements of the project

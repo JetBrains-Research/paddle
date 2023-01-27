@@ -33,7 +33,7 @@ object PipResolver {
     private val SATISFIED_REQUIREMENT_REGEX =
         Regex("^Requirement already satisfied: (?<name>(.*?)?)(==| |<=|>=|<|>|~=|===|!=)(.*)in .*$")
 
-    fun resolve(project: PaddleProject): Set<PyPackage> = cached(
+    fun resolve(project: PaddleProject, disableCache: Boolean): Set<PyPackage> = cached(
         storage = project.pyLocations.pipResolverCachePath.toFile(),
         serializer = MapSerializer(String.serializer(), SetSerializer(PyPackage.serializer()))
     ) {
@@ -41,7 +41,7 @@ object PipResolver {
             project.requirements.descriptors.map { it.toString() } +
                     project.subprojects.flatMap { subproject -> subproject.requirements.resolved.map { it.toString() } }
         val pipResolveArgs =
-            listOf("-m", "pip", "resolve") + requirementsAsPipArgs + project.repositories.resolved.asPipArgs
+            listOf("-m", "pip", "resolve") + (if (disableCache) listOf("--no-cache-dir") else emptyList()) + requirementsAsPipArgs + project.repositories.resolved.asPipArgs
         val executable = project.environment.localInterpreterPath.absolutePathString()
         val input = (pipResolveArgs + executable).map { it.hashable() }.hashable().hash()
 
@@ -132,12 +132,15 @@ object PipResolver {
                         }
                         retry = true
                     } else {
-                        throw Task.ActException(
+                        project.terminal.warn(
                             "Distribution $filename was not found in the repository ${PyPackageRepository.PYPI_REPOSITORY.url.getSecure()}.\n" +
                                     "It is possible that it was resolved from your local cache, " +
                                     "which is deprecated since it is not available online anymore.\n" +
-                                    "Please, consider removing $distributionUrl from cache and re-running the task."
+                                    "Please, consider removing $distributionUrl from cache and re-running the task.\n" +
+                                    "Trying to run with disabled cache..."
                         )
+                         throw RetrySignal(true)
+
                     }
                 PyPackageRepository.PYPI_REPOSITORY
             } else {
@@ -149,7 +152,7 @@ object PipResolver {
             comesFromUrlByPackage[pkg] = comesFromDistributionUrl
         }
 
-        if (retry) throw RetrySignal()
+        if (retry) throw RetrySignal(false)
 
         // Restoring inter-package dependencies via 'comesFrom' field
         for ((pkg, comesFromDistributionUrl) in comesFromUrlByPackage) {
@@ -162,5 +165,5 @@ object PipResolver {
         return comesFromUrlByPackage.keys + satisfiedRequirements
     }
 
-    class RetrySignal : Exception()
+    class RetrySignal(val disableCache: Boolean) : Exception()
 }
