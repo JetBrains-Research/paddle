@@ -72,12 +72,13 @@ class TempVenvManager private constructor(val venv: VenvDir, val project: Paddle
     private val interpreterPath: Path
         get() = venv.getInterpreterPath(project)
 
-    fun install(pkg: PyPackage): ExecutionResult {
+    fun install(pkg: PyPackage, disableCache: Boolean = false): ExecutionResult {
         // Specifying index/extra-index urls is redundant since distributionUrl already contains it as a part of URI
         val credentials = project.authProvider.resolveCredentials(pkg.repo)
         return project.executor.execute(
             command = interpreterPath.absolutePathString(),
-            args = listOf("-m", "pip", "install", "--no-deps", credentials.authenticate(pkg.distributionUrl)),
+            args = listOf("-m", "pip", "install", "--no-deps", credentials.authenticate(pkg.distributionUrl)) +
+                (if (disableCache) listOf("--no-cache-dir") else emptyList()),
             workingDir = project.locations.paddleHome.toFile(),
             terminal = project.terminal
         ).also {

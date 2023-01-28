@@ -15,6 +15,8 @@ val PaddleProject.requirements: Requirements
     get() = checkNotNull(extensions.get(Requirements.Extension.key)) { "Could not load extension Requirements for project $routeAsString" }
 
 class Requirements(val project: PaddleProject, val descriptors: MutableList<Descriptor>) : Hashable {
+    var cacheWasDisabled = false
+        private set
 
     val resolved: Collection<PyPackage> by lazy {
         val installedPackages = project.environment.venv.pyPackages
@@ -22,7 +24,8 @@ class Requirements(val project: PaddleProject, val descriptors: MutableList<Desc
             PipResolver.resolve(project, false)
         } catch (e: PipResolver.RetrySignal) {
             project.terminal.warn("Retrying resolve...")
-            PipResolver.resolve(project, e.disableCache)
+            cacheWasDisabled = cacheWasDisabled || e.disableCache // in case we have more than 1 retry
+            PipResolver.resolve(project, cacheWasDisabled)
         }
 
         // Uninstall packages which were removed from requirements of the project

@@ -68,13 +68,13 @@ class GlobalCacheRepository private constructor(val project: PaddleProject) {
             pkg.version
         )
 
-    fun findOrInstallPackage(pkg: PyPackage): CachedPyPackage {
-        return cachedPackages.find { it.pkg == pkg && it.srcPath.exists() } ?: installToCache(pkg)
+    fun findOrInstallPackage(pkg: PyPackage, disableCache: Boolean): CachedPyPackage {
+        return cachedPackages.find { it.pkg == pkg && it.srcPath.exists() } ?: installToCache(pkg, disableCache)
     }
 
-    private fun installToCache(pkg: PyPackage): CachedPyPackage {
+    private fun installToCache(pkg: PyPackage, disableCache: Boolean): CachedPyPackage {
         val tempVenvManager = TempVenvManager.getInstance(project)
-        return tempVenvManager.install(pkg).expose(
+        return tempVenvManager.install(pkg, disableCache).expose(
             onSuccess = {
                 copyPackageRecursivelyFromTempVenv(pkg).also {
                     tempVenvManager.uninstall(pkg)
