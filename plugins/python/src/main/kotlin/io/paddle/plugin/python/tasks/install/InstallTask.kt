@@ -31,7 +31,7 @@ class InstallTask(project: PaddleProject) : IncrementalTask(project) {
             project.globalCache.sync()
             project.requirements.resolved
                 .minus(project.environment.venv.pyPackages)
-                .forEach { project.environment.install(it, project.requirements.cacheWasDisabled) }
+                .forEach { project.environment.install(it) }
         }
         project.terminal.info("Finished: ${duration}ms")
     }

@@ -6,6 +6,7 @@ import io.paddle.plugin.python.dependencies.resolvers.PipResolver
 import io.paddle.plugin.python.utils.PyPackageName
 import io.paddle.project.PaddleProject
 import io.paddle.project.extensions.routeAsString
+import io.paddle.tasks.Task
 import io.paddle.utils.ext.Extendable
 import io.paddle.utils.hash.Hashable
 import io.paddle.utils.hash.hashable
@@ -15,17 +16,17 @@ val PaddleProject.requirements: Requirements
     get() = checkNotNull(extensions.get(Requirements.Extension.key)) { "Could not load extension Requirements for project $routeAsString" }
 
 class Requirements(val project: PaddleProject, val descriptors: MutableList<Descriptor>) : Hashable {
-    var cacheWasDisabled = false
-        private set
-
     val resolved: Collection<PyPackage> by lazy {
         val installedPackages = project.environment.venv.pyPackages
         val resolvedPackages = try {
-            PipResolver.resolve(project, false)
+            PipResolver.resolve(project)
         } catch (e: PipResolver.RetrySignal) {
-            project.terminal.warn("Retrying resolve...")
-            cacheWasDisabled = cacheWasDisabled || e.disableCache // in case we have more than 1 retry
-            PipResolver.resolve(project, cacheWasDisabled)
+            if (project.pythonRegistry.autoRetry) {
+                project.terminal.warn("Retrying resolve...")
+                PipResolver.resolve(project)
+            } else {
+                throw Task.ActException("Retry is needed, but autoRetry option is set to false")
+            }
         }
 
         // Uninstall packages which were removed from requirements of the project

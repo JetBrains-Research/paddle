@@ -16,4 +16,6 @@ class PythonRegistry(project: PaddleProject) : ConfigurationView("python", proje
     }
 
     val autoRemove by bool("autoRemove", false)
+    val usePipCache by bool("usePipCache", true)
+    val autoRetry by bool("autoRetry", true)
 }

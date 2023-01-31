@@ -113,14 +113,14 @@ class Environment(val project: PaddleProject, val venv: VenvDir) : Hashable {
         )
     }
 
-    fun install(pkg: PyPackage, disableCache: Boolean = false) {
+    fun install(pkg: PyPackage) {
         // Exactly the same package has been already installed
         if (venv.hasInstalledPackage(pkg)) return
 
         // The package with the same name (but different version) had been installed previously and should be removed now
         venv.findPackageWithNameOrNull(pkg.name)?.let { uninstall(it) }
 
-        val cachedPkg = project.globalCache.findOrInstallPackage(pkg, disableCache)
+        val cachedPkg = project.globalCache.findOrInstallPackage(pkg)
         project.globalCache.createSymlinkToPackage(cachedPkg, venv)
     }
 

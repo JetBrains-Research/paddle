@@ -6,8 +6,8 @@ import io.paddle.plugin.python.dependencies.packages.CachedPyPackage.Companion.P
 import io.paddle.plugin.python.dependencies.packages.IResolvedPyPackage
 import io.paddle.plugin.python.dependencies.packages.PyPackage
 import io.paddle.plugin.python.dependencies.resolvers.PipResolver
-import io.paddle.plugin.python.extensions.environment
-import io.paddle.plugin.python.extensions.pyLocations
+import io.paddle.plugin.python.extensions.*
+import io.paddle.plugin.python.utils.PyUrl
 import io.paddle.plugin.python.utils.jsonParser
 import io.paddle.plugin.standard.extensions.locations
 import io.paddle.project.PaddleProject
@@ -72,13 +72,12 @@ class TempVenvManager private constructor(val venv: VenvDir, val project: Paddle
     private val interpreterPath: Path
         get() = venv.getInterpreterPath(project)
 
-    fun install(pkg: PyPackage, disableCache: Boolean = false): ExecutionResult {
+    fun install(pkg: PyPackage): ExecutionResult {
         // Specifying index/extra-index urls is redundant since distributionUrl already contains it as a part of URI
         val credentials = project.authProvider.resolveCredentials(pkg.repo)
         return project.executor.execute(
             command = interpreterPath.absolutePathString(),
-            args = listOf("-m", "pip", "install", "--no-deps", credentials.authenticate(pkg.distributionUrl)) +
-                (if (disableCache) listOf("--no-cache-dir") else emptyList()),
+            args = PipInstallArgs(noCacheDir = !project.pythonRegistry.usePipCache).addPackage(credentials.authenticate(pkg.distributionUrl)).args(),
             workingDir = project.locations.paddleHome.toFile(),
             terminal = project.terminal
         ).also {
@@ -98,5 +97,19 @@ class TempVenvManager private constructor(val venv: VenvDir, val project: Paddle
 
     fun getFilesRelatedToPackage(pkg: IResolvedPyPackage): List<File> {
         return InstalledPackageInfoDir.findByNameAndVersion(venv.sitePackages, pkg.name, pkg.version).files
+    }
+    private data class PipInstallArgs(val noDeps: Boolean = true, val noCacheDir: Boolean = false) {
+        private val _args = mutableListOf("-m", "pip", "install")
+
+        init {
+            if (noDeps) {
+                _args.add("--no-deps")
+            }
+            if (noCacheDir) {
+                _args.add("--no-cache-dir")
+            }
+        }
+        fun addPackage(url: PyUrl): PipInstallArgs =  this.copy().also { it._args.add(url) }
+        fun args(): List<String> = _args
     }
 }
