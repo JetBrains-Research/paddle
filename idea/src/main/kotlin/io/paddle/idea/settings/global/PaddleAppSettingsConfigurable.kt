@@ -25,5 +25,11 @@ class PaddleAppSettingsConfigurable : BoundSearchableConfigurable(
             checkBox("Don't show copy-paste dialog for requirements.txt next time")
                 .bindSelected(PaddleAppSettings.getInstance()::isDontShowDialogOnRequirementTxtPaste)
         }
+        row {
+            checkBox("Use pip cache in resolve and install").bindSelected(PaddleAppSettings.getInstance()::usePipCache)
+        }
+        row {
+            checkBox("Auto-reload on fail").bindSelected(PaddleAppSettings.getInstance()::autoReload)
+        }
     }
 }
