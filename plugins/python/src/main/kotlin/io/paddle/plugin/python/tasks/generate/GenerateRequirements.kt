@@ -1,6 +1,6 @@
 package io.paddle.plugin.python.tasks.generate
 
-import io.paddle.plugin.python.dependencies.repositories.PyPackageRepository
+import io.paddle.plugin.python.extensions.repositories
 import io.paddle.plugin.python.extensions.requirements
 import io.paddle.plugin.python.tasks.PythonPluginTaskGroups
 import io.paddle.project.PaddleProject
@@ -17,30 +17,21 @@ class GenerateRequirements(project: PaddleProject) : IncrementalTask(project) {
             project.tasks.getOrFail("resolveInterpreter")
         ) + project.subprojects.getAllTasksById(this.id)
 
+
     override fun act() {
+        // TODO: add support of find-links
         val notResolved = project.requirements.descriptors
         val resolved = project.requirements.resolved
-        val parsedDependencies = buildList {
-            notResolved.forEach { descriptor ->
-                val resolvedPackage = resolved.find { it.name == descriptor.name }
-                val resolvePath = resolvedPackage?.repo?.let {
-                    if (it != PyPackageRepository.PYPI_REPOSITORY) " @ ${resolvedPackage.distributionUrl} " else ""
-                } ?: "" // unresolved package?
-                descriptor.versionSpecifier?.clauses?.forEach { version ->
-                    add("${descriptor.name}$resolvePath $version")
-                } ?: add("${descriptor.name}$resolvePath")
-            }
-        }
-        processDependencies(parsedDependencies)
-    }
+        val requirementsFile = File(REQUIREMENTS_FILE).also { it.writeText("") }
 
-    private fun processDependencies(dependencies: List<String>) {
-        val requirementsFile = File(project.workDir, REQUIREMENTS_FILE)
-            .also { it.writeText("") }  // Clear file contents
-        requirementsFile.writeText("")
-        dependencies.forEach {
-            requirementsFile.appendText(it)
-            requirementsFile.appendText("\n")
+        // FIXME: local/packages with direct link are not printed correctly
+        notResolved.groupBy { descriptor -> resolved.find { it.name == descriptor.name }?.repo }.forEach { (repo, pkgs) ->
+            if (repo != null && repo != project.repositories.resolved.primarySource) {
+                requirementsFile.appendText("--extra-index-url ${repo.url}\n")
+            }
+            pkgs.forEach {
+                requirementsFile.appendText("${it.name}${it.versionSpecifier?.clauses?.joinToString(separator = ", ", prefix = " ") ?: ""}\n")
+            }
         }
     }
 
