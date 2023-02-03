@@ -32,9 +32,6 @@ dependencies {
 
     implementation("com.github.javakeyring:java-keyring:1.0.1")
 
-    implementation("com.akuleshov7:ktoml-core:0.3.0")
-    implementation("com.akuleshov7:ktoml-file:0.3.0")
-
     testImplementation("org.junit.jupiter:junit-jupiter:5.8.1")
     testImplementation("io.kotest:kotest-runner-junit5:5.4.1")
     testImplementation("io.kotest:kotest-assertions-core:5.4.1")
