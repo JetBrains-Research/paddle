@@ -37,15 +37,6 @@ val shadowJar = shadowJar {
 }.apply {
     task.archiveClassifier.set("all")
     task.archiveBaseName.set("paddle")
-
-    task.from(file("src/main/resources/version.txt").apply {
-        if (!exists()) {
-            parentFile.mkdirs()
-            createNewFile()
-        }
-
-        writeText(project.version.toString())
-    })
 }
 
 tasks.withType(GithubReleaseTask::class) {

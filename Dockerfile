@@ -1,6 +1,6 @@
 FROM ubuntu:20.04 as downloader
 
-ARG PADDLE_VERSION='0.4.7'
+ARG PADDLE_VERSION
 
 RUN apt-get update && apt-get -y install wget
 RUN wget -O /paddle.jar "https://github.com/JetBrains-Research/paddle/releases/download/v${PADDLE_VERSION}/paddle-${PADDLE_VERSION}-all.jar"

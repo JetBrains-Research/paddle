@@ -1,9 +1,12 @@
 name: release
 
-on: [ workflow_dispatch ]
+on:
+  push:
+    branches:
+      - main
 
 jobs:
-  build-jar:
+  publish-jar:
     runs-on: ubuntu-latest
     steps:
       - name: 'Checkout'
@@ -23,7 +26,7 @@ jobs:
         run: |
           echo "VERSION=$(./gradlew properties -q | grep "version:" | awk '{print $2}')" >> $GITHUB_ENV
 
-      - name: 'Publish JAR'
+      - name: 'Upload JAR'
         uses: actions/upload-artifact@v2
         with:
           name: 'paddle-${{ env.VERSION }}-all.jar'
@@ -61,9 +64,9 @@ jobs:
           name: 'upload_url.txt'
           path: 'upload_url.txt'
 
-  build-images:
+  publish-native-images:
     name: 'Build Linux & macOS Images'
-    needs: [ build-jar ]
+    needs: [ publish-jar ]
     strategy:
       matrix:
         os: [ 'ubuntu-latest', 'macos-latest' ]
@@ -150,3 +153,33 @@ jobs:
         env:
           MARKETPLACE_TOKEN: ${{ secrets.MARKETPLACE_TOKEN }}
         run: ./gradlew publishPlugin
+
+  publish-docker-images:
+    needs: [ publish-jar, publish-native-images ]
+    strategy:
+      matrix:
+        python-version: [ 3-10, 3-9, 3-8, 2-7 ]
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v3
+
+      - name: 'Get Version Number'
+        run: |
+          echo "VERSION=$(./gradlew properties -q | grep "version:" | awk '{print $2}')" >> $GITHUB_ENV
+
+      - name: Log in to Space registry
+        uses: docker/login-action@v2
+        with:
+          registry: registry.jetbrains.team/p/paddle/docker
+          username: ${{ secrets.SPACE_REGISTRY_USERNAME }}
+          password: ${{ secrets.SPACE_REGISTRY_PASSWORD }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          tags: paddle-py-${{ matrix.python-version }}:${{ env.VERSION }}
+          build-args:
+            VERSION=${{ env.version }}
