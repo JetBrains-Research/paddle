@@ -155,6 +155,7 @@ jobs:
         run: ./gradlew publishPlugin
 
   publish-docker-images:
+    runs-on: ubuntu-latest
     needs: [ publish-jar, publish-native-images ]
     strategy:
       matrix:
