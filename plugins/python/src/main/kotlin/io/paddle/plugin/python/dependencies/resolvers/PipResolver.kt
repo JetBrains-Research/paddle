@@ -7,15 +7,12 @@ import io.paddle.plugin.python.dependencies.packages.PyPackage
 import io.paddle.plugin.python.dependencies.repositories.PyPackageRepository
 import io.paddle.plugin.python.extensions.*
 import io.paddle.plugin.python.utils.*
-import io.paddle.plugin.python.utils.PipArgs
 import io.paddle.project.PaddleProject
 import io.paddle.project.extensions.routeAsString
 import io.paddle.tasks.Task
 import io.paddle.utils.hash.hashable
 import kotlinx.coroutines.runBlocking
-import kotlinx.serialization.builtins.MapSerializer
-import kotlinx.serialization.builtins.SetSerializer
-import kotlinx.serialization.builtins.serializer
+import kotlinx.serialization.builtins.*
 import java.io.File
 import java.net.URI
 import kotlin.io.path.absolutePathString
@@ -37,7 +34,7 @@ object PipResolver {
     ) {
         val requirementsAsPipArgs =
             project.requirements.descriptors.map { it.toString() } +
-                    project.subprojects.flatMap { subproject -> subproject.requirements.resolved.map { it.toString() } }
+                project.subprojects.flatMap { subproject -> subproject.requirements.resolved.map { it.toString() } }
 //        println(project.pythonRegistry.get<Boolean>("noCacheDir"))
         val pipResolveArgs = PipArgs.build("resolve") {
             noCacheDir = project.pythonRegistry.noCacheDir
@@ -80,8 +77,8 @@ object PipResolver {
                 val pkg = project.environment.venv.findPackageWithNameOrNull(name)
                     ?: throw Task.ActException(
                         "Could not find existing package $name in ${project.environment.venv.path}: " +
-                                "most probably, it does not contain PyPackage.json file in its .dist-info folder to be indexed. " +
-                                "Please, consider re-installing this package using Paddle."
+                            "most probably, it does not contain PyPackage.json file in its .dist-info folder to be indexed. " +
+                            "Please, consider re-installing this package using Paddle."
                     )
                 satisfiedRequirements.add(pkg)
             }
@@ -139,10 +136,10 @@ object PipResolver {
                         }
                         project.terminal.warn(
                             "Distribution $filename was not found in the repository ${PyPackageRepository.PYPI_REPOSITORY.url.getSecure()}.\n" +
-                                    "It is possible that it was resolved from your local cache, " +
-                                    "which is deprecated since it is not available online anymore.\n" +
-                                    "Please, consider removing $distributionUrl from cache and re-running the task.\n" +
-                                    "Or run again with disabled pip cache using `usePipCache: false`"
+                                "It is possible that it was resolved from your local cache, " +
+                                "which is deprecated since it is not available online anymore.\n" +
+                                "Please, consider removing $distributionUrl from cache and re-running the task.\n" +
+                                "Or run again with disabled pip cache using `usePipCache: false`"
                         )
                     }
                 PyPackageRepository.PYPI_REPOSITORY

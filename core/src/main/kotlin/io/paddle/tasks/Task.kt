@@ -1,5 +1,6 @@
 package io.paddle.tasks
 
+import io.paddle.plugin.standard.extensions.registry
 import io.paddle.project.PaddleProject
 import io.paddle.project.extensions.routeAsString
 import io.paddle.terminal.CommandOutput
@@ -68,7 +69,9 @@ abstract class Task(val project: PaddleProject) {
             throw e
         } catch (e: Throwable) {
             e.message?.let { project.terminal.error(it) }
-            project.terminal.error(e.stackTraceToString())
+            if (project.registry.showStackTrace) {
+                project.terminal.error(e.stackTraceToString())
+            }
             project.terminal.commands.stdout(
                 CommandOutput.Command.Task(taskRoute, CommandOutput.Command.Task.Status.FAILED)
             )
