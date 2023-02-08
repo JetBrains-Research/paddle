@@ -17,11 +17,11 @@ class PythonRegistry(project: PaddleProject) : ConfigurationView("python", proje
 
     // FIXME: bool(String, Boolean?) doesn't work. There is a workaround
     val autoRemove by lazy {
-        get<String>("autoRemove")?.toBoolean() ?: false
+        get<String>("autoRemove")?.toBoolean() ?: true
     }
     val noCacheDir by lazy {
         get<String>("noCacheDir")?.toBoolean() ?: false
-    } //bool("noCacheDir", false)
+    }
     val autoRetry by lazy {
         get<String>("autoRetry")?.toBoolean() ?: true
     }
