@@ -17,7 +17,7 @@ class PaddleAppSettings : PersistentStateComponent<PaddleAppSettings> {
 
     var onReload: TaskTypeOnProjectReload = TaskTypeOnProjectReload.INSTALL
     var isDontShowDialogOnRequirementTxtPaste: Boolean = false
-    var usePipCache: Boolean = false
+    var noCacheDir: Boolean = false
     var autoReload: Boolean = false
 
     companion object {

@@ -7,7 +7,7 @@ import io.paddle.plugin.python.dependencies.packages.IResolvedPyPackage
 import io.paddle.plugin.python.dependencies.packages.PyPackage
 import io.paddle.plugin.python.dependencies.resolvers.PipResolver
 import io.paddle.plugin.python.extensions.*
-import io.paddle.plugin.python.utils.PyUrl
+import io.paddle.plugin.python.utils.*
 import io.paddle.plugin.python.utils.jsonParser
 import io.paddle.plugin.standard.extensions.locations
 import io.paddle.project.PaddleProject
@@ -77,7 +77,11 @@ class TempVenvManager private constructor(val venv: VenvDir, val project: Paddle
         val credentials = project.authProvider.resolveCredentials(pkg.repo)
         return project.executor.execute(
             command = interpreterPath.absolutePathString(),
-            args = PipInstallArgs(noCacheDir = !project.pythonRegistry.usePipCache).addPackage(credentials.authenticate(pkg.distributionUrl)).args(),
+            args = PipArgs.build("install") {
+                packages = listOf(credentials.authenticate(pkg.distributionUrl))
+                noCacheDir = project.pythonRegistry.noCacheDir
+                noDeps = true
+            }.args,
             workingDir = project.locations.paddleHome.toFile(),
             terminal = project.terminal
         ).also {
@@ -97,19 +101,5 @@ class TempVenvManager private constructor(val venv: VenvDir, val project: Paddle
 
     fun getFilesRelatedToPackage(pkg: IResolvedPyPackage): List<File> {
         return InstalledPackageInfoDir.findByNameAndVersion(venv.sitePackages, pkg.name, pkg.version).files
-    }
-    private data class PipInstallArgs(val noDeps: Boolean = true, val noCacheDir: Boolean = false) {
-        private val _args = mutableListOf("-m", "pip", "install")
-
-        init {
-            if (noDeps) {
-                _args.add("--no-deps")
-            }
-            if (noCacheDir) {
-                _args.add("--no-cache-dir")
-            }
-        }
-        fun addPackage(url: PyUrl): PipInstallArgs =  this.copy().also { it._args.add(url) }
-        fun args(): List<String> = _args
     }
 }

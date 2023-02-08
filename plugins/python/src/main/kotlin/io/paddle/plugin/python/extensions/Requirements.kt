@@ -25,7 +25,11 @@ class Requirements(val project: PaddleProject, val descriptors: MutableList<Desc
                 project.terminal.warn("Retrying resolve...")
                 PipResolver.resolve(project)
             } else {
-                throw Task.ActException("Retry is needed, but autoRetry option is set to false")
+                throw Task.ActException(
+                    "Resolution failed due to issues with local pip's cache. " +
+                        "You can either activate `autoRetry` option in the settings/registry, " +
+                        "or disable pip's default caching for Paddle resolve/install commands (check `noCacheDir` option)"
+                )
             }
         }
 

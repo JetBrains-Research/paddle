@@ -26,10 +26,10 @@ class PaddleAppSettingsConfigurable : BoundSearchableConfigurable(
                 .bindSelected(PaddleAppSettings.getInstance()::isDontShowDialogOnRequirementTxtPaste)
         }
         row {
-            checkBox("Use pip cache in resolve and install").bindSelected(PaddleAppSettings.getInstance()::usePipCache)
+            checkBox("Disable pip's caching behaviour (pass --no-cache-dir flag)").bindSelected(PaddleAppSettings.getInstance()::noCacheDir)
         }
         row {
-            checkBox("Auto-reload on fail").bindSelected(PaddleAppSettings.getInstance()::autoReload)
+            checkBox("Replace cached wheels with newer versions from PyPI if possible").bindSelected(PaddleAppSettings.getInstance()::autoReload)
         }
     }
 }

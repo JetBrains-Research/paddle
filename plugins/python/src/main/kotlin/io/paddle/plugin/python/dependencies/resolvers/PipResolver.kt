@@ -6,10 +6,8 @@ import io.paddle.plugin.python.dependencies.index.webIndexer
 import io.paddle.plugin.python.dependencies.packages.PyPackage
 import io.paddle.plugin.python.dependencies.repositories.PyPackageRepository
 import io.paddle.plugin.python.extensions.*
-import io.paddle.plugin.python.utils.PyPackageUrl
-import io.paddle.plugin.python.utils.cached
-import io.paddle.plugin.python.utils.getSecure
-import io.paddle.plugin.python.utils.trimmedEquals
+import io.paddle.plugin.python.utils.*
+import io.paddle.plugin.python.utils.PipArgs
 import io.paddle.project.PaddleProject
 import io.paddle.project.extensions.routeAsString
 import io.paddle.tasks.Task
@@ -40,11 +38,12 @@ object PipResolver {
         val requirementsAsPipArgs =
             project.requirements.descriptors.map { it.toString() } +
                     project.subprojects.flatMap { subproject -> subproject.requirements.resolved.map { it.toString() } }
-        val pipResolveArgs =
-            listOf("-m", "pip", "resolve") +
-                (if (project.pythonRegistry.usePipCache) listOf("--no-cache-dir") else emptyList()) +
-                requirementsAsPipArgs +
-                project.repositories.resolved.asPipArgs
+//        println(project.pythonRegistry.get<Boolean>("noCacheDir"))
+        val pipResolveArgs = PipArgs.build("resolve") {
+            noCacheDir = project.pythonRegistry.noCacheDir
+            packages = requirementsAsPipArgs
+            additionalArgs = project.repositories.resolved.asPipArgs
+        }.args
         val executable = project.environment.localInterpreterPath.absolutePathString()
         val input = (pipResolveArgs + executable).map { it.hashable() }.hashable().hash()
 
@@ -135,7 +134,7 @@ object PipResolver {
                         }
                         retry = true
                     } else {
-                        if (!project.pythonRegistry.usePipCache) {
+                        if (!project.pythonRegistry.noCacheDir) {
                             throw Task.ActException("Failed to find distribution $filename  in the repository ${PyPackageRepository.PYPI_REPOSITORY.url.getSecure()}")
                         }
                         project.terminal.warn(
