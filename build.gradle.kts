@@ -1,5 +1,7 @@
+val paddleVersion: String by project
+
 group = "io.paddle"
-version = "0.4.8"
+version = paddleVersion
 
 plugins {
     kotlin("jvm") version "1.7.10" apply false

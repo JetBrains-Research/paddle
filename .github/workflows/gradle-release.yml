@@ -1,9 +1,6 @@
 name: release
 
-on:
-  push:
-    branches:
-      - main
+on: [ workflow_dispatch ]
 
 jobs:
   publish-jar:
@@ -24,7 +21,7 @@ jobs:
 
       - name: 'Get Version Number'
         run: |
-          echo "VERSION=$(./gradlew properties -q | grep "version:" | awk '{print $2}')" >> $GITHUB_ENV
+          echo "VERSION=$(cat gradle.properties | grep paddleVersion= | awk -F "=" '{print $2}')" >> $GITHUB_ENV
 
       - name: 'Upload JAR'
         uses: actions/upload-artifact@v2
@@ -98,7 +95,7 @@ jobs:
 
       - name: 'Get Version Number'
         run: |
-          echo "VERSION=$(./gradlew properties -q | grep "version:" | awk '{print $2}')" >> $GITHUB_ENV
+          echo "VERSION=$(cat gradle.properties | grep paddleVersion= | awk -F "=" '{print $2}')" >> $GITHUB_ENV
 
       - name: 'Get JAR Artifact'
         uses: actions/download-artifact@v2
@@ -156,7 +153,7 @@ jobs:
 
   publish-docker-images:
     runs-on: ubuntu-latest
-    needs: [ publish-jar, publish-native-images ]
+    needs: [ publish-jar ]
     strategy:
       matrix:
         python-version: [ 3-10, 3-9, 3-8, 2-7 ]
@@ -166,7 +163,7 @@ jobs:
 
       - name: 'Get Version Number'
         run: |
-          echo "VERSION=$(./gradlew properties -q | grep "version:" | awk '{print $2}')" >> $GITHUB_ENV
+          echo "VERSION=$(cat gradle.properties | grep paddleVersion= | awk -F "=" '{print $2}')" >> $GITHUB_ENV
 
       - name: Log in to Space registry
         uses: docker/login-action@v2
@@ -183,4 +180,4 @@ jobs:
           push: true
           tags: paddle-py-${{ matrix.python-version }}:${{ env.VERSION }}
           build-args:
-            VERSION=${{ env.version }}
+            PADDLE_VERSION=${{ env.version }}
