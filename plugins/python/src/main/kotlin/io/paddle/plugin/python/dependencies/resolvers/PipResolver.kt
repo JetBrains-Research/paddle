@@ -35,7 +35,6 @@ object PipResolver {
         val requirementsAsPipArgs =
             project.requirements.descriptors.map { it.toString() } +
                 project.subprojects.flatMap { subproject -> subproject.requirements.resolved.map { it.toString() } }
-//        println(project.pythonRegistry.get<Boolean>("noCacheDir"))
         val pipResolveArgs = PipArgs.build("resolve") {
             noCacheDir = project.pythonRegistry.noCacheDir
             packages = requirementsAsPipArgs

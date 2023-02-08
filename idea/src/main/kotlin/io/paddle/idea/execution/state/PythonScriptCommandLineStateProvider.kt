@@ -5,6 +5,7 @@ import com.intellij.openapi.module.ModuleManager
 import com.jetbrains.python.run.*
 import com.jetbrains.python.sdk.basePath
 import com.jetbrains.python.sdk.pythonSdk
+import io.paddle.plugin.python.extensions.environment
 import io.paddle.plugin.python.tasks.run.RunTask
 import kotlin.io.path.absolutePathString
 
@@ -22,6 +23,9 @@ class PythonScriptCommandLineStateProvider : PaddleTaskRunProfileStateProvider<R
             sdkHome = module.pythonSdk?.homePath
             isModuleMode = task.isModuleMode
             workingDirectory = context.moduleDir.absolutePath
+            setEnvs(mapOf("PYTHONPATH" to task.project.environment.pythonPath))
+            setAddContentRoots(false)
+            setAddSourceRoots(false)
         }
 
         updateBeforeRunTasks(task, context)

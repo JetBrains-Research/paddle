@@ -9,6 +9,7 @@ import com.jetbrains.python.sdk.basePath
 import com.jetbrains.python.sdk.pythonSdk
 import com.jetbrains.python.testing.*
 import io.paddle.plugin.python.dependencies.pytest.PyTestTarget
+import io.paddle.plugin.python.extensions.environment
 import io.paddle.plugin.python.tasks.test.PyTestTask
 
 class PyPyTestExecutionEnvironmentProvider : PaddleTaskRunProfileStateProvider<PyTestTask> {
@@ -45,6 +46,9 @@ class PyPyTestExecutionEnvironmentProvider : PaddleTaskRunProfileStateProvider<P
                 additionalArguments = task.additionalArgs.joinToString(" ")
                 sdkHome = module.pythonSdk?.homePath
                 workingDirectory = task.project.workDir.canonicalPath
+                envs = mapOf("PYTHONPATH" to task.project.environment.pythonPath)
+                setAddContentRoots(false)
+                setAddSourceRoots(false)
             }
             return pyTestConfiguration
         }
