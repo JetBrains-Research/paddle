@@ -6,10 +6,8 @@ import io.paddle.plugin.python.dependencies.index.webIndexer
 import io.paddle.plugin.python.dependencies.packages.PyPackage
 import io.paddle.plugin.python.dependencies.repositories.PyPackageRepository
 import io.paddle.plugin.python.extensions.*
-import io.paddle.plugin.python.utils.PyPackageUrl
-import io.paddle.plugin.python.utils.cached
-import io.paddle.plugin.python.utils.getSecure
-import io.paddle.plugin.python.utils.trimmedEquals
+import io.paddle.plugin.python.utils.*
+import io.paddle.plugin.python.utils.PipArgs
 import io.paddle.project.PaddleProject
 import io.paddle.project.extensions.routeAsString
 import io.paddle.tasks.Task
@@ -40,8 +38,12 @@ object PipResolver {
         val requirementsAsPipArgs =
             project.requirements.descriptors.map { it.toString() } +
                     project.subprojects.flatMap { subproject -> subproject.requirements.resolved.map { it.toString() } }
-        val pipResolveArgs =
-            listOf("-m", "pip", "resolve") + requirementsAsPipArgs + project.repositories.resolved.asPipArgs
+//        println(project.pythonRegistry.get<Boolean>("noCacheDir"))
+        val pipResolveArgs = PipArgs.build("resolve") {
+            noCacheDir = project.pythonRegistry.noCacheDir
+            packages = requirementsAsPipArgs
+            additionalArgs = project.repositories.resolved.asPipArgs
+        }.args
         val executable = project.environment.localInterpreterPath.absolutePathString()
         val input = (pipResolveArgs + executable).map { it.hashable() }.hashable().hash()
 
@@ -132,11 +134,15 @@ object PipResolver {
                         }
                         retry = true
                     } else {
-                        throw Task.ActException(
+                        if (!project.pythonRegistry.noCacheDir) {
+                            throw Task.ActException("Failed to find distribution $filename  in the repository ${PyPackageRepository.PYPI_REPOSITORY.url.getSecure()}")
+                        }
+                        project.terminal.warn(
                             "Distribution $filename was not found in the repository ${PyPackageRepository.PYPI_REPOSITORY.url.getSecure()}.\n" +
                                     "It is possible that it was resolved from your local cache, " +
                                     "which is deprecated since it is not available online anymore.\n" +
-                                    "Please, consider removing $distributionUrl from cache and re-running the task."
+                                    "Please, consider removing $distributionUrl from cache and re-running the task.\n" +
+                                    "Or run again with disabled pip cache using `usePipCache: false`"
                         )
                     }
                 PyPackageRepository.PYPI_REPOSITORY
@@ -162,5 +168,5 @@ object PipResolver {
         return comesFromUrlByPackage.keys + satisfiedRequirements
     }
 
-    class RetrySignal : Exception()
+    class RetrySignal() : Exception()
 }

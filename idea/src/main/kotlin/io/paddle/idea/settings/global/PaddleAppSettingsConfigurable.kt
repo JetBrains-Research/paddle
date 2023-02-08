@@ -25,5 +25,11 @@ class PaddleAppSettingsConfigurable : BoundSearchableConfigurable(
             checkBox("Don't show copy-paste dialog for requirements.txt next time")
                 .bindSelected(PaddleAppSettings.getInstance()::isDontShowDialogOnRequirementTxtPaste)
         }
+        row {
+            checkBox("Disable pip's caching behaviour (pass --no-cache-dir flag)").bindSelected(PaddleAppSettings.getInstance()::noCacheDir)
+        }
+        row {
+            checkBox("Replace cached wheels with newer versions from PyPI if possible").bindSelected(PaddleAppSettings.getInstance()::autoReload)
+        }
     }
 }

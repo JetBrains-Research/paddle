@@ -6,8 +6,8 @@ import io.paddle.plugin.python.dependencies.packages.CachedPyPackage.Companion.P
 import io.paddle.plugin.python.dependencies.packages.IResolvedPyPackage
 import io.paddle.plugin.python.dependencies.packages.PyPackage
 import io.paddle.plugin.python.dependencies.resolvers.PipResolver
-import io.paddle.plugin.python.extensions.environment
-import io.paddle.plugin.python.extensions.pyLocations
+import io.paddle.plugin.python.extensions.*
+import io.paddle.plugin.python.utils.*
 import io.paddle.plugin.python.utils.jsonParser
 import io.paddle.plugin.standard.extensions.locations
 import io.paddle.project.PaddleProject
@@ -77,7 +77,11 @@ class TempVenvManager private constructor(val venv: VenvDir, val project: Paddle
         val credentials = project.authProvider.resolveCredentials(pkg.repo)
         return project.executor.execute(
             command = interpreterPath.absolutePathString(),
-            args = listOf("-m", "pip", "install", "--no-deps", credentials.authenticate(pkg.distributionUrl)),
+            args = PipArgs.build("install") {
+                packages = listOf(credentials.authenticate(pkg.distributionUrl))
+                noCacheDir = project.pythonRegistry.noCacheDir
+                noDeps = true
+            }.args,
             workingDir = project.locations.paddleHome.toFile(),
             terminal = project.terminal
         ).also {

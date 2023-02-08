@@ -6,6 +6,7 @@ import io.paddle.plugin.python.dependencies.resolvers.PipResolver
 import io.paddle.plugin.python.utils.PyPackageName
 import io.paddle.project.PaddleProject
 import io.paddle.project.extensions.routeAsString
+import io.paddle.tasks.Task
 import io.paddle.utils.ext.Extendable
 import io.paddle.utils.hash.Hashable
 import io.paddle.utils.hash.hashable
@@ -15,14 +16,21 @@ val PaddleProject.requirements: Requirements
     get() = checkNotNull(extensions.get(Requirements.Extension.key)) { "Could not load extension Requirements for project $routeAsString" }
 
 class Requirements(val project: PaddleProject, val descriptors: MutableList<Descriptor>) : Hashable {
-
     val resolved: Collection<PyPackage> by lazy {
         val installedPackages = project.environment.venv.pyPackages
         val resolvedPackages = try {
             PipResolver.resolve(project)
         } catch (e: PipResolver.RetrySignal) {
-            project.terminal.warn("Retrying resolve...")
-            PipResolver.resolve(project)
+            if (project.pythonRegistry.autoRetry) {
+                project.terminal.warn("Retrying resolve...")
+                PipResolver.resolve(project)
+            } else {
+                throw Task.ActException(
+                    "Resolution failed due to issues with local pip's cache. " +
+                        "You can either activate `autoRetry` option in the settings/registry, " +
+                        "or disable pip's default caching for Paddle resolve/install commands (check `noCacheDir` option)"
+                )
+            }
         }
 
         // Uninstall packages which were removed from requirements of the project
