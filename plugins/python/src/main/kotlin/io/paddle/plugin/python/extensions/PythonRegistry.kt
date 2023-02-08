@@ -15,14 +15,5 @@ class PythonRegistry(project: PaddleProject) : ConfigurationView("python", proje
         override fun create(project: PaddleProject) = PythonRegistry(project)
     }
 
-    // FIXME: bool(String, Boolean?) doesn't work. There is a workaround
-    val autoRemove by lazy {
-        get<String>("autoRemove")?.toBoolean() ?: false
-    }
-    val noCacheDir by lazy {
-        get<String>("noCacheDir")?.toBoolean() ?: false
-    } //bool("noCacheDir", false)
-    val autoRetry by lazy {
-        get<String>("autoRetry")?.toBoolean() ?: true
-    }
+    val autoRemove by bool("autoRemove", false)
 }
