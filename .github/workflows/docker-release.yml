@@ -1,0 +1,34 @@
+name: docker-release
+
+on: [ workflow_dispatch ]
+
+jobs:
+  publish-docker-images:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [ 3-10, 3-9, 3-8, 2-7 ]
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v3
+
+      - name: 'Get Version Number'
+        run: |
+          echo "VERSION=$(cat gradle.properties | grep paddleVersion= | awk -F "=" '{print $2}')" >> $GITHUB_ENV
+
+      - name: Log in to Space registry
+        uses: docker/login-action@v2
+        with:
+          registry: registry.jetbrains.team/p/paddle/docker
+          username: ${{ secrets.SPACE_REGISTRY_USERNAME }}
+          password: ${{ secrets.SPACE_REGISTRY_PASSWORD }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          tags: paddle-py-${{ matrix.python-version }}:${{ env.VERSION }}
+          build-args:
+            PADDLE_VERSION=${{ env.VERSION }}
