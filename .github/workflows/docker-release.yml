@@ -19,7 +19,7 @@ jobs:
       - name: Log in to Space registry
         uses: docker/login-action@v2
         with:
-          registry: registry.jetbrains.team/p/paddle/docker
+          registry: registry.jetbrains.team
           username: ${{ secrets.SPACE_REGISTRY_USERNAME }}
           password: ${{ secrets.SPACE_REGISTRY_PASSWORD }}
 
@@ -29,6 +29,7 @@ jobs:
           context: .
           file: ./Dockerfile
           push: true
-          tags: paddle-py-${{ matrix.python-version }}:${{ env.VERSION }}
+          tags: registry.jetbrains.team/p/paddle/docker/paddle-py-${{ matrix.python-version }}:${{ env.VERSION }}
+          target: paddle-py-${{ matrix.python-version }}
           build-args:
             PADDLE_VERSION=${{ env.VERSION }}
