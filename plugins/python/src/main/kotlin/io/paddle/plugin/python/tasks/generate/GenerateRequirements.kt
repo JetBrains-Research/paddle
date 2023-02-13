@@ -1,7 +1,8 @@
 package io.paddle.plugin.python.tasks.generate
 
 import io.paddle.plugin.python.dependencies.repositories.PyPackageRepository
-import io.paddle.plugin.python.extensions.*
+import io.paddle.plugin.python.extensions.repositories
+import io.paddle.plugin.python.extensions.requirements
 import io.paddle.plugin.python.tasks.PythonPluginTaskGroups
 import io.paddle.project.PaddleProject
 import io.paddle.tasks.Task
@@ -25,18 +26,18 @@ class GenerateRequirements(project: PaddleProject) : IncrementalTask(project) {
         ) + project.subprojects.getAllTasksById(this.id)
 
     private fun getRequirementsText(): String {
-        // TODO: add support of find-links
         val notResolved = project.requirements.descriptors
         val resolved = project.requirements.resolved
 
         // FIXME: local/packages with direct link are not printed correctly
         return buildString {
             if (project.repositories.resolved.primarySource != PyPackageRepository.PYPI_REPOSITORY) {
-                appendLine("--index-url ${project.repositories.resolved.primarySource.url}")
+                appendLine("--index-url ${project.repositories.resolved.primarySource.urlSimple}")
             }
+            project.repositories.resolved.findLinks.forEach { appendLine("--find-links $it") }
             notResolved.groupBy { descriptor -> resolved.find { it.name == descriptor.name }?.repo }.forEach { (repo, pkgs) ->
                 if (repo != null && repo != project.repositories.resolved.primarySource) {
-                    appendLine("--extra-index-url ${repo.url}")
+                    appendLine("--extra-index-url ${repo.urlSimple}")
                 }
                 pkgs.forEach {
                     appendLine("${it.name}${it.versionSpecifier?.clauses?.joinToString(separator = ", ", prefix = " ") ?: ""}")
