@@ -4,20 +4,16 @@ import io.paddle.plugin.python.dependencies.index.distributions.ArchivePyDistrib
 import io.paddle.plugin.python.dependencies.index.distributions.WheelPyDistributionInfo
 import io.paddle.plugin.python.dependencies.index.webIndexer
 import io.paddle.plugin.python.dependencies.packages.PyPackage
+import io.paddle.plugin.python.dependencies.repositories.PyPackageRepositories
 import io.paddle.plugin.python.dependencies.repositories.PyPackageRepository
 import io.paddle.plugin.python.extensions.*
-import io.paddle.plugin.python.utils.PyPackageUrl
-import io.paddle.plugin.python.utils.cached
-import io.paddle.plugin.python.utils.getSecure
-import io.paddle.plugin.python.utils.trimmedEquals
+import io.paddle.plugin.python.utils.*
 import io.paddle.project.PaddleProject
 import io.paddle.project.extensions.routeAsString
 import io.paddle.tasks.Task
 import io.paddle.utils.hash.hashable
 import kotlinx.coroutines.runBlocking
-import kotlinx.serialization.builtins.MapSerializer
-import kotlinx.serialization.builtins.SetSerializer
-import kotlinx.serialization.builtins.serializer
+import kotlinx.serialization.builtins.*
 import java.io.File
 import java.net.URI
 import kotlin.io.path.absolutePathString
@@ -39,7 +35,7 @@ object PipResolver {
     ) {
         val requirementsAsPipArgs =
             project.requirements.descriptors.map { it.toString() } +
-                    project.subprojects.flatMap { subproject -> subproject.requirements.resolved.map { it.toString() } }
+                project.subprojects.flatMap { subproject -> subproject.requirements.resolved.map { it.toString() } }
         val pipResolveArgs =
             listOf("-m", "pip", "resolve") + requirementsAsPipArgs + project.repositories.resolved.asPipArgs
         val executable = project.environment.localInterpreterPath.absolutePathString()
@@ -78,8 +74,8 @@ object PipResolver {
                 val pkg = project.environment.venv.findPackageWithNameOrNull(name)
                     ?: throw Task.ActException(
                         "Could not find existing package $name in ${project.environment.venv.path}: " +
-                                "most probably, it does not contain PyPackage.json file in its .dist-info folder to be indexed. " +
-                                "Please, consider re-installing this package using Paddle."
+                            "most probably, it does not contain PyPackage.json file in its .dist-info folder to be indexed. " +
+                            "Please, consider re-installing this package using Paddle."
                     )
                 satisfiedRequirements.add(pkg)
             }
@@ -114,38 +110,48 @@ object PipResolver {
                 ?: throw Task.ActException("FIXME: Unknown distribution type: $filename")
 
             val version = pyDistributionInfo.version
+            val findLink = project.repositories.resolved.isResolvedByFindLink(distributionUrl)
 
-            val repo = if (repoUrl == "None") { // it was resolved as a local file distribution file://...
-                runBlocking {
-                    project.webIndexer.getDistributionUrl(
-                        pyDistributionInfo,
-                        PyPackageRepository.PYPI_REPOSITORY
-                    )
-                } // if null, it was not found in the PyPi repo
-                    ?: if (project.pythonRegistry.autoRemove) {
-                        val localDistribution = File(URI(distributionUrl))
-                        if (!localDistribution.exists()) {
-                            throw Task.ActException("Failed to delete local distribution $distributionUrl: file not found.")
-                        }
-                        if (!localDistribution.delete()) {
-                            throw Task.ActException("Failed to delete local distribution $distributionUrl. Please, do it manually and re-run the task.")
-                        }
-                        retry = true
-                    } else {
-                        throw Task.ActException(
-                            "Distribution $filename was not found in the repository ${PyPackageRepository.PYPI_REPOSITORY.url.getSecure()}.\n" +
+
+            val repo = when {
+                findLink != null -> {
+                    project.repositories.resolved.primarySource // FIXME: make this null requires a lot of code work
+                }
+
+                repoUrl == "None" -> { // it was resolved as a local file distribution file://...
+                    runBlocking {
+                        project.webIndexer.getDistributionUrl(
+                            pyDistributionInfo,
+                            PyPackageRepository.PYPI_REPOSITORY
+                        )
+                    } // if null, it was not found in the PyPi repo
+                        ?: if (project.pythonRegistry.autoRemove) {
+                            val localDistribution = File(URI(distributionUrl))
+                            if (!localDistribution.exists()) {
+                                throw Task.ActException("Failed to delete local distribution $distributionUrl: file not found.")
+                            }
+                            if (!localDistribution.delete()) {
+                                throw Task.ActException("Failed to delete local distribution $distributionUrl. Please, do it manually and re-run the task.")
+                            }
+                            retry = true
+                        } else {
+                            throw Task.ActException(
+                                "Distribution $filename was not found in the repository ${PyPackageRepository.PYPI_REPOSITORY.url.getSecure()}.\n" +
                                     "It is possible that it was resolved from your local cache, " +
                                     "which is deprecated since it is not available online anymore.\n" +
                                     "Please, consider removing $distributionUrl from cache and re-running the task."
-                        )
-                    }
-                PyPackageRepository.PYPI_REPOSITORY
-            } else {
-                project.repositories.resolved.all.find { it.url.trimmedEquals(repoUrl) }
-                    ?: throw IllegalStateException("Unknown repository: $repoUrl")
+                            )
+                        }
+                    PyPackageRepository.PYPI_REPOSITORY
+                }
+
+                else -> {
+                    project.repositories.resolved.all.find { it.url.trimmedEquals(repoUrl) }
+                        ?: throw IllegalStateException("Unknown repository: $repoUrl")
+                }
             }
 
-            val pkg = PyPackage(name, version, repo, distributionUrl)
+            val pkg = PyPackage(name, version, repo, distributionUrl, findLink = findLink)
             comesFromUrlByPackage[pkg] = comesFromDistributionUrl
         }
 
@@ -161,6 +167,8 @@ object PipResolver {
 
         return comesFromUrlByPackage.keys + satisfiedRequirements
     }
+
+    private fun PyPackageRepositories.isResolvedByFindLink(url: String): PyUrl? = findLinks.find { url.startsWith(url) }
 
     class RetrySignal : Exception()
 }

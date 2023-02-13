@@ -15,10 +15,10 @@ import io.paddle.utils.hash.hashable
 val PaddleProject.repositories: Repositories
     get() = checkNotNull(extensions.get(Repositories.Extension.key)) { "Could not load extension Repositories for project $routeAsString" }
 
-class Repositories(val project: PaddleProject, val descriptors: List<Descriptor>) : Hashable {
+class Repositories(val project: PaddleProject, val descriptors: List<Descriptor>, val findLinks: List<String>) : Hashable {
 
     val resolved: PyPackageRepositories by lazy {
-        PyPackageRepositories.resolve(descriptors, project)
+        PyPackageRepositories.resolve(descriptors, project, findLinks)
     }
 
     object Extension : PaddleProject.Extension<Repositories> {
@@ -27,6 +27,7 @@ class Repositories(val project: PaddleProject, val descriptors: List<Descriptor>
         @Suppress("UNCHECKED_CAST")
         override fun create(project: PaddleProject): Repositories {
             val reposConfig = project.config.get<List<Map<String, Any>>>("repositories") ?: emptyList()
+            val findLinks = project.config.get<List<String>>("findLinks") ?: emptyList()
 
             val descriptors = reposConfig.map { repo ->
                 val repoName = checkNotNull(repo["name"]) {
@@ -63,7 +64,7 @@ class Repositories(val project: PaddleProject, val descriptors: List<Descriptor>
                 )
             }
 
-            return Repositories(project, descriptors)
+            return Repositories(project, descriptors, findLinks)
         }
     }
 

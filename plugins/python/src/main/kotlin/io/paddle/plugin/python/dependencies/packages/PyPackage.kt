@@ -15,7 +15,8 @@ class PyPackage(
     override val version: PyPackageVersion,
     @Serializable(with = PyPackageRepoMetadataSerializer::class) override val repo: PyPackageRepository,
     override val distributionUrl: PyPackageUrl,
-    var comesFrom: PyPackage? = null
+    var comesFrom: PyPackage? = null,
+    val findLink: String? = null
 ) : IResolvedPyPackage {
     override fun hashCode(): Int {
         if (distributionUrl.contains('#')) {

@@ -4,8 +4,7 @@ import io.paddle.terminal.Terminal
 import kotlinx.coroutines.*
 import java.io.File
 import java.net.URL
-import java.nio.file.Files
-import java.nio.file.Path
+import java.nio.file.*
 import java.util.*
 
 
@@ -23,6 +22,13 @@ fun Path.exists(): Boolean = Files.exists(this)
 
 fun String.isValidUrl(): Boolean = try {
     URL(this).toURI()
+    true
+} catch (e: Exception) {
+    false
+}
+
+fun String.isValidPath(): Boolean = try {
+    Paths.get(this)
     true
 } catch (e: Exception) {
     false

@@ -4,9 +4,7 @@ import io.paddle.plugin.python.dependencies.authentication.authProvider
 import io.paddle.plugin.python.dependencies.index.distributions.PyDistributionInfo
 import io.paddle.plugin.python.extensions.Repositories
 import io.paddle.plugin.python.extensions.pyLocations
-import io.paddle.plugin.python.utils.PyPackageName
-import io.paddle.plugin.python.utils.isValidUrl
-import io.paddle.plugin.python.utils.parallelForEach
+import io.paddle.plugin.python.utils.*
 import io.paddle.project.PaddleProject
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -15,12 +13,13 @@ import kotlinx.coroutines.runBlocking
 class PyPackageRepositories(
     private val repositories: Set<PyPackageRepository>,
     val primarySource: PyPackageRepository,
+    val findLinks: List<PyUrl>,
     val project: PaddleProject,
     useCachedIndex: Boolean = true,
     downloadIndex: Boolean = false
 ) {
     companion object {
-        fun resolve(repoDescriptors: List<Repositories.Descriptor>, project: PaddleProject): PyPackageRepositories {
+        fun resolve(repoDescriptors: List<Repositories.Descriptor>, project: PaddleProject, findLinks: List<PyUrl>): PyPackageRepositories {
             val repositories = hashSetOf(PyPackageRepository.PYPI_REPOSITORY)
             var primarySource = PyPackageRepository.PYPI_REPOSITORY
 
@@ -41,8 +40,16 @@ class PyPackageRepositories(
 
                 repositories.add(repo)
             }
-
-            return PyPackageRepositories(repositories, primarySource, project)
+            findLinks.forEach {
+                require(it.isValidUrl() || it.isValidPath()) { "The provided find link is invalid: $it" }
+            }
+            findLinks.map {
+                when {
+                    it.isValidPath() -> "file://$it"
+                    else -> it
+                }
+            }
+            return PyPackageRepositories(repositories, primarySource, findLinks, project)
         }
 
         private fun updateIndex(repositories: Set<PyPackageRepository>, project: PaddleProject) = runBlocking {
@@ -53,7 +60,7 @@ class PyPackageRepositories(
                 } catch (e: Throwable) {
                     project.terminal.warn(
                         "Failed to update index for PyPI repository: ${it.urlSimple}. " +
-                                "Autocompletion for package names will not be available at the moment."
+                            "Autocompletion for package names will not be available at the moment."
                     )
                 }
             }
@@ -130,6 +137,10 @@ class PyPackageRepositories(
                     add("--extra-index-url")
                     add(credentials.authenticate(repo.urlSimple))
                 }
+            }
+            for (link in this@PyPackageRepositories.findLinks) {
+                add("--find-link")
+                add(link)
             }
         }
 
