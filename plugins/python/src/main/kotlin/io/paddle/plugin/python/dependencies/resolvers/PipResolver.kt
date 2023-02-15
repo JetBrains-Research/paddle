@@ -36,7 +36,7 @@ object PipResolver {
         val requirementsAsPipArgs =
             project.requirements.descriptors.map { it.toString() } +
                 project.subprojects.flatMap { subproject -> subproject.requirements.resolved.map { it.toString() } }
-        val noIndexFlag = listOf(if (project.environment.noIndex) {"--no-index"} else "")
+        val noIndexFlag = if (project.environment.noIndex) listOf("--no-index") else emptyList()
         val pipResolveArgs =
             listOf("-m", "pip", "resolve") + requirementsAsPipArgs + project.repositories.resolved.asPipArgs + noIndexFlag
         val executable = project.environment.localInterpreterPath.absolutePathString()

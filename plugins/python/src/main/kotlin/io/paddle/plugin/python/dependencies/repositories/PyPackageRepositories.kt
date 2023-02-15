@@ -43,13 +43,13 @@ class PyPackageRepositories(
             findLinks.forEach {
                 require(it.isValidUrl() || it.isValidPath()) { "The provided find link is invalid: $it" }
             }
-            findLinks.map {
+            val processedFindLinks = findLinks.map {
                 when {
                     it.isValidPath() -> "file://$it"
                     else -> it
                 }
             }
-            return PyPackageRepositories(repositories, primarySource, findLinks, project)
+            return PyPackageRepositories(repositories, primarySource, processedFindLinks, project)
         }
 
         private fun updateIndex(repositories: Set<PyPackageRepository>, project: PaddleProject) = runBlocking {

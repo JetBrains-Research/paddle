@@ -96,7 +96,7 @@ class Repositories(val project: PaddleProject, val descriptors: List<Descriptor>
     }
 
     override fun hash(): String {
-        return descriptors.hashable().hash()
+        return (descriptors + findLinks.map { it.hashable() }).hashable().hash()
     }
 }
 
