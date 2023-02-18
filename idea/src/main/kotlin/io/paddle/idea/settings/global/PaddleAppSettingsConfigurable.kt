@@ -26,22 +26,14 @@ class PaddleAppSettingsConfigurable : BoundSearchableConfigurable(
                 .bindSelected(PaddleAppSettings.getInstance()::isDontShowDialogOnRequirementTxtPaste)
         }
         row {
-            checkBox("Disable pip's caching behaviour (pass --no-cache-dir flag)").bindSelected(
-                { settings.noCacheDir},
-                {
-                    settings.noCacheDir = it
-                    // TODO: save to config
-                }
-            )
+            checkBox("Disable pip's caching behaviour (pass --no-cache-dir flag)").bindSelected({
+                PaddleRegistryInteract.Python.noCacheDir
+            }, {
+                PaddleRegistryInteract.Python.noCacheDir = it
+            })
         }
         row {
-            checkBox("Replace cached wheels with newer versions from PyPI if possible").bindSelected(
-                { settings.autoRemove },
-                {
-                    settings.autoRemove = it
-                    // TODO: save to config
-                }
-            )
+            checkBox("Replace cached wheels with newer versions from PyPI if possible").bindSelected(PaddleRegistryInteract.Python::autoRemove)
         }
     }
 }
