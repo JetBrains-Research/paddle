@@ -2,6 +2,7 @@ package io.paddle
 
 import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.parameters.arguments.argument
+import com.github.ajalt.clikt.parameters.options.*
 import io.paddle.project.PaddleProjectProvider
 import io.paddle.project.extensions.descriptor
 import io.paddle.tasks.Task
@@ -14,11 +15,14 @@ class Paddle : CliktCommand() {
         help = "Use full name of the task to run it (e.g., ':subproject:clean') " +
             "OR short name to run the task for the root project (e.g., 'clean')"
     )
+    private val pluginArguments: Map<String, String> by option("-P",
+        help = "Plugin specific options. For example -Ppython.run.extraArgs=\"arg1 arg2\""
+    ).associate()
 
     override fun run() {
         println("Loading Paddle project model...")
         val workDir = File(".").canonicalFile
-        val project = PaddleProjectProvider.getInstance(rootDir = workDir).getProject(workDir)
+        val project = PaddleProjectProvider.getInstance(rootDir = workDir, cliOptions = pluginArguments).getProject(workDir)
             ?: throw IllegalStateException("Internal error: could not load project from ${workDir.canonicalPath}")
 
         try {

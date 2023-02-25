@@ -13,27 +13,27 @@ import java.io.File
  *      - There is a possibility to declare configurations for ALL subprojects at a time using `all` descriptor
  *  5. Register plugins (extensions & tasks) for each project in the [rootDir]
  */
-class PaddleProjectProvider private constructor(val rootDir: File) {
+class PaddleProjectProvider private constructor(val rootDir: File, val cliOptions: Map<String, String>) {
     companion object {
         private val providersCache = HashMap<File, PaddleProjectProvider>()
 
-        fun getInstance(rootDir: File): PaddleProjectProvider {
-            return providersCache.getOrPut(rootDir) { PaddleProjectProvider(rootDir) }
+        fun getInstance(rootDir: File, cliOptions: Map<String, String>): PaddleProjectProvider {
+            return providersCache.getOrPut(rootDir) { PaddleProjectProvider(rootDir, cliOptions) }
         }
     }
 
-    private val index = PaddleProjectIndex(rootDir)
+    private val index = PaddleProjectIndex(rootDir, cliOptions)
 
     val allProjects: Collection<PaddleProject>
         get() = index.dumbProjects.toList()
 
     fun sync() {
-        index.refresh(rootDir)
-        index.dumbProjects.forEach { it.load(index) }
+        index.refresh(rootDir, cliOptions)
+        index.dumbProjects.forEach { it.load(index, cliOptions) }
     }
 
     init {
-        index.dumbProjects.forEach { it.load(index) }
+        index.dumbProjects.forEach { it.load(index, cliOptions) }
     }
 
     fun getProject(workDir: File): PaddleProject? {
