@@ -10,6 +10,7 @@ import com.intellij.openapi.externalSystem.service.execution.ExternalSystemRunCo
 import com.intellij.openapi.externalSystem.service.execution.ExternalSystemRunnableState
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.wm.ToolWindowId
+import io.paddle.Paddle
 import io.paddle.idea.PaddleManager
 import io.paddle.idea.execution.cmdline.PaddleCommandLine
 import io.paddle.idea.execution.state.*
@@ -58,7 +59,8 @@ class PaddleRunConfiguration(project: Project, factory: ConfigurationFactory, na
 
         val taskName = (env.runProfile as PaddleRunConfiguration).settings.taskNames.first()
 
-        val paddleProject = PaddleProjectProvider.getInstance(rootDir).getProject(moduleDir) ?: return null
+        val args = Paddle.parseCliOptions(runProfile.commandLine.tasksAndArguments.toList())
+        val paddleProject = PaddleProjectProvider.getInstance(rootDir, cliOptions = args).getProject(moduleDir) ?: return null
         val task = paddleProject.tasks.resolve(taskName, paddleProject) ?: return null
         val ctx = PaddleTaskRunProfileStateContext(moduleDir, rootDir, executor, env, this)
 

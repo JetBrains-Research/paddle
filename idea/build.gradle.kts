@@ -9,6 +9,9 @@ dependencies {
     implementation(project(":core")) {
         exclude("org.slf4j")
     }
+    implementation(project(":cli")) {
+        exclude("org.slf4j")
+    }
     implementation(project(":plugins:python")) {
         exclude("org.slf4j")
     }
