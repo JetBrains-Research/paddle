@@ -9,7 +9,7 @@ import io.paddle.tasks.Task
 import java.io.File
 import kotlin.system.exitProcess
 
-class Paddle : CliktCommand() {
+class Paddle internal constructor() : CliktCommand() {
     private val taskRoute by argument(
         name = "task",
         help = "Use full name of the task to run it (e.g., ':subproject:clean') " +
@@ -19,7 +19,7 @@ class Paddle : CliktCommand() {
         help = "Plugin specific options. For example -Ppython.run.extraArgs=\"arg1 arg2\""
     ).associate()
 
-    override fun run() {
+    fun runPaddle() {
         println("Loading Paddle project model...")
         val workDir = File(".").canonicalFile
         val project = PaddleProjectProvider.getInstance(rootDir = workDir, cliOptions = pluginArguments).getProject(workDir)
@@ -43,8 +43,15 @@ class Paddle : CliktCommand() {
             exitProcess(1)
         }
     }
+    override fun run() = Unit
+
+    companion object {
+        fun parseCliOptions(args: List<String>): Map<String, String> = Paddle().run { main(args); pluginArguments  }
+    }
 }
 
-fun main(args: Array<String>) {
-    Paddle().main(args)
+internal fun main(args: Array<String>) {
+    val app = Paddle()
+    app.main(args)
+    app.runPaddle()
 }

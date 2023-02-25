@@ -20,7 +20,7 @@ class RunTask(val name: String, val entrypoint: String, val arguments: List<Stri
             val tasks = ArrayList<RunTask>()
             val cliConfig = ConfigurationView("run", project.pythonCliConfig)
             for (configuration in configurations) {
-                val args: List<String> = cliConfig.get<String>("extraArgs")?.let { listOf(it) } ?:
+                val args: List<String> = cliConfig.get<String>("extraArgs")?.split(" ") ?:
                     (configuration.getOrDefault("args", emptyList<String>()) as List<String>)
 
                 val entrypointPath = project.roots.sources.resolve(configuration["entrypoint"] as String).relativeTo(project.workDir).path

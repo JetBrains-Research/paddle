@@ -15,10 +15,10 @@ import java.io.File
  */
 class PaddleProjectProvider private constructor(val rootDir: File, private val cliOptions: Map<String, String>) {
     companion object {
-        private val providersCache = HashMap<File, PaddleProjectProvider>()
+        private val providersCache = HashMap<Pair<File, Map<String, String>>, PaddleProjectProvider>()
 
         fun getInstance(rootDir: File, cliOptions: Map<String, String> = emptyMap()): PaddleProjectProvider {
-            return providersCache.getOrPut(rootDir) { PaddleProjectProvider(rootDir, cliOptions) }
+            return providersCache.getOrPut(rootDir to cliOptions) { PaddleProjectProvider(rootDir, cliOptions) }
         }
     }
 
