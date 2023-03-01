@@ -111,11 +111,10 @@ object PipResolver {
                 ?: throw Task.ActException("FIXME: Unknown distribution type: $filename")
 
             val version = pyDistributionInfo.version
-            val findLink = project.repositories.resolved.isResolvedByFindLink(distributionUrl)
-
+            val findLinkSourceUrl = distributionUrl.findLinkSourceIn(project.repositories.resolved)
 
             val repo = when {
-                findLink != null -> {
+                findLinkSourceUrl != null -> {
                     project.repositories.resolved.primarySource // FIXME: make this null requires a lot of code work
                 }
 
@@ -152,7 +151,7 @@ object PipResolver {
                 }
             }
 
-            val pkg = PyPackage(name, version, repo, distributionUrl, findLink = findLink)
+            val pkg = PyPackage(name, version, repo, distributionUrl, findLinkSource = findLinkSourceUrl)
             comesFromUrlByPackage[pkg] = comesFromDistributionUrl
         }
 
@@ -169,7 +168,8 @@ object PipResolver {
         return comesFromUrlByPackage.keys + satisfiedRequirements
     }
 
-    private fun PyPackageRepositories.isResolvedByFindLink(url: String): PyUrl? = findLinks.find { url.startsWith(url) }
+    private fun PyPackageUrl.findLinkSourceIn(repositories: PyPackageRepositories): PyUrl? =
+        repositories.linkSources.find { findLinksSource -> this.startsWith(findLinksSource) }
 
     class RetrySignal : Exception()
 }

@@ -34,7 +34,7 @@ class GenerateRequirements(project: PaddleProject) : IncrementalTask(project) {
             if (project.repositories.resolved.primarySource != PyPackageRepository.PYPI_REPOSITORY) {
                 appendLine("--index-url ${project.repositories.resolved.primarySource.urlSimple}")
             }
-            project.repositories.resolved.findLinks.forEach { appendLine("--find-links $it") }
+            project.repositories.resolved.linkSources.forEach { appendLine("--find-links $it") }
             notResolved.groupBy { descriptor -> resolved.find { it.name == descriptor.name }?.repo }.forEach { (repo, pkgs) ->
                 if (repo != null && repo != project.repositories.resolved.primarySource) {
                     appendLine("--extra-index-url ${repo.urlSimple}")

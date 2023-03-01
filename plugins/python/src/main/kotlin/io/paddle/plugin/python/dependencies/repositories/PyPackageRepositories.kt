@@ -6,14 +6,12 @@ import io.paddle.plugin.python.extensions.Repositories
 import io.paddle.plugin.python.extensions.pyLocations
 import io.paddle.plugin.python.utils.*
 import io.paddle.project.PaddleProject
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.*
 
 class PyPackageRepositories(
     private val repositories: Set<PyPackageRepository>,
     val primarySource: PyPackageRepository,
-    val findLinks: List<PyUrl>,
+    val linkSources: List<PyUrl>,
     val project: PaddleProject,
     useCachedIndex: Boolean = true,
     downloadIndex: Boolean = false
@@ -138,7 +136,7 @@ class PyPackageRepositories(
                     add(credentials.authenticate(repo.urlSimple))
                 }
             }
-            for (link in this@PyPackageRepositories.findLinks) {
+            for (link in this@PyPackageRepositories.linkSources) {
                 add("--find-link")
                 add(link)
             }
