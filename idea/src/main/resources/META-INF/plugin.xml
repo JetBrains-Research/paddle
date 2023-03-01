@@ -3,7 +3,7 @@
     <name>Paddle</name>
     <vendor>JetBrains Research</vendor>
 
-    <idea-version since-build="221.5080" until-build="999.0"/>
+    <idea-version since-build="221.5080" until-build="222.*"/>
 
     <description><![CDATA[
         <p>This plugin integrates <a href="https://github.com/TanVD/paddle">Paddle build system</a> with PyCharm IDE.</p>
