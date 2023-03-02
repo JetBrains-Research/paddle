@@ -22,7 +22,8 @@ class GenerateRequirements(project: PaddleProject) : IncrementalTask(project) {
     override val dependencies: List<Task>
         get() = listOf(
             project.tasks.getOrFail("resolveRepositories"),
-            project.tasks.getOrFail("resolveInterpreter")
+            project.tasks.getOrFail("resolveInterpreter"),
+            project.tasks.getOrFail("resolveRequirements")
         ) + project.subprojects.getAllTasksById(this.id)
 
     private fun getRequirementsText(): String {
@@ -47,7 +48,12 @@ class GenerateRequirements(project: PaddleProject) : IncrementalTask(project) {
     }
 
     override fun act() {
-        File(project.workDir, REQUIREMENTS_FILE).writeText(getRequirementsText())
+        File(project.workDir, REQUIREMENTS_FILE).run {
+            if (exists() && this.readText().isNotEmpty()) {
+                throw ActException("The requirements.txt file in ${project.workDir.absolutePath} is exists. Please clear the file, or delete it.")
+            }
+            writeText(getRequirementsText())
+        }
 
     }
 
