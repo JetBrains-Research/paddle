@@ -623,6 +623,17 @@ tasks:
     - `targets`: a list of file paths to be published relative to the `dist` root. It has `dist/*`
       value by default.
 
+#### Registry
+
+There are optional several Paddle-wide options in `python` section of `$PADDLE_HOME/registry.yaml`:
+
+- `noCacheDir` (*optional*): append pip's `--no-cache-dir` options, if true. Set to false by
+  default.
+- `autoRemove` (*optional*): replace local cached wheel with verified wheel of the same version from
+  PyPI.
+
+That options are editable from Paddle's IDEA Settings (`Tools -> Paddle`).
+
 ### Docker & SSH sections
 
 <a id="docker-ssh-sections"></a>
