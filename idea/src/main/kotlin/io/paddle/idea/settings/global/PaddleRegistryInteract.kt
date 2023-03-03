@@ -21,10 +21,10 @@ object PaddleRegistryInteract {
     private fun modify(key: String, value: Any) = dumpConfig(config.run { set(key, value); this })
 
     private fun dumpConfig(map: MutableMap<String, Any>) {
-        val options = DumperOptions().also {
-            it.isPrettyFlow = true
-            it.defaultFlowStyle = DumperOptions.FlowStyle.BLOCK
-            it.defaultScalarStyle = DumperOptions.ScalarStyle.PLAIN
+        val options = DumperOptions().apply {
+            isPrettyFlow = true
+            defaultFlowStyle = DumperOptions.FlowStyle.BLOCK
+            defaultScalarStyle = DumperOptions.ScalarStyle.PLAIN
         }
         Yaml(options).dump(map, REGISTRY_PATH.toFile().bufferedWriter())
     }
@@ -39,7 +39,7 @@ object PaddleRegistryInteract {
             get() = (pythonConfig["noCacheDir"] as? String)?.toBooleanStrictOrNull() ?: false
             set(x) = modify("noCacheDir", x)
         var autoRemove: Boolean
-            get() = (pythonConfig["autoRemove"] as? String)?.toBooleanStrictOrNull() ?: false
+            get() = (pythonConfig["autoRemove"] as? String)?.toBooleanStrictOrNull() ?: true
             set(x) = modify("autoRemove", x)
     }
 }

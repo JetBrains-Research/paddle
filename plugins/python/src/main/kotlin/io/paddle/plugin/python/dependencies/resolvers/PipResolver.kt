@@ -141,7 +141,7 @@ object PipResolver {
                                     "It is possible that it was resolved from your local cache, " +
                                     "which is deprecated since it is not available online anymore.\n" +
                                     "Please, consider removing $distributionUrl from cache and re-running the task.\n" +
-                                    "Or run again with disabled pip cache using `usePipCache: false`"
+                                    "Or run again with disabled pip cache using `noCacheDir: true`"
                         )
                     }
                 PyPackageRepository.PYPI_REPOSITORY
