@@ -229,6 +229,9 @@ requirements.
   - Each running task reports its status: EXECUTING, DONE, CANCELLED, or FAILED.
   - Paddle supports incrementality checks, so that tasks whose inputs and outputs remain unchanged
     will not be executed every time. Their status will be reported as UP-TO-DATE.
+  - Each task could have additional options. You can provide it with `-P` flag,
+    e.g. `-PextraArgs="arg1 arg2"`. **Note**: additional argument is not part of the task's input,
+    so updating options will not enforce task to run.
 - <a id="plugins-concept"></a> **Plugins** are the extension points of the Paddle build system. In fact, even the Python
   language itself
   is implemented as a plugin for Paddle, which is why you need to specify it in the `plugins` section
@@ -668,6 +671,8 @@ Here is a reference for all the built-in Paddle tasks available at the moment.
   - Configuration for the task was covered in the [`tasks.publish`](#publish) subsection.
 - `run$<id>`: runs a Python script or module.
   - Configuration for the task was covered in the [`tasks.run`](#run) subsection.
+  - You can provide extra arguments with `-PextraArgs=<args>` option. For
+    example `paddle run$pep8 -PextraArgs="--first outparse.py"`
 - `pytest$<id>`: runs all the test targets by using the Pytest framework.
   - Configuration for the task was covered in the [`task.tests`](#tests) subsection.
 
