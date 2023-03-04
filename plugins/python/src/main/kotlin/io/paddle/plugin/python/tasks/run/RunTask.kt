@@ -1,7 +1,6 @@
 package io.paddle.plugin.python.tasks.run
 
 import io.paddle.plugin.python.extensions.environment
-//import io.paddle.plugin.python.extensions.pythonCliConfig
 import io.paddle.plugin.standard.extensions.roots
 import io.paddle.project.PaddleProject
 import io.paddle.tasks.Task
