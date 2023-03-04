@@ -35,9 +35,9 @@ class Paddle internal constructor() : CliktCommand() {
                     current = current.subprojects.getByName(name) ?: error("Could not find project :$name among subprojects of the current project :${current.descriptor.name}")
                 }
 
-                current.execute(taskId)
+                current.execute(taskId, cliArgs = pluginArguments)
             } else {
-                project.execute(taskId = taskRoute)
+                project.execute(taskId = taskRoute, cliArgs = pluginArguments)
             }
         } catch (e: Task.ActException) {
             exitProcess(1)

@@ -26,14 +26,14 @@ abstract class IncrementalTask(project: PaddleProject) : Task(project) {
         return IncrementalCache(project).isUpToDate(id, inputs.hashable(), outputs.hashable())
     }
 
-    override fun execute() {
+    override fun execute(cliArgs:Map<String, String>) {
         if (isUpToDate()) {
             val taskRoute = project.routeAsString + ":$id"
             project.terminal.commands.stdout(CommandOutput.Command.Task(taskRoute, CommandOutput.Command.Task.Status.UP_TO_DATE))
             return
         }
 
-        super.execute()
+        super.execute(cliArgs)
 
         IncrementalCache(project).update(id, inputs.hashable(), outputs.hashable())
     }

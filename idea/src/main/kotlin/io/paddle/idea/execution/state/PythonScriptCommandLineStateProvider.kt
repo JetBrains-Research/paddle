@@ -5,6 +5,8 @@ import com.intellij.openapi.module.ModuleManager
 import com.jetbrains.python.run.*
 import com.jetbrains.python.sdk.basePath
 import com.jetbrains.python.sdk.pythonSdk
+import io.paddle.Paddle
+import io.paddle.idea.execution.PaddleRunConfiguration
 import io.paddle.plugin.python.extensions.environment
 import io.paddle.plugin.python.tasks.run.RunTask
 import kotlin.io.path.absolutePathString
@@ -16,10 +18,13 @@ class PythonScriptCommandLineStateProvider : PaddleTaskRunProfileStateProvider<R
             .find { it.basePath == context.moduleDir.absolutePath }
             ?: return null
 
+        val additionalArgsLine = (context.originalRunConfiguration as PaddleRunConfiguration).commandLine.tasksAndArguments.toList()
+        val additionalArgs = Paddle.parseCliOptions(additionalArgsLine)["extraArgs"]?.prepare() ?: ""
+
         val pythonRunConfiguration = factory.createTemplateConfiguration(context.environment.project) as PythonRunConfiguration
         pythonRunConfiguration.apply {
             scriptName = if (task.isModuleMode) task.entrypoint else context.moduleDir.toPath().resolve(task.entrypoint).absolutePathString()
-            scriptParameters = task.arguments.joinToString(" ")
+            scriptParameters = (task.arguments).joinToString(" ") + " $additionalArgs"
             sdkHome = module.pythonSdk?.homePath
             isModuleMode = task.isModuleMode
             workingDirectory = context.moduleDir.absolutePath
@@ -32,4 +37,10 @@ class PythonScriptCommandLineStateProvider : PaddleTaskRunProfileStateProvider<R
 
         return PythonScriptCommandLineState(pythonRunConfiguration, context.environment)
     }
+    private fun String.prepare(): String =
+        when {
+            startsWith("\"") && endsWith("\"") -> this.drop(1).dropLast(1)
+            startsWith("'") && endsWith("'") -> this.drop(1).dropLast(1)
+            else -> this
+        }
 }
