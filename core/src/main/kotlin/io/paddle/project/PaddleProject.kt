@@ -14,7 +14,6 @@ import io.paddle.tasks.Tasks
 import io.paddle.terminal.CommandOutput
 import io.paddle.terminal.Terminal
 import io.paddle.terminal.TextOutput
-import io.paddle.utils.config.CLIConfiguration
 import io.paddle.utils.config.Configuration
 import io.paddle.utils.ext.Extendable
 import io.paddle.utils.hash.AggregatedHashable
