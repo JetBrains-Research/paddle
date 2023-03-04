@@ -22,7 +22,7 @@ class Paddle internal constructor() : CliktCommand() {
     fun runPaddle() {
         println("Loading Paddle project model...")
         val workDir = File(".").canonicalFile
-        val project = PaddleProjectProvider.getInstance(rootDir = workDir, cliOptions = pluginArguments).getProject(workDir)
+        val project = PaddleProjectProvider.getInstance(rootDir = workDir).getProject(workDir)
             ?: throw IllegalStateException("Internal error: could not load project from ${workDir.canonicalPath}")
 
         try {

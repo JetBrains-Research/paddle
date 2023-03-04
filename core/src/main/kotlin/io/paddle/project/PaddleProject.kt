@@ -25,7 +25,6 @@ import java.io.File
 class PaddleProject internal constructor(
     val buildFile: File,
     val rootDir: File,
-    cliOptions: Map<String, String>,
     output: TextOutput = TextOutput.Console
 ) {
     interface Extension<V : Any> {
@@ -37,9 +36,6 @@ class PaddleProject internal constructor(
     val workDir: File
         get() = buildFile.parentFile
     var config: Configuration = Configuration.from(buildFile)
-        internal set
-
-    var cliConfig: CLIConfiguration = CLIConfiguration(cliOptions)
         internal set
 
     val id: String = "project_" + StringHashable(workDir.canonicalPath).hash()
@@ -75,14 +71,13 @@ class PaddleProject internal constructor(
         extensions.register(Descriptor.Extension.key, Descriptor.Extension.create(this))
     }
 
-    internal fun load(index: PaddleProjectIndex, cliOptions: Map<String, String>) {
+    internal fun load(index: PaddleProjectIndex) {
         subprojects = Subprojects.create(this, index)
         extensions.register(Plugins.Extension.key, Plugins.Extension.create(this))
         extensions.register(JsonSchema.Extension.key, JsonSchema.Extension.create(this))
         register(plugins.enabled)
         configurationFiles.addAll(subprojects.flatMap { it.configurationFiles })
         initialHash = AggregatedHashable(configurationFiles.map { it.hashable() }).hash()
-        cliConfig = CLIConfiguration(cliOptions)
     }
 
     fun register(plugin: Plugin) {

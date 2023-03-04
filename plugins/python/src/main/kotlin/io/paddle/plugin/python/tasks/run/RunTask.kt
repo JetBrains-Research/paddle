@@ -1,7 +1,7 @@
 package io.paddle.plugin.python.tasks.run
 
 import io.paddle.plugin.python.extensions.environment
-import io.paddle.plugin.python.extensions.pythonCliConfig
+//import io.paddle.plugin.python.extensions.pythonCliConfig
 import io.paddle.plugin.standard.extensions.roots
 import io.paddle.project.PaddleProject
 import io.paddle.tasks.Task
@@ -18,9 +18,9 @@ class RunTask(val name: String, val entrypoint: String, val arguments: List<Stri
         fun from(project: PaddleProject): List<RunTask> {
             val configurations = project.config.get<List<Map<String, Any>>?>("tasks.run") ?: return emptyList()
             val tasks = ArrayList<RunTask>()
-            val cliConfig = ConfigurationView("run", project.pythonCliConfig)
+//            val cliConfig = ConfigurationView("run", project.pythonCliConfig)
             for (configuration in configurations) {
-                val args: List<String> = cliConfig.get<String>("extraArgs")?.split(" ") ?:
+                val args: List<String> = /*cliConfig.get<String>("extraArgs")?.split(" ") ?:*/
                     (configuration.getOrDefault("args", emptyList<String>()) as List<String>)
 
                 val entrypointPath = project.roots.sources.resolve(configuration["entrypoint"] as String).relativeTo(project.workDir).path

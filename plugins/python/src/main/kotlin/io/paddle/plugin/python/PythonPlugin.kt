@@ -66,7 +66,6 @@ object PythonPlugin : Plugin {
             BuildEnvironment.Extension,
             PublishEnvironment.Extension,
             Metadata.Extension,
-            PythonCliConfig.Extension,
         ) as List<PaddleProject.Extension<Any>>
     }
 }

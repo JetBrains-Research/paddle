@@ -9,7 +9,7 @@ import kotlinx.coroutines.runBlocking
 import java.io.File
 import java.util.concurrent.ConcurrentHashMap
 
-internal class PaddleProjectIndex(rootDir: File, cliOptions: Map<String, String>) {
+internal class PaddleProjectIndex(rootDir: File) {
     private lateinit var indexByName: ConcurrentHashMap<String, PaddleProject>
     private lateinit var indexByWorkdir: ConcurrentHashMap<File, PaddleProject>
     lateinit var dumbProjects: List<PaddleProject>
@@ -20,16 +20,16 @@ internal class PaddleProjectIndex(rootDir: File, cliOptions: Map<String, String>
     }
 
     init {
-        refresh(rootDir, cliOptions)
+        refresh(rootDir)
     }
 
-    fun refresh(rootDir: File, cliOptions: Map<String, String>) {
-        dumbProjects = collectDumbProjects(rootDir, cliOptions)
+    fun refresh(rootDir: File) {
+        dumbProjects = collectDumbProjects(rootDir)
         indexByName = ConcurrentHashMap(dumbProjects.associateBy { it.descriptor.name })
         indexByWorkdir = ConcurrentHashMap(dumbProjects.associateBy { it.workDir })
     }
 
-    private fun collectDumbProjects(rootDir: File, cliOptions: Map<String, String>): List<PaddleProject> = runBlocking {
+    private fun collectDumbProjects(rootDir: File): List<PaddleProject> = runBlocking {
         var dumbProjects: List<PaddleProject>? = null
         for (attemptNum in 1..MAX_RETRY_COUNT) {
             try {
@@ -37,7 +37,7 @@ internal class PaddleProjectIndex(rootDir: File, cliOptions: Map<String, String>
                     .filter { it.isPaddle }
                     .map { buildFile ->
                         async {
-                            PaddleProject(buildFile, rootDir, cliOptions)
+                            PaddleProject(buildFile, rootDir)
                         }
                     }
                     .toList()
