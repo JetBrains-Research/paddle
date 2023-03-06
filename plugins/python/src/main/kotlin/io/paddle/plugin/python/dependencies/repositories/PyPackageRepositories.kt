@@ -43,8 +43,8 @@ class PyPackageRepositories(
             }
             val processedFindLinks = findLinks.map {
                 when {
-                    it.isValidPath() -> "file://$it"
-                    else -> it
+                    it.isValidUrl() -> it
+                    else -> "file://$it"
                 }
             }
             return PyPackageRepositories(repositories, primarySource, processedFindLinks, project)

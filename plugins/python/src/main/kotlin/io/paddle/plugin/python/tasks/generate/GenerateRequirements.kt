@@ -15,8 +15,10 @@ class GenerateRequirements(project: PaddleProject) : IncrementalTask(project) {
     override val group: String = PythonPluginTaskGroups.GENERATE
     override val id: String = "requirements"
     override val inputs: List<Hashable>
-        get() = listOf(project.requirements.descriptors.hashable(), project.requirements.resolved.map { it.toString().hashable() }.toList().hashable(),
-            project.repositories.descriptors.hashable())
+        get() = listOf(
+            project.requirements.descriptors.hashable(), project.requirements.resolved.map { it.toString().hashable() }.toList().hashable(),
+            project.repositories.descriptors.hashable()
+        )
     override val outputs: List<Hashable>
         get() = listOf(getRequirementsText().hashable())
     override val dependencies: List<Task>
@@ -35,7 +37,7 @@ class GenerateRequirements(project: PaddleProject) : IncrementalTask(project) {
             if (project.repositories.resolved.primarySource != PyPackageRepository.PYPI_REPOSITORY) {
                 appendLine("--index-url ${project.repositories.resolved.primarySource.urlSimple}")
             }
-            project.repositories.resolved.linkSources.forEach { appendLine("--find-links $it") }
+            project.repositories.resolved.linkSources.forEach { appendLine("--find-link $it") }
             notResolved.groupBy { descriptor -> resolved.find { it.name == descriptor.name }?.repo }.forEach { (repo, pkgs) ->
                 if (repo != null && repo != project.repositories.resolved.primarySource) {
                     appendLine("--extra-index-url ${repo.urlSimple}")
@@ -48,6 +50,12 @@ class GenerateRequirements(project: PaddleProject) : IncrementalTask(project) {
     }
 
     override fun act() {
+        project.terminal.warn(
+            "This task generates a requirements files only for this project. " +
+                "It will ignore all subproject dependencies and subproject packages. " +
+                "If you want to install the project without paddle, " +
+                "you probably need to install all the requirements and correctly set PYTHONPATH environment variable."
+        )
         File(project.workDir, REQUIREMENTS_FILE).run {
             if (exists() && this.readText().isNotEmpty()) {
                 throw ActException("The requirements.txt file in ${project.workDir.absolutePath} is exists. Please clear the file, or delete it.")
