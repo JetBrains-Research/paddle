@@ -39,6 +39,7 @@ object PipResolver {
             noCacheDir = project.pythonRegistry.noCacheDir
             packages = requirementsAsPipArgs
             additionalArgs = project.repositories.resolved.asPipArgs
+            noBinaryList = project.requirements.descriptors.filter { it.isNoBinary }.map { it.name }
         }.args
         val executable = project.environment.localInterpreterPath.absolutePathString()
         val input = (pipResolveArgs + executable).map { it.hashable() }.hashable().hash()
