@@ -108,6 +108,10 @@
         },
         "python": {
           "description": "Version of the Python interpreter to be used"
+        },
+        "noIndex": {
+          "description": "Ignore package index (only looking at --find-links URLs instead)",
+          "type": "boolean"
         }
       }
     },
@@ -157,6 +161,13 @@
             }
           }
         }
+      }
+    },
+    "findLinks": {
+      "description": "List of links, that will be appended as --find-link argument on the resolve stage",
+      "type": "array",
+      "items": {
+        "type": "string"
       }
     },
     "repositories": {

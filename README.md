@@ -37,6 +37,7 @@ environment, running tasks, and much more.
     - [Repositories](#repositories)
       - [Authentication](#authentication)
     - [Requirements](#requirements)
+    - [Find links](#find-links)
     - [Tasks section](#tasks-section)
       - [Run](#tasks-section)
       - [Test](#tasks-section)
@@ -391,6 +392,8 @@ environment:
     your platform
     given [here](https://github.com/pyenv/pyenv/wiki#suggested-build-environment).
   - The downloaded and installed interpreter is cached in the `~/.paddle/interpreters` folder.
+- `noIndex` (*optional*): if True, this ignores the PyPi index, and make resolving only with url
+  from `findLinks` section. The flag is set to `False` by default.
 
 #### Repositories
 
@@ -550,6 +553,26 @@ convert it to its own format.
 
 <img src="assets/copypaste-paddle.png" alt="Copy-paste example">
 
+#### Find links
+
+`findLink` is a list of URLs or paths to the external non-indexed packages (e.g. local-built
+package). This is similar to pip's `--find-link` option.
+
+For local path or URLs starting from `file://` to a directory, then PyPI will look for
+archives in the directory.
+
+For paths and URLs to an HTML file, PyPI will look for link to archives as
+sdist (`.tar.gz`) or wheel (`.whl`).
+
+```yaml
+findLinks:
+    - /home/example/sample-wheel/dist
+    - https://example.com/python_packages.html
+    - file:///usr/share/packages/sample-wheel.whl 
+```
+
+**NB**: VCS links (e.g. `git://`) are not supported.
+
 #### Tasks section
 
 The `tasks` section consists of several subsections that provide run configurations for
@@ -681,6 +704,10 @@ Here is a reference for all the built-in Paddle tasks available at the moment.
 - `mypy`: runs [Mypy](http://www.mypy-lang.org/) type checker on the `sources` of the Paddle project.
 - `pylint`: runs [Pylint](https://pylint.pycqa.org/en/latest/) linter on the `sources` of the Paddle
   project.
+
+- `requirements`: generates `requirements.txt` in the root directory of every project.
+    - Note, that generated `requirements.txt` does not represent actual structure of Paddle source.
+      It would only generate dependencies for a project. 
 
 ## Example: multi-project build
 
