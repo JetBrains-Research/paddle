@@ -58,7 +58,7 @@ class GenerateRequirements(project: PaddleProject) : IncrementalTask(project) {
         )
         File(project.workDir, REQUIREMENTS_FILE).run {
             if (exists() && this.readText().isNotEmpty()) {
-                throw ActException("The requirements.txt file in ${project.workDir.absolutePath} is exists. Please clear the file, or delete it.")
+                throw ActException("The requirements.txt file in ${project.workDir.absolutePath} already exists.")
             }
             writeText(getRequirementsText())
         }
