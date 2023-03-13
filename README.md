@@ -523,6 +523,8 @@ requirements:
     - name: numpy
       version: <=1.22.4
     - name: pandas
+    - name: lxml
+      noBinary: true
   dev:
     - name: pytest
     - name: twine
@@ -530,12 +532,17 @@ requirements:
 ```
 
 Each requirement **must** have a specified `name` to look for in the PyPI repository, as well as an
-optional `version` property. If the version is not specified, Paddle will try to resolve it by
-itself when running the `resolveRequirements` task.
+optional `version` and `noBinary` property. If the version is not specified, Paddle will try to
+resolve it by itself when running the `resolveRequirements` task.
 
-The version identifier can be specified as a number with some relation (e.g., by using prefixes `<=`, `>=`, `<`, `>`,
+The version identifier can be specified as a number with some relation (e.g., by using
+prefixes `<=`, `>=`, `<`, `>`,
 `==`, `!=`,
 `~=`, `===`), or just a general version number (the same as with `==` prefix).
+
+`noBinary` specifies a strategy to choose a package's distribution methods. If that option is not
+set, or set to false, Paddle will prefer binary wheel, otherwise Paddle will use source code
+distribution.
 
 **Note:** for now, only this format of requirement specification is available.
 Specifying requirements by URL/URI will be added in an upcoming Paddle release, stay tuned!

@@ -40,6 +40,7 @@ object PipResolver {
             noCacheDir = project.pythonRegistry.noCacheDir
             packages = requirementsAsPipArgs
             additionalArgs = project.repositories.resolved.asPipArgs
+            noBinaryList = project.requirements.descriptors.filter { it.isNoBinary }.map { it.name }
             noIndex = project.environment.noIndex
         }.args
         val executable = project.environment.localInterpreterPath.absolutePathString()

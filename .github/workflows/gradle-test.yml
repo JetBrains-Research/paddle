@@ -17,3 +17,8 @@ jobs:
 
       - name: 'Test with Gradle'
         run: ./gradlew test
+      - name: 'Publish Test Report'
+        uses: mikepenz/action-junit-report@v3
+        if: failure()
+        with:
+          report_paths: '**/build/test-results/test/TEST-*.xml'
