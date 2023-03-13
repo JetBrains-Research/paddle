@@ -4,10 +4,7 @@ import io.paddle.project.extensions.descriptor
 import io.paddle.project.extensions.routeAsString
 import io.paddle.utils.deepResolve
 import java.io.File
-import kotlin.test.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertNotNull
-import kotlin.test.assertNull
+import kotlin.test.*
 
 internal class PaddleMonorepoProjectConfigurationsTest {
     private val resources: File = File("src").deepResolve("test", "resources")
@@ -45,6 +42,30 @@ internal class PaddleMonorepoProjectConfigurationsTest {
         val rootDir = resources.resolve("flat-monorepo")
         val projectProvider = PaddleProjectProvider.getInstance(rootDir)
 
+        // Projects structure:
+        //          ┌──────────┐
+        //          │          │
+        //          │ monorepo │
+        //          │          │
+        //          └───┬─┬────┘
+        //              │ │
+        //     ┌────────┘ └────────┐
+        //     ▼                   ▼
+        //┌────────────┐    ┌────────────┐
+        //│            │    │            │
+        //│ subproject │    │ subproject │
+        //│     one    │    │     one    │
+        //│            │    │            │
+        //└────┬───────┘    └──────┬─────┘
+        //     │                   │
+        //     └────────┐ ┌────────┘
+        //              ▼ ▼
+        //          ┌──────────┐
+        //          │          │
+        //          │ monorepo │
+        //          │          │
+        //          └──────────┘
+
         val monorepo = projectProvider.getProject(rootDir)
         val subprojectOne = projectProvider.getProject(rootDir.resolve("subproject-one"))
         val subprojectTwo = projectProvider.getProject(rootDir.resolve("subproject-two"))
@@ -71,6 +92,9 @@ internal class PaddleMonorepoProjectConfigurationsTest {
         assertEquals(":monorepo", monorepo.routeAsString)
         assertEquals(":monorepo:subproject-one", subprojectOne.routeAsString)
         assertEquals(":monorepo:subproject-two", subprojectTwo.routeAsString)
-        assertEquals(":monorepo:subproject-one:common", common.routeAsString)
+        assertTrue(
+            ":monorepo:subproject-one:common" == common.routeAsString ||
+                ":monorepo:subproject-two:common" == common.routeAsString
+        )
     }
 }
