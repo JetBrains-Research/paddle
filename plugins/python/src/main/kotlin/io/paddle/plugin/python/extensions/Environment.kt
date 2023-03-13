@@ -26,7 +26,7 @@ import kotlin.io.path.absolutePathString
 val PaddleProject.environment: Environment
     get() = checkNotNull(extensions.get(Environment.Extension.key)) { "Could not load extension Environment for project $routeAsString" }
 
-class Environment(val project: PaddleProject, val venv: VenvDir) : Hashable {
+class Environment(val project: PaddleProject, val venv: VenvDir, val noIndex: Boolean) : Hashable {
 
     val localInterpreterPath: Path
         get() = venv.getInterpreterPath(project)
@@ -47,9 +47,10 @@ class Environment(val project: PaddleProject, val venv: VenvDir) : Hashable {
         override fun create(project: PaddleProject): Environment {
             val config = object : ConfigurationView("environment", project.config) {
                 val venv by string("path", default = ".venv")
+                val noIndex by lazy { get<String>("noIndex")?.toBoolean() ?: false }
             }
 
-            return Environment(project, VenvDir(File(project.workDir, config.venv)))
+            return Environment(project, VenvDir(File(project.workDir, config.venv)), config.noIndex)
         }
     }
 

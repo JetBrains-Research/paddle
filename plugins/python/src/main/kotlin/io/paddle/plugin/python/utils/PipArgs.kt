@@ -11,6 +11,7 @@ internal class PipArgs private constructor(val args: List<String>) {
         var noCacheDir: Boolean = false
         var additionalArgs: List<String> = emptyList()
         var packages: List<PyUrl> = listOf()
+        var noIndex: Boolean = false
         fun build() = PipArgs(buildList {
             add("-m")
             add("pip")
@@ -20,6 +21,9 @@ internal class PipArgs private constructor(val args: List<String>) {
             }
             if (noCacheDir) {
                 add("--no-cache-dir")
+            }
+            if (noIndex) {
+                add("--no-index")
             }
             addAll(additionalArgs)
             addAll(packages)

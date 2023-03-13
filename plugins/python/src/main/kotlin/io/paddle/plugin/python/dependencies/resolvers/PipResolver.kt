@@ -4,6 +4,7 @@ import io.paddle.plugin.python.dependencies.index.distributions.ArchivePyDistrib
 import io.paddle.plugin.python.dependencies.index.distributions.WheelPyDistributionInfo
 import io.paddle.plugin.python.dependencies.index.webIndexer
 import io.paddle.plugin.python.dependencies.packages.PyPackage
+import io.paddle.plugin.python.dependencies.repositories.PyPackageRepositories
 import io.paddle.plugin.python.dependencies.repositories.PyPackageRepository
 import io.paddle.plugin.python.extensions.*
 import io.paddle.plugin.python.utils.*
@@ -39,6 +40,7 @@ object PipResolver {
             noCacheDir = project.pythonRegistry.noCacheDir
             packages = requirementsAsPipArgs
             additionalArgs = project.repositories.resolved.asPipArgs
+            noIndex = project.environment.noIndex
         }.args
         val executable = project.environment.localInterpreterPath.absolutePathString()
         val input = (pipResolveArgs + executable).map { it.hashable() }.hashable().hash()
@@ -104,7 +106,7 @@ object PipResolver {
             // val fileExtension = lines[i + 2].substringAfter(": ")
             val filename = lines[i + 3].substringAfter(": ")
             val repoUrl = lines[i + 4].substringAfter(": ").substringBeforeLast("/simple/")
-            var distributionUrl = lines[i + 5].substringAfter(": ")
+            val distributionUrl = lines[i + 5].substringAfter(": ")
             val comesFromDistributionUrl = lines[i + 6].substringAfter(": ")
 
             val pyDistributionInfo = WheelPyDistributionInfo.fromString(filename)
@@ -112,42 +114,52 @@ object PipResolver {
                 ?: throw Task.ActException("FIXME: Unknown distribution type: $filename")
 
             val version = pyDistributionInfo.version
+            val findLinkSourceUrl = distributionUrl.findLinkSourceIn(project.repositories.resolved)
 
-            val repo = if (repoUrl == "None") { // it was resolved as a local file distribution file://...
-                runBlocking {
-                    project.webIndexer.getDistributionUrl(
-                        pyDistributionInfo,
-                        PyPackageRepository.PYPI_REPOSITORY
-                    )
-                } // if null, it was not found in the PyPi repo
-                    ?: if (project.pythonRegistry.autoRemove) {
-                        val localDistribution = File(URI(distributionUrl))
-                        if (!localDistribution.exists()) {
-                            throw Task.ActException("Failed to delete local distribution $distributionUrl: file not found.")
-                        }
-                        if (!localDistribution.delete()) {
-                            throw Task.ActException("Failed to delete local distribution $distributionUrl. Please, do it manually and re-run the task.")
-                        }
-                        retry = true
-                    } else {
-                        if (!project.pythonRegistry.noCacheDir) {
-                            throw Task.ActException("Failed to find distribution $filename  in the repository ${PyPackageRepository.PYPI_REPOSITORY.url.getSecure()}")
-                        }
-                        project.terminal.warn(
-                            "Distribution $filename was not found in the repository ${PyPackageRepository.PYPI_REPOSITORY.url.getSecure()}.\n" +
-                                "It is possible that it was resolved from your local cache, " +
-                                "which is deprecated since it is not available online anymore.\n" +
-                                "Please, consider removing $distributionUrl from cache and re-running the task.\n" +
-                                "Or run again with disabled pip cache using `usePipCache: false`"
+
+            val repo = when {
+                findLinkSourceUrl != null -> {
+                    project.repositories.resolved.primarySource // FIXME: make this null requires a lot of code work
+                }
+
+                repoUrl == "None" -> { // it was resolved as a local file distribution file://...
+                    runBlocking {
+                        project.webIndexer.getDistributionUrl(
+                            pyDistributionInfo,
+                            PyPackageRepository.PYPI_REPOSITORY
                         )
-                    }
-                PyPackageRepository.PYPI_REPOSITORY
-            } else {
-                project.repositories.resolved.all.find { it.url.trimmedEquals(repoUrl) }
-                    ?: throw IllegalStateException("Unknown repository: $repoUrl")
+                    } // if null, it was not found in the PyPi repo
+                        ?: if (project.pythonRegistry.autoRemove) {
+                            val localDistribution = File(URI(distributionUrl))
+                            if (!localDistribution.exists()) {
+                                throw Task.ActException("Failed to delete local distribution $distributionUrl: file not found.")
+                            }
+                            if (!localDistribution.delete()) {
+                                throw Task.ActException("Failed to delete local distribution $distributionUrl. Please, do it manually and re-run the task.")
+                            }
+                            retry = true
+                        } else {
+                            if (!project.pythonRegistry.noCacheDir) {
+                                throw Task.ActException("Failed to find distribution $filename  in the repository ${PyPackageRepository.PYPI_REPOSITORY.url.getSecure()}")
+                            }
+                            project.terminal.warn(
+                                "Distribution $filename was not found in the repository ${PyPackageRepository.PYPI_REPOSITORY.url.getSecure()}.\n" +
+                                    "It is possible that it was resolved from your local cache, " +
+                                    "which is deprecated since it is not available online anymore.\n" +
+                                    "Please, consider removing $distributionUrl from cache and re-running the task.\n" +
+                                    "Or run again with disabled pip cache using `usePipCache: false`"
+                            )
+                        }
+                    PyPackageRepository.PYPI_REPOSITORY
+                }
+
+                else -> {
+                    project.repositories.resolved.all.find { it.url.trimmedEquals(repoUrl) }
+                        ?: throw IllegalStateException("Unknown repository: $repoUrl")
+                }
             }
 
-            val pkg = PyPackage(name, version, repo, distributionUrl)
+            val pkg = PyPackage(name, version, repo, distributionUrl, findLinkSource = findLinkSourceUrl)
             comesFromUrlByPackage[pkg] = comesFromDistributionUrl
         }
 
@@ -164,5 +176,8 @@ object PipResolver {
         return comesFromUrlByPackage.keys + satisfiedRequirements
     }
 
-    class RetrySignal() : Exception()
+    private fun PyPackageUrl.findLinkSourceIn(repositories: PyPackageRepositories): PyUrl? =
+        repositories.linkSources.find { findLinksSource -> this.startsWith(findLinksSource) }
+
+    class RetrySignal : Exception()
 }

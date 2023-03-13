@@ -5,4 +5,5 @@ object PythonPluginTaskGroups {
     const val INSTALL = "install"
     const val VENV = "venv"
     const val PUBLISH = "publish"
+    const val GENERATE = "generate"
 }

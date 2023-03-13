@@ -4,15 +4,14 @@ import io.paddle.plugin.Plugin
 import io.paddle.plugin.python.dependencies.authentication.AuthenticationProvider
 import io.paddle.plugin.python.dependencies.index.PyPackageRepositoryIndexer
 import io.paddle.plugin.python.extensions.*
+import io.paddle.plugin.python.tasks.generate.GenerateRequirements
 import io.paddle.plugin.python.tasks.install.CiTask
 import io.paddle.plugin.python.tasks.install.InstallTask
 import io.paddle.plugin.python.tasks.install.LockTask
 import io.paddle.plugin.python.tasks.lint.MyPyTask
 import io.paddle.plugin.python.tasks.lint.PyLintTask
 import io.paddle.plugin.python.tasks.publish.TwinePublishTask
-import io.paddle.plugin.python.tasks.resolve.ResolveInterpreterTask
-import io.paddle.plugin.python.tasks.resolve.ResolveRepositoriesTask
-import io.paddle.plugin.python.tasks.resolve.ResolveRequirementsTask
+import io.paddle.plugin.python.tasks.resolve.*
 import io.paddle.plugin.python.tasks.run.RunTask
 import io.paddle.plugin.python.tasks.test.PyTestTask
 import io.paddle.plugin.python.tasks.venv.VenvTask
@@ -45,7 +44,8 @@ object PythonPlugin : Plugin {
             MyPyTask(project),
             PyLintTask(project),
             WheelTask(project),
-            TwinePublishTask(project)
+            TwinePublishTask(project),
+            GenerateRequirements(project),
         ) + RunTask.from(project) + PyTestTask.from(project)
     }
 
