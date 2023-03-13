@@ -3,6 +3,7 @@ package io.paddle.idea.project.open
 import com.intellij.openapi.externalSystem.importing.AbstractOpenProjectProvider
 import com.intellij.openapi.externalSystem.importing.ImportSpecBuilder
 import com.intellij.openapi.externalSystem.model.DataNode
+import com.intellij.openapi.externalSystem.model.ProjectSystemId
 import com.intellij.openapi.externalSystem.model.project.ProjectData
 import com.intellij.openapi.externalSystem.service.execution.ProgressExecutionMode
 import com.intellij.openapi.externalSystem.service.project.ExternalProjectRefreshCallback
@@ -22,6 +23,8 @@ import kotlin.io.path.absolutePathString
 
 @Suppress("UnstableApiUsage")
 object PaddleOpenProjectProvider : AbstractOpenProjectProvider() {
+    override val systemId: ProjectSystemId = PaddleManager.ID
+
     override fun isProjectFile(file: VirtualFile): Boolean = file.isPaddle
 
     override fun linkToExistingProject(projectFile: VirtualFile, project: Project) {

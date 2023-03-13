@@ -71,7 +71,7 @@ class VcsIgnoreEditorNotificationProvider : EditorNotificationProvider {
     ) {
         runWriteAction {
             writeIgnoreFileEntries(project, ignoreFile, ignoredEntries, vcs, ignoreFileRoot)
-            EditorNotificationsImpl.getInstance(project).updateNotifications(originalFile)
+            EditorNotifications.getInstance(project).updateNotifications(originalFile)
         }
     }
 }
