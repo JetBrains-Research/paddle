@@ -56,7 +56,8 @@ class Requirements(val project: PaddleProject, val descriptors: MutableList<Desc
                             "Failed to parse ${project.buildFile.canonicalPath}: <name> must be provided for every requirement."
                         },
                         versionSpecifier = req["version"]?.let { PyPackageVersionSpecifier.fromString(it) },
-                        type = Descriptor.Type.MAIN
+                        type = Descriptor.Type.MAIN,
+                        isNoBinary = req["noBinary"].toBoolean()
                     )
                 } + devRequirements.map { req ->
                     Descriptor(
@@ -64,7 +65,8 @@ class Requirements(val project: PaddleProject, val descriptors: MutableList<Desc
                             "Failed to parse ${project.buildFile.canonicalPath}: <name> must be provided for every requirement."
                         },
                         versionSpecifier = req["version"]?.let { PyPackageVersionSpecifier.fromString(it) },
-                        type = Descriptor.Type.DEV
+                        type = Descriptor.Type.DEV,
+                        isNoBinary = req["noBinary"].toBoolean()
                     )
                 }
 
@@ -72,7 +74,12 @@ class Requirements(val project: PaddleProject, val descriptors: MutableList<Desc
         }
     }
 
-    data class Descriptor(val name: PyPackageName, val versionSpecifier: PyPackageVersionSpecifier? = null, val type: Type = Type.MAIN) : Hashable {
+    data class Descriptor(
+        val name: PyPackageName,
+        val versionSpecifier: PyPackageVersionSpecifier? = null,
+        val type: Type = Type.MAIN,
+        val isNoBinary: Boolean = false
+    ) : Hashable {
         enum class Type {
             MAIN, DEV
         }

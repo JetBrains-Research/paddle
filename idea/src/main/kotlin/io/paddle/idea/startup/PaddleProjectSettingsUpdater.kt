@@ -9,15 +9,11 @@ import com.intellij.openapi.externalSystem.settings.ExternalSystemSettingsListen
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.LocalFileSystem
-import com.jetbrains.python.sdk.PythonSdkAdditionalData
-import com.jetbrains.python.sdk.basePath
-import com.jetbrains.python.sdk.pythonSdk
+import com.jetbrains.python.sdk.*
 import com.jetbrains.python.statistics.modules
 import io.paddle.idea.PaddleManager
 import io.paddle.idea.sdk.PaddlePythonSdkUtil
-import io.paddle.plugin.python.extensions.environment
-import io.paddle.plugin.python.extensions.globalCache
-import io.paddle.plugin.python.extensions.requirements
+import io.paddle.plugin.python.extensions.*
 import io.paddle.plugin.python.hasPython
 import io.paddle.project.PaddleProjectProvider
 import java.io.File
@@ -35,23 +31,25 @@ class PaddleProjectSettingsUpdater : ExternalSystemSettingsListenerEx {
 
         // Schedule Python SDK configurer
         val connection = project.messageBus.connect(Disposer.newDisposable())
-        connection.subscribe(ProjectDataImportListener.TOPIC, ProjectDataImportListener {
-            val rootDir = project.basePath?.let { File(it) } ?: return@ProjectDataImportListener
-            val provider = PaddleProjectProvider.getInstance(rootDir).also { it.sync() }
+        connection.subscribe(ProjectDataImportListener.TOPIC, object : ProjectDataImportListener {
+            override fun onImportFinished(projectPath: String?) {
+                val rootDir = project.basePath?.let { File(it) } ?: return
+                val provider = PaddleProjectProvider.getInstance(rootDir).also { it.sync() }
 
-            for (module in project.modules) {
-                val paddleProject = module.basePath?.let { provider.getProject(File(it)) } ?: continue
-                if (paddleProject.hasPython && paddleProject.environment.venv.exists()) {
-                    try {
-                        PaddlePythonSdkUtil.configurePythonSdk(module, paddleProject)
-                        val sdkData = module.pythonSdk?.sdkModificator?.sdkAdditionalData as? PythonSdkAdditionalData
+                for (module in project.modules) {
+                    val paddleProject = module.basePath?.let { provider.getProject(File(it)) } ?: continue
+                    if (paddleProject.hasPython && paddleProject.environment.venv.exists()) {
+                        try {
+                            PaddlePythonSdkUtil.configurePythonSdk(module, paddleProject)
+                            val sdkData = module.pythonSdk?.sdkModificator?.sdkAdditionalData as? PythonSdkAdditionalData
 
-                        paddleProject.requirements.resolved
-                            .map { paddleProject.globalCache.getPathToCachedPackage(it) }
-                            .mapNotNull { LocalFileSystem.getInstance().findFileByNioFile(it) }
-                            .forEach { sdkData?.addedPathFiles?.add(it) }
-                    } catch (e: Throwable) {
-                        log.warn(e)
+                            paddleProject.requirements.resolved
+                                .map { paddleProject.globalCache.getPathToCachedPackage(it) }
+                                .mapNotNull { LocalFileSystem.getInstance().findFileByNioFile(it) }
+                                .forEach { sdkData?.addedPathFiles?.add(it) }
+                        } catch (e: Throwable) {
+                            log.warn(e)
+                        }
                     }
                 }
             }

@@ -1,10 +1,10 @@
 package io.paddle.idea.settings
 
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.*
 import com.intellij.openapi.externalSystem.settings.AbstractExternalSystemSettings
 import com.intellij.openapi.externalSystem.settings.ExternalSystemSettingsListener
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.util.Key
 import com.intellij.util.xmlb.annotations.XCollection
 
 @State(name = "PaddleSettings", storages = [Storage("paddle.xml")])
@@ -34,8 +34,7 @@ class PaddleSettings(project: Project) : AbstractExternalSystemSettings<
         }
     }
 
-
-    override fun subscribe(listener: ExternalSystemSettingsListener<PaddleProjectSettings>) {
+    override fun subscribe(listener: ExternalSystemSettingsListener<PaddleProjectSettings>, parentDisposable: Disposable) {
         project.messageBus.connect().subscribe(changesTopic, PaddleProjectSettings.Listener.DelegatingAdapter(listener))
     }
 

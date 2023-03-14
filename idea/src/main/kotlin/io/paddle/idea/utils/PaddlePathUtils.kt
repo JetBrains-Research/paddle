@@ -19,8 +19,7 @@ internal val VirtualFile.isPaddle: Boolean
  * @return whether this file exists and is a `Paddle` build file.
  */
 internal val Path.isPaddle: Boolean
-    get() =
-        isRegularFile(this) && fileName.toString() == "paddle.yaml"
+    get() = isRegularFile(this) && fileName.toString() == "paddle.yaml"
 
 internal fun Path.findPaddleInDirectory(): Path? {
     require(isDirectory()) { "Trying to find paddle.yaml not in directory" }

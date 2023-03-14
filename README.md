@@ -37,6 +37,7 @@ environment, running tasks, and much more.
     - [Repositories](#repositories)
       - [Authentication](#authentication)
     - [Requirements](#requirements)
+    - [Find links](#find-links)
     - [Tasks section](#tasks-section)
       - [Run](#tasks-section)
       - [Test](#tasks-section)
@@ -394,6 +395,8 @@ environment:
     your platform
     given [here](https://github.com/pyenv/pyenv/wiki#suggested-build-environment).
   - The downloaded and installed interpreter is cached in the `~/.paddle/interpreters` folder.
+- `noIndex` (*optional*): if True, this ignores the PyPi index, and make resolving only with url
+  from `findLinks` section. The flag is set to `False` by default.
 
 #### Repositories
 
@@ -523,6 +526,8 @@ requirements:
     - name: numpy
       version: <=1.22.4
     - name: pandas
+    - name: lxml
+      noBinary: true
   dev:
     - name: pytest
     - name: twine
@@ -530,12 +535,17 @@ requirements:
 ```
 
 Each requirement **must** have a specified `name` to look for in the PyPI repository, as well as an
-optional `version` property. If the version is not specified, Paddle will try to resolve it by
-itself when running the `resolveRequirements` task.
+optional `version` and `noBinary` property. If the version is not specified, Paddle will try to
+resolve it by itself when running the `resolveRequirements` task.
 
-The version identifier can be specified as a number with some relation (e.g., by using prefixes `<=`, `>=`, `<`, `>`,
+The version identifier can be specified as a number with some relation (e.g., by using
+prefixes `<=`, `>=`, `<`, `>`,
 `==`, `!=`,
 `~=`, `===`), or just a general version number (the same as with `==` prefix).
+
+`noBinary` specifies a strategy to choose a package's distribution methods. If that option is not
+set, or set to false, Paddle will prefer binary wheel, otherwise Paddle will use source code
+distribution.
 
 **Note:** for now, only this format of requirement specification is available.
 Specifying requirements by URL/URI will be added in an upcoming Paddle release, stay tuned!
@@ -545,6 +555,26 @@ to copy-paste the file's contents into the `paddle.yaml` file as is, and Paddle 
 convert it to its own format.
 
 <img src="assets/copypaste-paddle.png" alt="Copy-paste example">
+
+#### Find links
+
+`findLink` is a list of URLs or paths to the external non-indexed packages (e.g. local-built
+package). This is similar to pip's `--find-link` option.
+
+For local path or URLs starting from `file://` to a directory, then PyPI will look for
+archives in the directory.
+
+For paths and URLs to an HTML file, PyPI will look for link to archives as
+sdist (`.tar.gz`) or wheel (`.whl`).
+
+```yaml
+findLinks:
+    - /home/example/sample-wheel/dist
+    - https://example.com/python_packages.html
+    - file:///usr/share/packages/sample-wheel.whl 
+```
+
+**NB**: VCS links (e.g. `git://`) are not supported.
 
 #### Tasks section
 
@@ -682,6 +712,10 @@ Here is a reference for all the built-in Paddle tasks available at the moment.
 - `mypy`: runs [Mypy](http://www.mypy-lang.org/) type checker on the `sources` of the Paddle project.
 - `pylint`: runs [Pylint](https://pylint.pycqa.org/en/latest/) linter on the `sources` of the Paddle
   project.
+
+- `requirements`: generates `requirements.txt` in the root directory of every project.
+    - Note, that generated `requirements.txt` does not represent actual structure of Paddle source.
+      It would only generate dependencies for a project. 
 
 ## Example: multi-project build
 
