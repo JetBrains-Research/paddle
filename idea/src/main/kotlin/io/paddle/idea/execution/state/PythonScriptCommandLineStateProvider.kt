@@ -19,7 +19,7 @@ class PythonScriptCommandLineStateProvider : PaddleTaskRunProfileStateProvider<R
             ?: return null
 
         val additionalArgsLine = (context.originalRunConfiguration as PaddleRunConfiguration).commandLine.tasksAndArguments.toList()
-        val additionalArgs = Paddle.parseCliOptions(additionalArgsLine)["extraArgs"]?.prepare() ?: ""
+        val additionalArgs = Paddle.parseCliOptions(additionalArgsLine)["extraArgs"]?.trim('"', '\'') ?: ""
 
         val pythonRunConfiguration = factory.createTemplateConfiguration(context.environment.project) as PythonRunConfiguration
         pythonRunConfiguration.apply {
@@ -37,10 +37,4 @@ class PythonScriptCommandLineStateProvider : PaddleTaskRunProfileStateProvider<R
 
         return PythonScriptCommandLineState(pythonRunConfiguration, context.environment)
     }
-    private fun String.prepare(): String =
-        when {
-            startsWith("\"") && endsWith("\"") -> this.drop(1).dropLast(1)
-            startsWith("'") && endsWith("'") -> this.drop(1).dropLast(1)
-            else -> this
-        }
 }

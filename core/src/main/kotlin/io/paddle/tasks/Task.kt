@@ -55,18 +55,18 @@ abstract class Task(val project: PaddleProject) {
     /**
      * [act] with cli arguments support
      */
-    protected open fun act(cliArgs: Map<String, String>) = act()
+    protected open fun act(args: Map<String, String>) = act()
 
     /**
      * Decorated version of [act]: prints current state to project's terminal.
      */
-    protected open fun execute(cliArgs: Map<String, String> = emptyMap()) {
+    protected open fun execute(extraArgs: Map<String, String> = emptyMap()) {
         project.terminal.commands.stdout(
             CommandOutput.Command.Task(taskRoute, CommandOutput.Command.Task.Status.EXECUTE)
         )
 
         try {
-            act(cliArgs)
+            act(extraArgs)
         } catch (e: PaddleTaskCancellationException) {
             project.terminal.commands.stdout(
                 CommandOutput.Command.Task(taskRoute, CommandOutput.Command.Task.Status.CANCELLED)
@@ -92,11 +92,11 @@ abstract class Task(val project: PaddleProject) {
      * Runs a task as a coroutine and creates another polling coroutine to perform graceful cancellation
      * (by killing all the created external processes).
      */
-    open fun run(cancellationToken: CancellationToken = CancellationToken.None, cliArgs: Map<String, String> = emptyMap()) = runBlocking(Dispatchers.IO) {
+    open fun run(cancellationToken: CancellationToken = CancellationToken.None, extraArgs: Map<String, String> = emptyMap()) = runBlocking(Dispatchers.IO) {
         val job = launch {
             try {
                 executionOrder.forEach {
-                    it.execute(cliArgs)
+                    it.execute(extraArgs)
                     yield()
                 }
             } catch (e: CancellationException) {

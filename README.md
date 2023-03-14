@@ -566,6 +566,7 @@ tasks:
       entrypoint: main.py
     - id: main_as_module
       entrypoint: main
+      args: arg1 arg2
   ```
   - `id`: a unique identifier of the task, so that entrypoint can be referenced as
     `run$<id>`.
@@ -573,6 +574,8 @@ tasks:
     be executed. If the `.py` extension of the Python script is **not** specified, the
     entrypoint is considered as a module and called in a way like `python -m <entrypoint>` when
     running the task.
+  - `args`: extra arguments that will be provided on a startup,
+    e.g. `python <entrypoint> arg1 arg2`.
 
 
 - <a id="tests"></a> `tests`: a section to add configurations for the test frameworks.

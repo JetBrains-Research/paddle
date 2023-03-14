@@ -55,18 +55,11 @@ class RunTask(val name: String, val entrypoint: String, val arguments: List<Stri
         }.orElse { throw ActException("Script has returned non-zero exit code: $it") }
     }
 
-    override fun act(cliArgs: Map<String, String>) {
-        val additionalArgs = cliArgs["extraArgs"]?.prepare()?.split(" ") ?: emptyList()
+    override fun act(args: Map<String, String>) {
+        val extraArgs = args["extraArgs"]?.trim('"', '\'')?.split(" ") ?: emptyList()
         when {
-            isModuleMode -> project.environment.runModule(entrypoint, arguments + additionalArgs)
-            else -> project.environment.runScript(entrypoint, arguments + additionalArgs)
+            isModuleMode -> project.environment.runModule(entrypoint, arguments + extraArgs)
+            else -> project.environment.runScript(entrypoint, arguments + extraArgs)
         }.orElse { throw ActException("Script has returned non-zero exit code: $it") }
     }
-
-    private fun String.prepare(): String =
-        when {
-            startsWith("\"") && endsWith("\"") -> this.drop(1).dropLast(1)
-            startsWith("'") && endsWith("'") -> this.drop(1).dropLast(1)
-            else -> this
-        }
 }

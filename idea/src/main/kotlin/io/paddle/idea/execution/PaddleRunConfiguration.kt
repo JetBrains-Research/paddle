@@ -10,7 +10,6 @@ import com.intellij.openapi.externalSystem.service.execution.ExternalSystemRunCo
 import com.intellij.openapi.externalSystem.service.execution.ExternalSystemRunnableState
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.wm.ToolWindowId
-import io.paddle.Paddle
 import io.paddle.idea.PaddleManager
 import io.paddle.idea.execution.cmdline.PaddleCommandLine
 import io.paddle.idea.execution.state.*
