@@ -11,11 +11,14 @@ class RunTask(val name: String, val entrypoint: String, val arguments: List<Stri
     val isModuleMode: Boolean
         get() = !entrypoint.endsWith(".py")
 
+
     companion object {
         fun from(project: PaddleProject): List<RunTask> {
             val configurations = project.config.get<List<Map<String, Any>>?>("tasks.run") ?: return emptyList()
             val tasks = ArrayList<RunTask>()
             for (configuration in configurations) {
+                val args: List<String> = (configuration.getOrDefault("args", emptyList<String>()) as List<String>)
+
                 val entrypointPath = project.roots.sources.resolve(configuration["entrypoint"] as String).relativeTo(project.workDir).path
                 val entrypoint =
                     if (entrypointPath.endsWith(".py"))
@@ -27,7 +30,7 @@ class RunTask(val name: String, val entrypoint: String, val arguments: List<Stri
                     RunTask(
                         configuration["id"] as String,
                         entrypoint,
-                        configuration.getOrDefault("args", emptyList<String>()) as List<String>,
+                        args,
                         project
                     )
                 )
@@ -49,6 +52,14 @@ class RunTask(val name: String, val entrypoint: String, val arguments: List<Stri
         when {
             isModuleMode -> project.environment.runModule(entrypoint, arguments)
             else -> project.environment.runScript(entrypoint, arguments)
+        }.orElse { throw ActException("Script has returned non-zero exit code: $it") }
+    }
+
+    override fun act(args: Map<String, String>) {
+        val extraArgs = args["extraArgs"]?.trim('"', '\'')?.split(" ") ?: emptyList()
+        when {
+            isModuleMode -> project.environment.runModule(entrypoint, arguments + extraArgs)
+            else -> project.environment.runScript(entrypoint, arguments + extraArgs)
         }.orElse { throw ActException("Script has returned non-zero exit code: $it") }
     }
 }
