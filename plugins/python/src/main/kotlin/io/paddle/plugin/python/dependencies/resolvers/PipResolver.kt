@@ -22,8 +22,7 @@ import kotlin.io.path.absolutePathString
  * TODO: rework pip-resolver later to provide <repoUrl> for "already satisfied" requirements
  */
 object PipResolver {
-    const val PIP_RESOLVER_URL =
-        "https://github.com/SmirnovOleg/pip/releases/download/22.2.dev0-beta/pip_resolver-22.2.dev0-py3-none-any.whl"
+    const val PIP_RESOLVER_URL = "https://github.com/SmirnovOleg/pip/releases/download/23.0.1/pip_resolver-23.0.1-py3-none-any.whl"
     private const val PACKAGE_PROPERTIES_NUM = 7
 
     private val SATISFIED_REQUIREMENT_REGEX =
