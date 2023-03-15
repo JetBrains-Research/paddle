@@ -141,20 +141,18 @@ object PipResolver {
                             retry = true
                         } else {
                             if (!project.pythonRegistry.noCacheDir) {
-                                throw Task.ActException("Failed to find distribution $filename  in the repository ${PyPackageRepository.PYPI_REPOSITORY.url.getSecure()}")
-                            }
-                            project.terminal.warn(
+                            throw Task.ActException("Failed to find distribution $filename  in the repository ${PyPackageRepository.PYPI_REPOSITORY.url.getSecure()}")
+                        }
+                        project.terminal.warn(
                                 "Distribution $filename was not found in the repository ${PyPackageRepository.PYPI_REPOSITORY.url.getSecure()}.\n" +
                                     "It is possible that it was resolved from your local cache, " +
                                     "which is deprecated since it is not available online anymore.\n" +
                                     "Please, consider removing $distributionUrl from cache and re-running the task.\n" +
-                                    "Or run again with disabled pip cache using `usePipCache: false`"
-                            )
-                        }
-                    PyPackageRepository.PYPI_REPOSITORY
-                }
-
-                else -> {
+                                    "Or run again with disabled pip cache using `noCacheDir: true`"
+                        )
+                    }
+                PyPackageRepository.PYPI_REPOSITORY
+            } else -> {
                     project.repositories.resolved.all.find { it.url.trimmedEquals(repoUrl) }
                         ?: throw IllegalStateException("Unknown repository: $repoUrl")
                 }

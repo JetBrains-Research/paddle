@@ -21,8 +21,5 @@ class PythonRegistry(project: PaddleProject) : ConfigurationView("python", proje
     }
     val noCacheDir by lazy {
         get<String>("noCacheDir")?.toBoolean() ?: false
-    }
-    val autoRetry by lazy {
-        get<String>("autoRetry")?.toBoolean() ?: true
-    }
+    } //bool("noCacheDir", false)
 }
