@@ -20,6 +20,8 @@ class PythonScriptCommandLineStateProvider : PaddleTaskRunProfileStateProvider<R
 
         val additionalArgsLine = (context.originalRunConfiguration as PaddleRunConfiguration).commandLine.tasksAndArguments.toList()
         val additionalArgs = Paddle.parseCliOptions(additionalArgsLine)["extraArgs"]?.trim('"', '\'') ?: ""
+        val env: MutableMap<String, String> = context.originalRunConfiguration.settings.env.toMutableMap()
+        env["PYTHONPATH"] = env["PYTHONPATH"]?.plus(";${task.project.environment.pythonPath}") ?: task.project.environment.pythonPath
 
         val pythonRunConfiguration = factory.createTemplateConfiguration(context.environment.project) as PythonRunConfiguration
         pythonRunConfiguration.apply {
@@ -28,7 +30,7 @@ class PythonScriptCommandLineStateProvider : PaddleTaskRunProfileStateProvider<R
             sdkHome = module.pythonSdk?.homePath
             isModuleMode = task.isModuleMode
             workingDirectory = context.moduleDir.absolutePath
-            setEnvs(mapOf("PYTHONPATH" to task.project.environment.pythonPath))
+            setEnvs(env)
             setAddContentRoots(false)
             setAddSourceRoots(false)
         }
