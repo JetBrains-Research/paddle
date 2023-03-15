@@ -1,20 +1,24 @@
-package io.paddle.idea.settings.global
+package io.paddle.utils.config
 
-import io.paddle.utils.config.ConfigurationYAML
 import org.yaml.snakeyaml.DumperOptions
 import org.yaml.snakeyaml.Yaml
 import java.nio.file.Path
-import kotlin.io.path.readText
+import kotlin.io.path.*
 
-object PaddleRegistryInteract {
+object PaddleApplicationSettings {
 
-    private val PADDLE_HOME: Path
-        get() = System.getenv("PADDLE_HOME")?.let { Path.of(it) } ?: System.getProperty("user.home").let { Path.of(it).resolve(".paddle") }
+    val paddleHome: Path
+        get() {
+            val fromEnv = System.getenv("PADDLE_HOME")?.let { Path.of(it) }
+            val result = fromEnv ?: System.getProperty("user.home").let { Path.of(it).resolve(".paddle") }
+            if (!result.exists()) result.createDirectories()
+            return result
+        }
 
-    private val REGISTRY_PATH: Path
-        get() = PADDLE_HOME.resolve("registry.yaml")
+    val registry: Path
+        get() = paddleHome.resolve("registry.yaml").apply { if (!exists()) { createFile()} }
     private val config: MutableMap<String, Any>
-        get() = REGISTRY_PATH.takeIf { it.readText().isNotEmpty() }
+        get() = registry.takeIf { it.readText().isNotEmpty() }
             ?.let { ConfigurationYAML.from(it.toFile()).toMutableMap() } ?: mutableMapOf()
 
 
@@ -26,14 +30,14 @@ object PaddleRegistryInteract {
             defaultFlowStyle = DumperOptions.FlowStyle.BLOCK
             defaultScalarStyle = DumperOptions.ScalarStyle.PLAIN
         }
-        Yaml(options).dump(map, REGISTRY_PATH.toFile().bufferedWriter())
+        Yaml(options).dump(map, registry.toFile().bufferedWriter())
     }
 
     object Python {
         private val pythonConfig: MutableMap<String, Any>
             get() = config["python"]?.let { it as? MutableMap<String, Any> } ?: mutableMapOf()
 
-        private fun modify(key: String, value: Any) = PaddleRegistryInteract.modify("python", pythonConfig.run { set(key, value); this })
+        private fun modify(key: String, value: Any) = PaddleApplicationSettings.modify("python", pythonConfig.run { set(key, value); this })
 
         var noCacheDir: Boolean
             get() = (pythonConfig["noCacheDir"] as? String)?.toBooleanStrictOrNull() ?: false
