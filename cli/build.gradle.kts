@@ -8,7 +8,7 @@ version = rootProject.version
 plugins {
     id("com.github.breadmoirai.github-release") version "2.2.12" apply true
     id("tanvd.kosogor") version "1.0.12" apply true
-    id("org.graalvm.buildtools.native") version "0.9.13"
+    id("org.graalvm.buildtools.native") version "0.9.20"
     application
 }
 
@@ -37,15 +37,6 @@ val shadowJar = shadowJar {
 }.apply {
     task.archiveClassifier.set("all")
     task.archiveBaseName.set("paddle")
-
-    task.from(file("src/main/resources/version.txt").apply {
-        if (!exists()) {
-            parentFile.mkdirs()
-            createNewFile()
-        }
-
-        writeText(project.version.toString())
-    })
 }
 
 tasks.withType(GithubReleaseTask::class) {

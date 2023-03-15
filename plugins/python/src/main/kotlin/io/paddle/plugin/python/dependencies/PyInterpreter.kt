@@ -176,11 +176,41 @@ class PyInterpreter(val path: Path, val version: Version) {
 
         private fun tryInstallingPrerequisites(project: PaddleProject) {
             if (Os.isFamily(Os.FAMILY_MAC)) {
+                var macBrandString: String? = null
                 project.executor.execute(
-                    command = "/usr/local/bin/brew",
-                    args = "install openssl readline sqlite3 xz zlib tcl-tk".split(" "),
+                    command = "sysctl",
+                    args = listOf("-n", "machdep.cpu.brand_string"),
                     workingDir = project.rootDir,
-                    terminal = project.terminal
+                    terminal = project.terminal,
+                    systemOut = { result -> macBrandString = result },
+                    systemErr = { error -> project.terminal.warn("Failed to detect CPU type for your Mac: $error") }
+                ).expose(
+                    onSuccess = {
+                        when {
+                            macBrandString?.contains("M1") == true -> {
+                                project.executor.execute(
+                                    command = "arch",
+                                    args = "-x86_64 brew install openssl gettext readline sqlite3 xz zlib tcl-tk".split(" "),
+                                    workingDir = project.rootDir,
+                                    terminal = project.terminal
+                                )
+                            }
+
+                            else -> {
+                                project.executor.execute(
+                                    command = "/usr/local/bin/brew",
+                                    args = "install openssl readline sqlite3 xz zlib tcl-tk".split(" "),
+                                    workingDir = project.rootDir,
+                                    terminal = project.terminal
+                                )
+                            }
+                        }
+                    },
+                    onFail = {
+                        macBrandString ?: run {
+                            project.terminal.error("Failed to install prerequisites for Python: openssl readline sqlite3 xz zlib tcl-tk")
+                        }
+                    }
                 )
             } else {
                 // TODO()
@@ -265,7 +295,7 @@ class PyInterpreter(val path: Path, val version: Version) {
                 return (minor downTo 0).toList()
                     .product(supportedImplementations)
                     .map { (minor, impl) -> "$impl$major$minor" } +
-                        supportedImplementations.map { it + major }
+                    supportedImplementations.map { it + major }
             }
 
         val executableName: String
@@ -280,7 +310,7 @@ class PyInterpreter(val path: Path, val version: Version) {
             return when (userDefinedVersion.number.count { it == '.' }) {
                 0 -> major == userDefinedVersion.major
                 1 -> number.startsWith(userDefinedVersion.number)
-                        && userDefinedVersion.number.substringAfter('.') == number.substringAfter('.')
+                    && userDefinedVersion.number.substringAfter('.') == number.substringAfter('.')
                     .substringBefore('.')
 
                 2 -> number == userDefinedVersion.number

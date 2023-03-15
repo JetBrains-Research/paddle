@@ -6,6 +6,7 @@ import io.paddle.plugin.python.dependencies.resolvers.PipResolver
 import io.paddle.plugin.python.utils.PyPackageName
 import io.paddle.project.PaddleProject
 import io.paddle.project.extensions.routeAsString
+import io.paddle.tasks.Task
 import io.paddle.utils.ext.Extendable
 import io.paddle.utils.hash.Hashable
 import io.paddle.utils.hash.hashable
@@ -20,8 +21,8 @@ class Requirements(val project: PaddleProject, val descriptors: MutableList<Desc
         val resolvedPackages = try {
             PipResolver.resolve(project)
         } catch (e: PipResolver.RetrySignal) {
-            project.terminal.warn("Retrying resolve...")
-            PipResolver.resolve(project)
+                project.terminal.warn("Retrying resolve...")
+                PipResolver.resolve(project)
         }
 
         // Uninstall packages which were removed from requirements of the project
@@ -47,7 +48,8 @@ class Requirements(val project: PaddleProject, val descriptors: MutableList<Desc
                             "Failed to parse ${project.buildFile.canonicalPath}: <name> must be provided for every requirement."
                         },
                         versionSpecifier = req["version"]?.let { PyPackageVersionSpecifier.fromString(it) },
-                        type = Descriptor.Type.MAIN
+                        type = Descriptor.Type.MAIN,
+                        isNoBinary = req["noBinary"].toBoolean()
                     )
                 } + devRequirements.map { req ->
                     Descriptor(
@@ -55,7 +57,8 @@ class Requirements(val project: PaddleProject, val descriptors: MutableList<Desc
                             "Failed to parse ${project.buildFile.canonicalPath}: <name> must be provided for every requirement."
                         },
                         versionSpecifier = req["version"]?.let { PyPackageVersionSpecifier.fromString(it) },
-                        type = Descriptor.Type.DEV
+                        type = Descriptor.Type.DEV,
+                        isNoBinary = req["noBinary"].toBoolean()
                     )
                 }
 
@@ -63,7 +66,12 @@ class Requirements(val project: PaddleProject, val descriptors: MutableList<Desc
         }
     }
 
-    data class Descriptor(val name: PyPackageName, val versionSpecifier: PyPackageVersionSpecifier? = null, val type: Type = Type.MAIN) : Hashable {
+    data class Descriptor(
+        val name: PyPackageName,
+        val versionSpecifier: PyPackageVersionSpecifier? = null,
+        val type: Type = Type.MAIN,
+        val isNoBinary: Boolean = false
+    ) : Hashable {
         enum class Type {
             MAIN, DEV
         }

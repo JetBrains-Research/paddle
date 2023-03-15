@@ -19,7 +19,7 @@ class PaddleBeforeRunTaskProvider(project: Project) : ExternalSystemBeforeRunTas
         return PythonIcons.Python.Python
     }
 
-    override fun getTaskIcon(task: ExternalSystemBeforeRunTask?): Icon {
+    override fun getTaskIcon(task: ExternalSystemBeforeRunTask): Icon {
         return PythonIcons.Python.Python
     }
 

@@ -101,9 +101,9 @@ class PaddleProject internal constructor(
         plugins.forEach { this.register(it) }
     }
 
-    fun execute(taskId: String, cancellationToken: CancellationToken = CancellationToken.None) {
+    fun execute(taskId: String, cancellationToken: CancellationToken = CancellationToken.None, extraArgs: Map<String, String> = emptyMap()) {
         tasks.resolve(taskId, this)
-            ?.run(cancellationToken)
+            ?.run(cancellationToken, extraArgs)
             ?: run {
                 terminal.commands.stderr(CommandOutput.Command.Task(taskId, CommandOutput.Command.Task.Status.UNKNOWN))
                 return

@@ -19,22 +19,25 @@ abstract class IncrementalTask(project: PaddleProject) : Task(project) {
     /** Output of the task that should be used during incrementallity check */
     open val outputs: List<Hashable> = emptyList()
 
-    protected fun isUpToDate(): Boolean {
+    protected fun isUpToDate(extraArgs: Map<String, String>): Boolean {
         if (inputs.isEmpty() && outputs.isEmpty()) {
             return false
         }
-        return IncrementalCache(project).isUpToDate(id, inputs.hashable(), outputs.hashable())
+        val inputsWithArgs: List<Hashable> = inputs + extraArgs.toList().map { it.hashable()  }
+        return IncrementalCache(project).isUpToDate(id, inputsWithArgs.hashable(), outputs.hashable())
     }
 
-    override fun execute() {
-        if (isUpToDate()) {
+    override fun execute(extraArgs: Map<String, String>) {
+        if (isUpToDate(extraArgs)) {
             val taskRoute = project.routeAsString + ":$id"
             project.terminal.commands.stdout(CommandOutput.Command.Task(taskRoute, CommandOutput.Command.Task.Status.UP_TO_DATE))
             return
         }
 
-        super.execute()
+        super.execute(extraArgs)
 
         IncrementalCache(project).update(id, inputs.hashable(), outputs.hashable())
     }
+
+    private fun Pair<String, String>.hashable() = listOf(first.hashable(), second.hashable()).hashable()
 }

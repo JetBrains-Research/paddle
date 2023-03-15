@@ -1,5 +1,6 @@
 package io.paddle.tasks
 
+import io.paddle.plugin.standard.extensions.registry
 import io.paddle.project.PaddleProject
 import io.paddle.project.extensions.routeAsString
 import io.paddle.terminal.CommandOutput
@@ -52,15 +53,20 @@ abstract class Task(val project: PaddleProject) {
     protected abstract fun act()
 
     /**
+     * [act] with cli arguments support
+     */
+    protected open fun act(args: Map<String, String>) = act()
+
+    /**
      * Decorated version of [act]: prints current state to project's terminal.
      */
-    protected open fun execute() {
+    protected open fun execute(extraArgs: Map<String, String> = emptyMap()) {
         project.terminal.commands.stdout(
             CommandOutput.Command.Task(taskRoute, CommandOutput.Command.Task.Status.EXECUTE)
         )
 
         try {
-            act()
+            act(extraArgs)
         } catch (e: PaddleTaskCancellationException) {
             project.terminal.commands.stdout(
                 CommandOutput.Command.Task(taskRoute, CommandOutput.Command.Task.Status.CANCELLED)
@@ -68,7 +74,9 @@ abstract class Task(val project: PaddleProject) {
             throw e
         } catch (e: Throwable) {
             e.message?.let { project.terminal.error(it) }
-            project.terminal.error(e.stackTraceToString())
+            if (project.registry.showStackTrace) {
+                project.terminal.error(e.stackTraceToString())
+            }
             project.terminal.commands.stdout(
                 CommandOutput.Command.Task(taskRoute, CommandOutput.Command.Task.Status.FAILED)
             )
@@ -78,15 +86,17 @@ abstract class Task(val project: PaddleProject) {
         project.terminal.commands.stdout(CommandOutput.Command.Task(taskRoute, CommandOutput.Command.Task.Status.DONE))
     }
 
+
+
     /**
      * Runs a task as a coroutine and creates another polling coroutine to perform graceful cancellation
      * (by killing all the created external processes).
      */
-    open fun run(cancellationToken: CancellationToken = CancellationToken.None) = runBlocking(Dispatchers.IO) {
+    open fun run(cancellationToken: CancellationToken = CancellationToken.None, extraArgs: Map<String, String> = emptyMap()) = runBlocking(Dispatchers.IO) {
         val job = launch {
             try {
                 executionOrder.forEach {
-                    it.execute()
+                    it.execute(extraArgs)
                     yield()
                 }
             } catch (e: CancellationException) {

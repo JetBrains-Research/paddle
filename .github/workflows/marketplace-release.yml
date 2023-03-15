@@ -1,9 +1,9 @@
-name: build
+name: marketplace-release
 
-on: [ push, pull_request ]
+on: [ workflow_dispatch ]
 
 jobs:
-  build:
+  publish-idea-plugin:
     runs-on: ubuntu-latest
     steps:
       - name: 'Checkout'
@@ -15,5 +15,7 @@ jobs:
           java-version: 17
           distribution: 'adopt'
 
-      - name: 'Build with Gradle'
-        run: ./gradlew build
+      - name: 'Release IDEA'
+        env:
+          MARKETPLACE_TOKEN: ${{ secrets.MARKETPLACE_TOKEN }}
+        run: ./gradlew publishPlugin
