@@ -1,7 +1,10 @@
 name: docker-release
 
-on: [ workflow_dispatch ]
-
+on:
+  workflow_run:
+    workflows: [ github-release ]
+    types:
+      - completed
 jobs:
   publish-docker-images:
     runs-on: ubuntu-latest

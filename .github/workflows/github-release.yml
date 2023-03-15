@@ -1,6 +1,10 @@
 name: github-release
 
-on: [ workflow_dispatch ]
+on:
+  workflow_run:
+    workflows: [ test ]
+    types:
+      - completed
 
 jobs:
   publish-jar:
