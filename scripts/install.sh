@@ -62,6 +62,7 @@ set_path() {
   esac
 
   grep -qxF "${export_path}" "${sh_rc_path}" || echo "${export_path}" >>"${sh_rc_path}"
+  echo "Please, reload your shell or run 'source ${sh_rc_path}' to update PATH variable"
 }
 
 main() {
