@@ -9,7 +9,7 @@ FROM python:3.10-buster as paddle-py-3-10
 
 # Install OpenJDK-17
 RUN apt-get update && \
-    apt-get install -y openjdk-17-jre-headless && \
+    apt-get install -y openjdk-17-jdk && \
     apt-get clean;
 
 # Fix certificate issues
@@ -27,7 +27,7 @@ FROM python:3.9-buster as paddle-py-3-9
 
 # Install OpenJDK-17
 RUN apt-get update && \
-    apt-get install -y openjdk-17-jre-headless && \
+    apt-get install -y openjdk-17-jdk && \
     apt-get clean;
 
 # Fix certificate issues
@@ -45,7 +45,7 @@ FROM python:3.8-buster as paddle-py-3-8
 
 # Install OpenJDK-17
 RUN apt-get update && \
-    apt-get install -y openjdk-17-jre-headless && \
+    apt-get install -y openjdk-17-jdk && \
     apt-get clean;
 
 # Fix certificate issues
@@ -63,7 +63,7 @@ FROM python:2.7-buster as paddle-py-2-7
 
 # Install OpenJDK-17
 RUN apt-get update && \
-    apt-get install -y openjdk-17-jre-headless && \
+    apt-get install -y openjdk-17-jdk && \
     apt-get clean;
 
 # Fix certificate issues
