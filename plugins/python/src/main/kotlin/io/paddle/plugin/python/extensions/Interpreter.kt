@@ -1,6 +1,7 @@
 package io.paddle.plugin.python.extensions
 
-import io.paddle.plugin.python.dependencies.PyInterpreter
+import io.paddle.plugin.python.dependencies.interpretator.InterpreterVersion
+import io.paddle.plugin.python.dependencies.interpretator.PyInterpreter
 import io.paddle.plugin.python.hasPython
 import io.paddle.plugin.python.utils.RegexCache
 import io.paddle.project.PaddleProject
@@ -16,19 +17,19 @@ import java.io.File
 val PaddleProject.globalInterpreter: Interpreter
     get() = extensions.getOrFail(Interpreter.Extension.key)
 
-class Interpreter(val project: PaddleProject, val pythonVersion: PyInterpreter.Version) : Hashable {
+class Interpreter(val project: PaddleProject, val pythonVersion: InterpreterVersion) : Hashable {
     val resolved: PyInterpreter by lazy {
         checkInterpreterCompatibility()
         PyInterpreter.find(pythonVersion, project)
     }
 
-    val cachedVersions: Collection<PyInterpreter.Version>
+    val cachedVersions: Collection<InterpreterVersion>
         get() = project.pyLocations.interpretersDir.toFile().listFiles()
             ?.filter { it.isDirectory }
-            ?.map { PyInterpreter.Version(it.name) }
+            ?.map { InterpreterVersion(it.name) }
             ?: emptyList()
 
-    val localVersions: Collection<PyInterpreter.Version>
+    val localVersions: Collection<InterpreterVersion>
         get() = when {
             Os.isFamily(Os.FAMILY_MAC) || Os.isFamily(Os.FAMILY_UNIX) ->
                 System.getenv("PATH").split(":").flatMap { path ->
@@ -56,7 +57,7 @@ class Interpreter(val project: PaddleProject, val pythonVersion: PyInterpreter.V
 
             return Interpreter(
                 project = project,
-                pythonVersion = config.pythonVersion?.let { PyInterpreter.Version(it) }
+                pythonVersion = config.pythonVersion?.let { InterpreterVersion(it) }
                     ?: project.parents.firstOrNull { it.hasPython }?.globalInterpreter?.pythonVersion
                     ?: error("<environment.python> is not specified in project ${project.routeAsString} and could not be inferred")
             )

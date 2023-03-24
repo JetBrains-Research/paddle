@@ -1,19 +1,13 @@
 package io.paddle.plugin.python.dependencies.lock
 
-import io.paddle.plugin.python.dependencies.PyInterpreter
 import io.paddle.plugin.python.dependencies.index.webIndexer
-import io.paddle.plugin.python.dependencies.lock.models.LockedPyDistribution
-import io.paddle.plugin.python.dependencies.lock.models.LockedPyPackage
-import io.paddle.plugin.python.dependencies.lock.models.LockedPyPackageIdentifier
+import io.paddle.plugin.python.dependencies.interpretator.InterpreterVersion
+import io.paddle.plugin.python.dependencies.interpretator.PyInterpreter
+import io.paddle.plugin.python.dependencies.lock.models.*
 import io.paddle.plugin.python.dependencies.packages.PyPackage
 import io.paddle.plugin.python.dependencies.repositories.PyPackageRepository
-import io.paddle.plugin.python.extensions.environment
-import io.paddle.plugin.python.extensions.globalInterpreter
-import io.paddle.plugin.python.extensions.requirements
-import io.paddle.plugin.python.utils.getSecure
-import io.paddle.plugin.python.utils.parallelForEach
-import io.paddle.plugin.python.utils.parallelMap
-import io.paddle.plugin.python.utils.trimmedEquals
+import io.paddle.plugin.python.extensions.*
+import io.paddle.plugin.python.utils.*
 import io.paddle.project.PaddleProject
 import io.paddle.tasks.Task
 import kotlinx.coroutines.supervisorScope
@@ -43,7 +37,7 @@ object PyPackageLocker {
     suspend fun installFromLock(project: PaddleProject) {
         val pyLockFile = PyLockFile.fromFile(project.workDir.resolve(PyLockFile.FILENAME))
 
-        val lockedInterpreter = PyInterpreter.find(PyInterpreter.Version(pyLockFile.interpreterVersion), project)
+        val lockedInterpreter = PyInterpreter.find(InterpreterVersion(pyLockFile.interpreterVersion), project)
         if (lockedInterpreter.version != project.globalInterpreter.resolved.version) {
             throw Task.ActException(
                 "Locked interpreter version (${lockedInterpreter.version.number}) is not consistent with " +
