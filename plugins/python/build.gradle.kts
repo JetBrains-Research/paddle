@@ -37,6 +37,7 @@ dependencies {
     testImplementation("io.kotest:kotest-assertions-core:5.4.1")
     testImplementation("io.kotest:kotest-property:5.4.1")
     testImplementation("io.kotest.extensions:kotest-extensions-testcontainers:1.3.4")
+    testImplementation("org.testcontainers:testcontainers:1.17.6")
 }
 
 tasks.withType<Test>().configureEach {
