@@ -3,19 +3,17 @@ import io.paddle.execution.*
 import io.paddle.terminal.Terminal
 import kotlinx.coroutines.yield
 import org.testcontainers.containers.GenericContainer
-import org.testcontainers.utility.DockerImageName
+import org.testcontainers.containers.wait.strategy.WaitAllStrategy
 import java.io.File
 import java.util.function.Consumer
 
-class TestContainerExecutor : CommandExecutor {
+class TestContainerExecutor(private val container: GenericContainer<*>) : CommandExecutor {
     override val os: CommandExecutor.OsInfo
         get() = TODO("Not yet implemented")
     override val env: EnvProvider
         get() = TODO("Not yet implemented")
     override val runningProcesses: MutableSet<Process>
         get() = TODO("Not yet implemented")
-
-    private val container = GenericContainer(DockerImageName.parse("paddle:3.10"))
 
     override fun execute(
         command: String,
@@ -27,6 +25,7 @@ class TestContainerExecutor : CommandExecutor {
         systemOut: Consumer<String>,
         systemErr: Consumer<String>
     ): ExecutionResult = runBlocking {
+        container.waitingFor(WaitAllStrategy())
         if (verbose) {
             terminal.info("${workingDir.path} % $command ${args.joinToString(" ")}")
         }
