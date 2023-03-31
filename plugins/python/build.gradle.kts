@@ -40,6 +40,7 @@ dependencies {
     testImplementation("org.testcontainers:testcontainers:1.17.6")
     testImplementation("org.testcontainers:junit-jupiter:1.17.6")
     testImplementation("ch.qos.logback:logback-classic:1.4.6")
+    testImplementation("com.github.docker-java:docker-java:3.3.0")
 }
 
 tasks.withType<Test>().configureEach {

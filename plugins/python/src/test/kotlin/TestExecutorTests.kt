@@ -1,53 +1,68 @@
 import io.paddle.terminal.Terminal
+import io.paddle.utils.deepResolve
+import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.fail
+import org.testcontainers.containers.BindMode
 import org.testcontainers.containers.GenericContainer
 import org.testcontainers.containers.startupcheck.IsRunningStartupCheckStrategy
 import org.testcontainers.junit.jupiter.Container
 import org.testcontainers.junit.jupiter.Testcontainers
 import org.testcontainers.utility.DockerImageName
 import java.io.File
+import kotlin.io.path.Path
+import kotlin.io.path.createSymbolicLinkPointingTo
 
 
 @Testcontainers
 class TestExecutorTests {
+    private val resources: File = File("src").deepResolve("test", "resources")
+    private val rootDir = resources.resolve("executorTests")
+    private val mountedPath = Path("/tmp/resources")
+
     @Container
-    var container: GenericContainer<*> = GenericContainer(DockerImageName.parse("ubuntu:latest"))
+    private var container: GenericContainer<*> = GenericContainer(DockerImageName.parse("ubuntu:latest"))
         .withCommand("tail -f /dev/null") // a stub command to keep container alive
         .withStartupCheckStrategy(IsRunningStartupCheckStrategy())
+        .withClasspathResourceMapping("/executorTests", mountedPath.resolve("executorTests").toString(), BindMode.READ_WRITE)
+
+    private lateinit var executor: TestContainerExecutor
+    private lateinit var console: TestConsole
+    private lateinit var terminal: Terminal
+
+    @BeforeEach
+    fun executorInit() {
+        executor = TestContainerExecutor(container, resources, mountedPath)
+        console = TestConsole()
+        terminal = Terminal(console)
+    }
+
+
 
     @Test
     fun `echo executor test`() {
-        val executor = TestContainerExecutor(container)
-        val terminal = Terminal(TestConsole())
         assert(container.isRunning)
-        executor.execute("echo", emptyList(), File("not_exists"), terminal).orElseDo { fail("The test failed with non-zero $it") }
+        executor.execute("echo", emptyList(), rootDir, terminal).orElseDo {
+            failWithCode("echo", it)
+        }
         assert(container.isRunning())
     }
 
     @Test
     fun `args in testExecutor`() {
-        val executor = TestContainerExecutor(container)
-        val console = TestConsole()
-        val terminal = Terminal(console)
         assert(container.isRunning)
         executor
-            .execute("echo", listOf("-n", "a", "b", "c", "d"), File("stub"), terminal, verbose = false)
+            .execute("echo", listOf("-n", "a", "b", "c", "d"), rootDir, terminal, verbose = false)
             .expose(
                 onSuccess = { _ ->
                     assertEquals("a b c d", console.stdout.trim())
                     assert(console.stderr.trim().isEmpty())
                 },
-                onFail = { code -> fail("The echo failed with code $code") }
+                onFail = { code -> failWithCode("echo", code) }
             )
     }
 
     @Test
     fun `envs in TestExecutor`() {
-        val executor = TestContainerExecutor(container)
-        val console = TestConsole()
-        val terminal = Terminal(console)
         val args = listOf("\$ENV1", "\$ENV2", "\$UNKNOWN")
         val envs = mapOf("ENV1" to "A", "ENV2" to "B")
         assert(container.isRunning)
@@ -56,7 +71,7 @@ class TestExecutorTests {
             .execute(
                 "echo",
                 args = args,
-                workingDir = File("stub"),
+                workingDir = rootDir,
                 terminal = terminal,
                 verbose = false,
                 env = envs
@@ -65,13 +80,13 @@ class TestExecutorTests {
                 assertEquals("\$ENV1 \$ENV2 \$UNKNOWN", console.stdout.trim())
                 assert(console.stderr.trim().isEmpty())
             },
-                onFail = { code -> fail("The echo failed with code $code") })
+                onFail = { code -> failWithCode("echo", code) })
         console.clear()
         executor
             .execute(
                 "printenv",
                 args = listOf("ENV1", "ENV2", "UNKNOWN"),
-                workingDir = File("stub"),
+                workingDir = rootDir,
                 terminal = terminal,
                 verbose = false,
                 env = envs
@@ -86,7 +101,7 @@ class TestExecutorTests {
                             assert(console.stderr.trim().isEmpty())
                         }
 
-                        else -> fail("The printenv failed with code $code. stderr: ${console.stderr}")
+                        else -> failWithCode("printEnv", code)
                     }
                 })
         console.clear()
@@ -94,24 +109,96 @@ class TestExecutorTests {
             .execute(
                 "printenv",
                 args = listOf("ENV1"),
-                workingDir = File("stub"),
+                workingDir = rootDir,
                 terminal = terminal,
                 verbose = false,
                 env = emptyMap()
             )
             .expose(
-                onSuccess = {_ ->
+                onSuccess = { _ ->
                     fail("Unexcepted success")
                 },
-                onFail = {code ->
+                onFail = { code ->
                     when (code) {
                         1 -> {
                             assert(console.stdout.isBlank())
                             assert(console.stderr.isBlank())
                         }
+
                         else -> fail("Unexpected error code $code")
                     }
                 }
             )
+    }
+
+    @Test
+    fun `mounting test`() {
+        executor.execute(
+            "pwd",
+            args = emptyList(),
+            terminal = terminal,
+            workingDir = rootDir,
+            verbose = false
+        ).expose(
+            onFail = { code -> failWithCode("pwd", code) },
+            onSuccess = { _ ->
+                val path = Path(console.stdout.trim())
+                assertEquals("executorTests", path.fileName.toString())
+            })
+        console.clear()
+        executor.execute(
+            "cat",
+            args = listOf("testFile.txt"),
+            terminal = terminal,
+            workingDir = rootDir,
+            verbose = false
+        ).expose(
+            onFail = { code -> failWithCode("cat", code) },
+            onSuccess = { _ ->
+                val content = console.stdout.trim()
+                val realContent = rootDir.resolve("testFile.txt").readText().trim()
+                assertEquals(realContent, content)
+            }
+        )
+    }
+
+    @Test
+    fun `symbolic link are working correctly`() {
+        val linkDir = rootDir.resolve("linkDir")
+        assert(linkDir.mkdirs()) { "Could create directry linkDir" }
+        val testFile = rootDir.resolve("testFile.txt")
+        rootDir.deepResolve("linkDir", "link").toPath().createSymbolicLinkPointingTo(testFile.toPath())
+        try {
+            executor.execute(
+                "ls",
+                args = emptyList(),
+                workingDir = rootDir,
+                terminal = terminal,
+                verbose = false
+            ).expose(onFail = { code -> failWithCode("ls", code) },
+                onSuccess = { _ ->
+                    println(console.stdout)
+                })
+            console.clear()
+            executor.execute(
+                "cat",
+                args = listOf("linkDir/link"),
+                terminal = terminal,
+                workingDir = rootDir,
+                verbose = false
+            ).expose(
+                onFail = { code -> failWithCode("cat", code) },
+                onSuccess = { _ ->
+                    val content = testFile.readText()
+                    assertEquals(content, console.stdout.trim())
+                }
+            )
+        } finally {
+            linkDir.deleteRecursively()
+        }
+    }
+
+    private fun failWithCode(cmd: String, code: Int) {
+        fail("$cmd failed with code $code.\nStdout: ${console.stdout}\nStderr:${console.stderr}")
     }
 }
