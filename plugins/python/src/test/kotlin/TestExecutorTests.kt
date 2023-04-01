@@ -23,7 +23,7 @@ class TestExecutorTests {
     private var container: GenericContainer<*> = GenericContainer(DockerImageName.parse("ubuntu:latest"))
         .withCommand("tail -f /dev/null") // a stub command to keep container alive
         .withStartupCheckStrategy(IsRunningStartupCheckStrategy())
-        .withClasspathResourceMapping("/executorTests", mountedPath.resolve("executorTests").toString(), BindMode.READ_WRITE)
+        .withFileSystemBind(resources.absolutePath, mountedPath.toString(), BindMode.READ_WRITE)
 
     private lateinit var executor: TestContainerExecutor
     private lateinit var console: TestConsole
@@ -44,7 +44,7 @@ class TestExecutorTests {
         executor.execute("echo", emptyList(), rootDir, terminal).orElseDo {
             failWithCode("echo", it)
         }
-        assert(container.isRunning())
+        assert(container.isRunning)
     }
 
     @Test
@@ -167,29 +167,20 @@ class TestExecutorTests {
         val linkDir = rootDir.resolve("linkDir")
         assert(linkDir.mkdirs()) { "Could create directry linkDir" }
         val testFile = rootDir.resolve("testFile.txt")
-        rootDir.deepResolve("linkDir", "link").toPath().createSymbolicLinkPointingTo(testFile.toPath())
+        val link = rootDir.deepResolve("linkDir", "link").toPath()
+        link.createSymbolicLinkPointingTo(linkDir.toPath().relativize(testFile.toPath()))
         try {
-            executor.execute(
-                "ls",
-                args = emptyList(),
-                workingDir = rootDir,
-                terminal = terminal,
-                verbose = false
-            ).expose(onFail = { code -> failWithCode("ls", code) },
-                onSuccess = { _ ->
-                    println(console.stdout)
-                })
             console.clear()
             executor.execute(
                 "cat",
-                args = listOf("linkDir/link"),
+                args = listOf("link"),
                 terminal = terminal,
-                workingDir = rootDir,
+                workingDir = rootDir.resolve("linkDir"),
                 verbose = false
             ).expose(
                 onFail = { code -> failWithCode("cat", code) },
                 onSuccess = { _ ->
-                    val content = testFile.readText()
+                    val content = testFile.readText().trim()
                     assertEquals(content, console.stdout.trim())
                 }
             )
