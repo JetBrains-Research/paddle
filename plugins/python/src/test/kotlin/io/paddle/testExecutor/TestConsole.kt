@@ -1,3 +1,5 @@
+package io.paddle.testExecutor
+
 import io.paddle.terminal.TextOutput
 
 class TestConsole : TextOutput {

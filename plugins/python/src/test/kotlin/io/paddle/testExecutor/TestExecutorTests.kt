@@ -1,3 +1,5 @@
+package io.paddle.testExecutor
+
 import io.paddle.terminal.Terminal
 import io.paddle.utils.deepResolve
 import org.junit.jupiter.api.*
@@ -14,27 +16,8 @@ import kotlin.io.path.createSymbolicLinkPointingTo
 
 
 @Testcontainers
-class TestExecutorTests {
-    private val resources: File = File("src").deepResolve("test", "resources")
+class TestExecutorTests : AbstractTestContainerTest("ubuntu:latest") {
     private val rootDir = resources.resolve("executorTests")
-    private val mountedPath = Path("/tmp/resources")
-
-    @Container
-    private var container: GenericContainer<*> = GenericContainer(DockerImageName.parse("ubuntu:latest"))
-        .withCommand("tail -f /dev/null") // a stub command to keep container alive
-        .withStartupCheckStrategy(IsRunningStartupCheckStrategy())
-        .withFileSystemBind(resources.absolutePath, mountedPath.toString(), BindMode.READ_WRITE)
-
-    private lateinit var executor: TestContainerExecutor
-    private lateinit var console: TestConsole
-    private lateinit var terminal: Terminal
-
-    @BeforeEach
-    fun executorInit() {
-        executor = TestContainerExecutor(container, resources, mountedPath)
-        console = TestConsole()
-        terminal = Terminal(console)
-    }
 
 
 
