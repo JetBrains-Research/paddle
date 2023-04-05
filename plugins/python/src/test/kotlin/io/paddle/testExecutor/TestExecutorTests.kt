@@ -1,18 +1,13 @@
 package io.paddle.testExecutor
 
-import io.paddle.terminal.Terminal
+import io.paddle.utils.config.PaddleApplicationSettings
 import io.paddle.utils.deepResolve
-import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.testcontainers.containers.BindMode
-import org.testcontainers.containers.GenericContainer
-import org.testcontainers.containers.startupcheck.IsRunningStartupCheckStrategy
-import org.testcontainers.junit.jupiter.Container
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.fail
+import org.koin.test.get
 import org.testcontainers.junit.jupiter.Testcontainers
-import org.testcontainers.utility.DockerImageName
-import java.io.File
-import kotlin.io.path.Path
-import kotlin.io.path.createSymbolicLinkPointingTo
+import kotlin.io.path.*
 
 
 @Testcontainers
@@ -170,6 +165,13 @@ class TestExecutorTests : AbstractTestContainerTest("ubuntu:latest") {
         } finally {
             linkDir.deleteRecursively()
         }
+    }
+
+    @Test
+    fun `paddle home path is correct`() {
+        assertEquals(resources.resolve(".paddle"), paddleHome)
+        assertEquals(paddleHome.toPath().absolutePathString(), this.get<PaddleApplicationSettings.PaddleHomeProvider>().getPath().absolutePathString())
+        assertEquals(paddleHome.toPath().absolutePathString(), PaddleApplicationSettings.paddleHome.absolutePathString())
     }
 
     private fun failWithCode(cmd: String, code: Int) {

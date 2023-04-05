@@ -41,6 +41,11 @@ dependencies {
     testImplementation("org.testcontainers:junit-jupiter:1.17.6")
     testImplementation("ch.qos.logback:logback-classic:1.4.6")
     testImplementation("com.github.docker-java:docker-java:3.3.0")
+    testImplementation("io.insert-koin:koin-core:3.4.0")
+    testImplementation("io.insert-koin:koin-test:3.4.0")
+    testImplementation("io.insert-koin:koin-test-junit5:3.4.0")
+
+
 }
 
 tasks.withType<Test>().configureEach {
