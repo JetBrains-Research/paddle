@@ -2,10 +2,13 @@ package io.paddle
 
 import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.parameters.arguments.argument
-import com.github.ajalt.clikt.parameters.options.*
+import com.github.ajalt.clikt.parameters.options.associate
+import com.github.ajalt.clikt.parameters.options.option
 import io.paddle.project.PaddleProjectProvider
 import io.paddle.project.extensions.descriptor
 import io.paddle.tasks.Task
+import io.paddle.utils.config.paddleHomeEnvProvider
+import org.koin.core.context.startKoin
 import java.io.File
 import kotlin.system.exitProcess
 
@@ -51,6 +54,9 @@ class Paddle internal constructor() : CliktCommand() {
 }
 
 internal fun main(args: Array<String>) {
+    startKoin {
+        modules(paddleHomeEnvProvider)
+    }
     val app = Paddle()
     app.main(args)
     app.runPaddle()

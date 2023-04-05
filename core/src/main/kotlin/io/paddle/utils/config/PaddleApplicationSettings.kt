@@ -1,19 +1,23 @@
 package io.paddle.utils.config
 
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
 import org.yaml.snakeyaml.DumperOptions
 import org.yaml.snakeyaml.Yaml
 import java.nio.file.Path
 import kotlin.io.path.*
 
-object PaddleApplicationSettings {
+object PaddleApplicationSettings : KoinComponent {
+    interface PaddleHomeProvider {
+        /**
+         * Provide a path to `PADDLE_HOME`
+         */
+        fun getPath(): Path
+    }
 
+    private val paddleHomeProvider: PaddleHomeProvider by inject()
     val paddleHome: Path
-        get() {
-            val fromEnv = System.getenv("PADDLE_HOME")?.let { Path.of(it) }
-            val result = fromEnv ?: System.getProperty("user.home").let { Path.of(it).resolve(".paddle") }
-            if (!result.exists()) result.createDirectories()
-            return result
-        }
+        get() = paddleHomeProvider.getPath()
 
     val registry: Path
         get() = paddleHome.resolve("registry.yaml").apply { if (!exists()) { createFile()} }

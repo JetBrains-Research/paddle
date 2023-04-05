@@ -22,6 +22,8 @@ import io.paddle.idea.project.PaddleAutoImportAware
 import io.paddle.idea.project.PaddleProjectResolver
 import io.paddle.idea.settings.*
 import io.paddle.idea.utils.isPaddle
+import io.paddle.utils.config.paddleHomeEnvProvider
+import org.koin.core.context.startKoin
 import java.io.File
 import javax.swing.Icon
 
@@ -57,6 +59,9 @@ class PaddleManager : ExternalSystemManager<
     init {
         @Suppress("UnresolvedPluginConfigReference")
         Registry.get("${ID.id}${ExternalSystemConstants.USE_IN_PROCESS_COMMUNICATION_REGISTRY_KEY_SUFFIX}").setValue(true)
+        startKoin {
+            modules(paddleHomeEnvProvider)
+        }
     }
 
     override fun enhanceRemoteProcessing(parameters: SimpleJavaParameters) {

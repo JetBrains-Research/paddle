@@ -28,6 +28,7 @@ dependencies {
 
     implementation("com.github.ajalt.clikt", "clikt", "3.2.0")
     implementation("ch.qos.logback", "logback-classic", "1.2.3")
+    implementation("io.insert-koin", "koin-core" ,"3.4.0")
 }
 
 val shadowJar = shadowJar {
