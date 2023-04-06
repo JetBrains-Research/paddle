@@ -20,7 +20,7 @@ class TestContainerExecutor(private val container: GenericContainer<*>, rootDir:
     override val runningProcesses: MutableSet<Process>
         get() = TODO("Not yet implemented")
 
-    private val rootPath = rootDir.toPath()
+    private val rootPath = rootDir.toPath().toAbsolutePath()
 
     override fun execute(
         command: String,
@@ -39,7 +39,7 @@ class TestContainerExecutor(private val container: GenericContainer<*>, rootDir:
 
         yield()
 
-        val workingPath = workingDir.toPath()
+        val workingPath = workingDir.toPath().toAbsolutePath()
         if (!workingPath.startsWith(rootPath)) {
             error("Invalid path. Working directory `$workingPath` should be a child of $rootPath")
         }

@@ -3,6 +3,7 @@ package io.paddle.testExecutor
 import io.paddle.terminal.Terminal
 import io.paddle.utils.config.PaddleApplicationSettings
 import io.paddle.utils.deepResolve
+import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.extension.RegisterExtension
 import org.koin.dsl.module
@@ -67,5 +68,11 @@ open class AbstractTestContainerTest(containerName: String) : KoinTest {
         private val mountedPath = Path("/tmp/resources")
         @JvmStatic
         protected val paddleHome: File = resources.resolve(".paddle")
+
+        @JvmStatic
+        @AfterAll
+        fun deletePaddleHome() {
+            paddleHome.deleteRecursively() // FIXME: .localpython has wrong permissions
+        }
     }
 }
