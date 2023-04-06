@@ -9,18 +9,15 @@ import org.testcontainers.containers.output.*
 import org.testcontainers.containers.wait.strategy.WaitAllStrategy
 import java.io.File
 import java.nio.charset.StandardCharsets
-import java.nio.file.Path
 import java.util.function.Consumer
 
-class TestContainerExecutor(private val container: GenericContainer<*>, rootDir: File, private val mountedPath: Path) : CommandExecutor {
+class TestContainerExecutor(private val container: GenericContainer<*>) : CommandExecutor {
     override val os: CommandExecutor.OsInfo
         get() = TODO("Not yet implemented")
     override val env: EnvProvider
         get() = TODO("Not yet implemented")
     override val runningProcesses: MutableSet<Process>
         get() = TODO("Not yet implemented")
-
-    private val rootPath = rootDir.toPath().toAbsolutePath()
 
     override fun execute(
         command: String,
@@ -39,15 +36,6 @@ class TestContainerExecutor(private val container: GenericContainer<*>, rootDir:
 
         yield()
 
-        val workingPath = workingDir.toPath().toAbsolutePath()
-        if (!workingPath.startsWith(rootPath)) {
-            error("Invalid path. Working directory `$workingPath` should be a child of $rootPath")
-        }
-        var suffix = rootPath.relativize(workingPath).toString()
-        if (suffix.isBlank()) {
-            suffix = "."
-        }
-
         // This is rewritten version if `container.execInContainer`
         // This version support env and changing working directory
 
@@ -55,7 +43,7 @@ class TestContainerExecutor(private val container: GenericContainer<*>, rootDir:
         val cmd = dockerClient.execCreateCmd(container.containerId)
             .withAttachStdout(true)
             .withAttachStderr(true)
-            .withWorkingDir(mountedPath.resolve(suffix).toString())
+            .withWorkingDir(workingDir.absolutePath)
             .withCmd(*((listOf(command) + args.toList()).toTypedArray()))
             .withEnv(env.map { (k, v) -> "$k=$v" })
             .exec()
