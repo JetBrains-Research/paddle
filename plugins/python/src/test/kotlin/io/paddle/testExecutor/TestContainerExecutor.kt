@@ -55,8 +55,8 @@ class TestContainerExecutor(private val container: GenericContainer<*>) : Comman
             dockerClient.execStartCmd(cmd.id).exec(it).awaitCompletion()
         }
 
-        systemOut.accept(stdoutConsumer.toString(StandardCharsets.UTF_8))
-        systemErr.accept(stderrConsumer.toString(StandardCharsets.UTF_8))
+        stdoutConsumer.toString(StandardCharsets.UTF_8).split("\n").forEach { systemOut.accept(it) }
+        stderrConsumer.toString(StandardCharsets.UTF_8).split("\n").forEach { systemErr.accept(it) }
         return@runBlocking ExecutionResult(dockerClient.inspectExecCmd(cmd.id).exec().exitCodeLong.toInt())
     }
 }
