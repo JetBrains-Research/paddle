@@ -20,7 +20,11 @@ object PaddleApplicationSettings : KoinComponent {
         get() = paddleHomeProvider.getPath()
 
     val registry: Path
-        get() = paddleHome.resolve("registry.yaml").apply { if (!exists()) { createFile()} }
+        get() = paddleHome.resolve("registry.yaml").apply {
+            if (!exists()) {
+                createFile()
+            }
+        }
     private val config: MutableMap<String, Any>
         get() = registry.takeIf { it.readText().isNotEmpty() }
             ?.let { ConfigurationYAML.from(it.toFile()).toMutableMap() } ?: mutableMapOf()
@@ -49,5 +53,14 @@ object PaddleApplicationSettings : KoinComponent {
         var autoRemove: Boolean
             get() = (pythonConfig["autoRemove"] as? String)?.toBooleanStrictOrNull() ?: true
             set(x) = modify("autoRemove", x)
+    }
+
+    val isTests: Boolean by lazy {
+        for (element in Thread.currentThread().stackTrace) {
+            if (element.className.startsWith("org.junit.")) {
+                return@lazy true
+            }
+        }
+        return@lazy false
     }
 }
