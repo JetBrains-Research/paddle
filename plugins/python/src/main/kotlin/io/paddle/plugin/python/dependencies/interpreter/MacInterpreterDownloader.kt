@@ -1,4 +1,4 @@
-package io.paddle.plugin.python.dependencies.interpretator
+package io.paddle.plugin.python.dependencies.interpreter
 
 import io.paddle.project.PaddleProject
 import java.io.File

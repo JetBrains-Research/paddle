@@ -1,6 +1,6 @@
 package io.paddle.plugin.python
 
-import io.paddle.plugin.python.dependencies.interpretator.InterpreterVersion
+import io.paddle.plugin.python.dependencies.interpreter.InterpreterVersion
 import io.paddle.plugin.python.dependencies.packages.PyPackageVersionSpecifier
 
 /**

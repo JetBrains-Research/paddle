@@ -4,8 +4,8 @@ import com.intellij.codeInsight.completion.*
 import com.intellij.codeInsight.lookup.LookupElementBuilder
 import com.intellij.patterns.PlatformPatterns
 import com.intellij.util.ProcessingContext
-import io.paddle.plugin.python.dependencies.interpretator.InterpreterVersion
-import io.paddle.plugin.python.dependencies.interpretator.PythonPaths
+import io.paddle.plugin.python.dependencies.interpreter.InterpreterVersion
+import io.paddle.plugin.python.dependencies.interpreter.PythonPaths
 import io.paddle.plugin.python.extensions.globalInterpreter
 import io.paddle.plugin.python.hasPython
 import kotlinx.coroutines.runBlocking

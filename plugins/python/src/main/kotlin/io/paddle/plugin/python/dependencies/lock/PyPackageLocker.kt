@@ -1,8 +1,8 @@
 package io.paddle.plugin.python.dependencies.lock
 
 import io.paddle.plugin.python.dependencies.index.webIndexer
-import io.paddle.plugin.python.dependencies.interpretator.InterpreterVersion
-import io.paddle.plugin.python.dependencies.interpretator.PyInterpreter
+import io.paddle.plugin.python.dependencies.interpreter.InterpreterVersion
+import io.paddle.plugin.python.dependencies.interpreter.PyInterpreter
 import io.paddle.plugin.python.dependencies.lock.models.*
 import io.paddle.plugin.python.dependencies.packages.PyPackage
 import io.paddle.plugin.python.dependencies.repositories.PyPackageRepository

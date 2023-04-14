@@ -1,6 +1,6 @@
 package io.paddle.plugin.python.extensions
 
-import io.paddle.plugin.python.dependencies.interpretator.*
+import io.paddle.plugin.python.dependencies.interpreter.*
 import io.paddle.plugin.python.hasPython
 import io.paddle.project.PaddleProject
 import io.paddle.project.extensions.routeAsString

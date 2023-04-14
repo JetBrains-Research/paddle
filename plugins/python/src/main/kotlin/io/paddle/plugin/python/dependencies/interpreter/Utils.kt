@@ -1,4 +1,4 @@
-package io.paddle.plugin.python.dependencies.interpretator
+package io.paddle.plugin.python.dependencies.interpreter
 
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
