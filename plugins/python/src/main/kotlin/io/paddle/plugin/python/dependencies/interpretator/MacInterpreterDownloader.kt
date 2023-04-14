@@ -3,8 +3,8 @@ package io.paddle.plugin.python.dependencies.interpretator
 import io.paddle.project.PaddleProject
 import java.io.File
 
-internal class MacInterpreterDownloader(userDefinedVersion: InterpreterVersion, project: PaddleProject) :
-    AbstractInterpreterDownloader(userDefinedVersion, project) {
+internal class MacInterpreterDownloader(project: PaddleProject) :
+    AbstractInterpreterDownloader(project) {
     override fun installPreRequirements(project: PaddleProject) {
         var macBrandString: String? = null
         project.executor.execute(

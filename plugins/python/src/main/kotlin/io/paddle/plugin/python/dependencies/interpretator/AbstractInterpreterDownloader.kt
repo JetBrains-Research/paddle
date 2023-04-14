@@ -8,8 +8,8 @@ import kotlinx.coroutines.runBlocking
 import org.codehaus.plexus.util.Os
 import java.io.File
 
-internal sealed class AbstractInterpreterDownloader(private val userDefinedVersion: InterpreterVersion, private val project: PaddleProject) {
-    fun downloadAndInstall(): PyInterpreter =
+internal sealed class AbstractInterpreterDownloader(private val project: PaddleProject) {
+    fun downloadAndInstall(userDefinedVersion: InterpreterVersion): PyInterpreter =
         runBlocking {
             val matchedVersion =
                 InterpreterVersion.getAvailableRemoteVersions().filter { it.matches(userDefinedVersion) }.maxOrNull()
@@ -67,29 +67,36 @@ internal sealed class AbstractInterpreterDownloader(private val userDefinedVersi
     protected open fun getConfigureArgs(extractDir: File) = emptyList<String>()
     protected open fun getEnvVars(extractDir: File) = emptyMap<String, String>()
 
-    open fun findLocalInstallation(): PyInterpreter? {
-        var bestCandidate: PyInterpreter? = null
-        System.getenv("PATH").split(":").forEach { path ->
-            File(path).listFiles()?.filter { it.name.matches(RegexCache.PYTHON_EXECUTABLE_REGEX) }
-                ?.forEach { execFile ->
-                    val currentVersion = PyInterpreter.getVersion(execFile)
-                    if (currentVersion.matches(userDefinedVersion)) {
-                        if (bestCandidate == null || bestCandidate!!.version <= currentVersion) {
-                            bestCandidate = PyInterpreter(execFile.toPath(), currentVersion)
-                        }
-                    }
+    open fun findCachedInstallation(): Collection<PyInterpreter> = project.pyLocations.interpretersDir.toFile().listFiles()
+        ?.filter { it.isDirectory }
+        ?.map { PyInterpreter(it.toPath(), PyInterpreter.getVersion(it, project)) }
+        ?: emptyList()
+    open fun findLocalInstallation(): Collection<PyInterpreter> {
+        return System.getenv("PATH").split(":").flatMap { path ->
+            File(path)
+                .listFiles()
+                ?.filter { it.name.matches(RegexCache.PYTHON_EXECUTABLE_REGEX) }
+                ?.map {execFile ->
+                    val version = PyInterpreter.getVersion(execFile, project)
+                    PyInterpreter(execFile.toPath(), version)
                 }
-        }
-        return bestCandidate?.also {
-            project.terminal.info("Found local installation of ${it.version.fullName}: ${it.path}")
+                ?: emptyList()
+//                ?.forEach { execFile ->
+//                    val currentVersion = PyInterpreter.getVersion(execFile)
+//                    if (currentVersion.matches(userDefinedVersion)) {
+//                        if (bestCandidate == null || bestCandidate!!.version <= currentVersion) {
+//                            bestCandidate = PyInterpreter(execFile.toPath(), currentVersion)
+//                        }
+//                    }
+//                }
         }
     }
 
     companion object {
-        fun getDownloader(userDefinedVersion: InterpreterVersion, project: PaddleProject) = when {
-            Os.isFamily(Os.FAMILY_UNIX) -> UnixInterpreterDownloader(userDefinedVersion, project)
-            Os.isFamily(Os.FAMILY_MAC) -> MacInterpreterDownloader(userDefinedVersion, project)
-            else -> GenericInterpreterDownloader(userDefinedVersion, project) // try to install via generic downloader
+        fun getDownloader(project: PaddleProject) = when {
+            Os.isFamily(Os.FAMILY_UNIX) -> UnixInterpreterDownloader(project)
+            Os.isFamily(Os.FAMILY_MAC) -> MacInterpreterDownloader(project)
+            else -> GenericInterpreterDownloader(project) // try to install via generic downloader
         }
     }
 }

@@ -1,9 +1,7 @@
 package io.paddle.plugin.python.extensions
 
-import io.paddle.plugin.python.dependencies.interpretator.InterpreterVersion
-import io.paddle.plugin.python.dependencies.interpretator.PyInterpreter
+import io.paddle.plugin.python.dependencies.interpretator.*
 import io.paddle.plugin.python.hasPython
-import io.paddle.plugin.python.utils.RegexCache
 import io.paddle.project.PaddleProject
 import io.paddle.project.extensions.routeAsString
 import io.paddle.tasks.Task
@@ -11,8 +9,6 @@ import io.paddle.utils.config.ConfigurationView
 import io.paddle.utils.ext.Extendable
 import io.paddle.utils.hash.Hashable
 import io.paddle.utils.hash.hashable
-import org.codehaus.plexus.util.Os
-import java.io.File
 
 val PaddleProject.globalInterpreter: Interpreter
     get() = extensions.getOrFail(Interpreter.Extension.key)
@@ -24,23 +20,16 @@ class Interpreter(val project: PaddleProject, val pythonVersion: InterpreterVers
     }
 
     val cachedVersions: Collection<InterpreterVersion>
-        get() = project.pyLocations.interpretersDir.toFile().listFiles()
-            ?.filter { it.isDirectory }
-            ?.map { InterpreterVersion(it.name) }
-            ?: emptyList()
+        get() = AbstractInterpreterDownloader
+            .getDownloader(project)
+            .findCachedInstallation()
+            .map { it.version }
 
     val localVersions: Collection<InterpreterVersion>
-        get() = when {
-            Os.isFamily(Os.FAMILY_MAC) || Os.isFamily(Os.FAMILY_UNIX) ->
-                System.getenv("PATH").split(":").flatMap { path ->
-                    File(path).listFiles()
-                        ?.filter { it.name.matches(RegexCache.PYTHON_EXECUTABLE_REGEX) }
-                        ?.map { python -> PyInterpreter.getVersion(python) }
-                        ?: emptyList()
-                }
-
-            else -> emptyList()
-        }
+        get() = AbstractInterpreterDownloader
+            .getDownloader(project)
+            .findLocalInstallation()
+            .map { it.version }
 
     object Extension : PaddleProject.Extension<Interpreter> {
         override val key: Extendable.Key<Interpreter> = Extendable.Key()
@@ -76,7 +65,7 @@ class Interpreter(val project: PaddleProject, val pythonVersion: InterpreterVers
             if (parent.globalInterpreter.pythonVersion != project.globalInterpreter.pythonVersion) {
                 throw Task.ActException(
                     "${parent.globalInterpreter.pythonVersion.fullName} from ${parent.routeAsString} " +
-                            "is not compatible with ${project.globalInterpreter.pythonVersion.fullName} from ${project.routeAsString}"
+                        "is not compatible with ${project.globalInterpreter.pythonVersion.fullName} from ${project.routeAsString}"
                 )
             }
         }

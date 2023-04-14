@@ -3,9 +3,7 @@ package io.paddle.plugin.python.dependencies.interpretator
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.paddle.plugin.python.utils.*
-import org.codehaus.plexus.util.Os
 import org.jsoup.Jsoup
-import java.io.File
 
 data class InterpreterVersion(val number: String) : Comparable<InterpreterVersion> {
     init {
@@ -24,19 +22,6 @@ data class InterpreterVersion(val number: String) : Comparable<InterpreterVersio
                 .map { InterpreterVersion(it) }
                 .toSet()
         }
-
-        val localVersions: Collection<InterpreterVersion>
-            get() = when {
-                Os.isFamily(Os.FAMILY_MAC) || Os.isFamily(Os.FAMILY_UNIX) ->
-                    System.getenv("PATH").split(":").flatMap { path ->
-                        File(path).listFiles()
-                            ?.filter { it.name.matches(RegexCache.PYTHON_EXECUTABLE_REGEX) }
-                            ?.map { execFile -> PyInterpreter.getVersion(execFile) }
-                            ?: emptyList()
-                    }
-
-                else -> emptyList()
-            }
     }
 
     private val parts = number.split(".")
