@@ -39,6 +39,7 @@ class TestContainerExecutor(private val container: GenericContainer<*>) : Comman
         // This is rewritten version if `container.execInContainer`
         // This version support env and changing working directory
 
+        assert(container.isRunning)
         val dockerClient = container.dockerClient
         val cmd = dockerClient.execCreateCmd(container.containerId)
             .withAttachStdout(true)
@@ -55,8 +56,8 @@ class TestContainerExecutor(private val container: GenericContainer<*>) : Comman
             dockerClient.execStartCmd(cmd.id).exec(it).awaitCompletion()
         }
 
-        stdoutConsumer.toString(StandardCharsets.UTF_8).split("\n").forEach { systemOut.accept(it) }
-        stderrConsumer.toString(StandardCharsets.UTF_8).split("\n").forEach { systemErr.accept(it) }
+        stdoutConsumer.toString(StandardCharsets.UTF_8).lines().dropLastWhile { it.isBlank() }.forEach { systemOut.accept(it) }
+        stderrConsumer.toString(StandardCharsets.UTF_8).lines().dropLastWhile { it.isBlank() }.forEach { systemErr.accept(it) }
         return@runBlocking ExecutionResult(dockerClient.inspectExecCmd(cmd.id).exec().exitCodeLong.toInt())
     }
 }

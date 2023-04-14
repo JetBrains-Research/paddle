@@ -99,6 +99,7 @@ internal open class AbstractInterpreterDownloader(private val project: PaddlePro
 
     companion object {
         fun getDownloader(project: PaddleProject) = when {
+            PaddleApplicationSettings.isTests -> DockerTestInterpreterDownloader(project)
             Os.isFamily(Os.FAMILY_UNIX) -> UnixInterpreterDownloader(project)
             Os.isFamily(Os.FAMILY_MAC) -> MacInterpreterDownloader(project)
             PaddleApplicationSettings.isTests -> DockerTestInterpreterDownloader(project)

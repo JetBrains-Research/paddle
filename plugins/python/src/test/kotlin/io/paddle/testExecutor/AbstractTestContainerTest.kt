@@ -4,20 +4,19 @@ import io.paddle.execution.local.LocalCommandExecutor
 import io.paddle.terminal.Terminal
 import io.paddle.utils.config.PaddleApplicationSettings
 import io.paddle.utils.deepResolve
-import org.junit.jupiter.api.AfterAll
-import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.*
 import org.junit.jupiter.api.extension.RegisterExtension
 import org.koin.dsl.module
 import org.koin.test.KoinTest
 import org.koin.test.junit5.KoinTestExtension
 import org.testcontainers.containers.BindMode
 import org.testcontainers.containers.GenericContainer
-import org.testcontainers.containers.startupcheck.IsRunningStartupCheckStrategy
 import org.testcontainers.images.builder.ImageFromDockerfile
 import org.testcontainers.junit.jupiter.Container
 import org.testcontainers.junit.jupiter.Testcontainers
 import java.io.File
 import java.nio.file.Path
+import java.time.Duration
 
 @Testcontainers
 open class AbstractTestContainerTest(containerName: String) : KoinTest {
@@ -59,9 +58,9 @@ open class AbstractTestContainerTest(containerName: String) : KoinTest {
             .user("user")
     })
         .withCommand("tail -f /dev/null") // a stub command to keep container alive
-        .withStartupCheckStrategy(IsRunningStartupCheckStrategy())
         .withFileSystemBind(resources.absolutePath, resources.absolutePath, BindMode.READ_WRITE)
         .withFileSystemBind(paddleHome.absolutePath, paddleHome.absolutePath, BindMode.READ_WRITE)
+        .withStartupTimeout(Duration.ofHours(1))
 
     protected lateinit var executor: TestContainerExecutor
     protected lateinit var console: TestConsole
@@ -96,6 +95,12 @@ open class AbstractTestContainerTest(containerName: String) : KoinTest {
         @AfterAll
         fun deletePaddleHome() {
             paddleHome.deleteRecursively() // FIXME: .localpython has wrong permissions
+        }
+
+        @JvmStatic
+        @BeforeAll
+        fun assertTestMode() {
+            assert(PaddleApplicationSettings.isTests)
         }
     }
 }
