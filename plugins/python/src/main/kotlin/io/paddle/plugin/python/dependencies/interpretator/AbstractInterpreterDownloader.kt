@@ -8,7 +8,7 @@ import kotlinx.coroutines.runBlocking
 import org.codehaus.plexus.util.Os
 import java.io.File
 
-internal sealed class AbstractInterpreterDownloader(private val project: PaddleProject) {
+internal open class AbstractInterpreterDownloader(private val project: PaddleProject) {
     fun downloadAndInstall(userDefinedVersion: InterpreterVersion): PyInterpreter =
         runBlocking {
             val matchedVersion =
@@ -69,26 +69,29 @@ internal sealed class AbstractInterpreterDownloader(private val project: PaddleP
 
     open fun findCachedInstallation(): Collection<PyInterpreter> = project.pyLocations.interpretersDir.toFile().listFiles()
         ?.filter { it.isDirectory }
-        ?.map { PyInterpreter(it.toPath(), PyInterpreter.getVersion(it, project)) }
+        ?.map {
+            val version = InterpreterVersion(it.name)
+            val execFile = it.deepResolve(
+                "Python-${it.name}",
+                PythonPaths.LOCAL_PYTHON_DIR_NAME,
+                "bin",
+                version.executableName
+            )
+            execFile to version
+        }
+        ?.map { (file, version) -> PyInterpreter(file.toPath(), version) }
         ?: emptyList()
+
     open fun findLocalInstallation(): Collection<PyInterpreter> {
         return System.getenv("PATH").split(":").flatMap { path ->
             File(path)
                 .listFiles()
                 ?.filter { it.name.matches(RegexCache.PYTHON_EXECUTABLE_REGEX) }
-                ?.map {execFile ->
+                ?.map { execFile ->
                     val version = PyInterpreter.getVersion(execFile, project)
                     PyInterpreter(execFile.toPath(), version)
                 }
                 ?: emptyList()
-//                ?.forEach { execFile ->
-//                    val currentVersion = PyInterpreter.getVersion(execFile)
-//                    if (currentVersion.matches(userDefinedVersion)) {
-//                        if (bestCandidate == null || bestCandidate!!.version <= currentVersion) {
-//                            bestCandidate = PyInterpreter(execFile.toPath(), currentVersion)
-//                        }
-//                    }
-//                }
         }
     }
 
