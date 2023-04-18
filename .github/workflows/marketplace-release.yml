@@ -5,8 +5,8 @@ on:
     workflows: [ test ]
     types:
       - completed
-  branches:
-    - main
+    branches:
+      - main
 
 jobs:
   publish-idea-plugin:
