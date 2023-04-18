@@ -11,6 +11,8 @@ import org.koin.test.KoinTest
 import org.koin.test.junit5.KoinTestExtension
 import org.testcontainers.containers.BindMode
 import org.testcontainers.containers.GenericContainer
+import org.testcontainers.containers.output.OutputFrame
+import org.testcontainers.containers.output.ToStringConsumer
 import org.testcontainers.images.builder.ImageFromDockerfile
 import org.testcontainers.junit.jupiter.Container
 import org.testcontainers.junit.jupiter.Testcontainers
@@ -66,14 +68,20 @@ open class AbstractTestContainerTest(containerName: String) : KoinTest {
     protected lateinit var console: TestConsole
     protected lateinit var terminal: Terminal
 
+    protected lateinit var logConsumer: ToStringConsumer
+
     @BeforeEach
     fun executorInit() {
         executor = TestContainerExecutor(container)
         console = TestConsole()
         terminal = Terminal(console)
-        paddleHome.listFiles()?.forEach {
-            it.deleteRecursively()
-        }
+        logConsumer = ToStringConsumer()
+        container.followOutput(logConsumer, OutputFrame.OutputType.STDOUT)
+        assert(container.isRunning())
+        // FIXME: this make TestContainer fail without error and with empty log
+//        paddleHome.listFiles()?.forEach {
+//            it.deleteRecursively()
+//        }
     }
 
     @JvmField

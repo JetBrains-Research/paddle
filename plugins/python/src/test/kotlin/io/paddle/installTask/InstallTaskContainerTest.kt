@@ -4,8 +4,7 @@ import io.paddle.plugin.python.dependencies.interpreter.InterpreterVersion
 import io.paddle.plugin.python.extensions.globalInterpreter
 import io.paddle.project.PaddleProjectProvider
 import io.paddle.testExecutor.AbstractTestContainerTest
-import org.junit.jupiter.api.AfterEach
-import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.*
 import org.testcontainers.junit.jupiter.Testcontainers
 import java.io.File
 import kotlin.test.assertEquals
@@ -36,7 +35,6 @@ class InstallTaskContainerTest :
     @Test
     fun `install task local successful`() {
         rootDir = resources.resolve("minimal-project")
-        println(container.getContainerId())
         val projectProvider = PaddleProjectProvider.getInstance(rootDir)
         val project = projectProvider.getProject(rootDir)
         assertNotNull(project)
@@ -48,15 +46,29 @@ class InstallTaskContainerTest :
     }
 
     @Test
+    @Order(1)
     fun `install task install successful`() {
         rootDir = resources.resolve("minimal-project-3.9")
-        println(container.getContainerId())
         val projectProvider = PaddleProjectProvider.getInstance(rootDir)
         val project = projectProvider.getProject(rootDir)
         assertNotNull(project)
         project.executor = executor
 
         project.execute("install")
+        assertEquals(1, project.globalInterpreter.cachedVersions.size)
+        assert(project.globalInterpreter.cachedVersions.first().matches(InterpreterVersion("3.9")))
+        assert(project.globalInterpreter.pythonVersion.matches(InterpreterVersion("3.9")))
+    }
+
+    @Test
+    @Order(2)
+    fun `cached installation is working fine`() {
+        rootDir = resources.resolve("minimal-project-3.9")
+        val projectProvider = PaddleProjectProvider.getInstance(rootDir)
+        val project = projectProvider.getProject(rootDir)
+        assertNotNull(project)
+        project.executor = executor
+
         assertEquals(1, project.globalInterpreter.cachedVersions.size)
         assert(project.globalInterpreter.cachedVersions.first().matches(InterpreterVersion("3.9")))
         assert(project.globalInterpreter.pythonVersion.matches(InterpreterVersion("3.9")))

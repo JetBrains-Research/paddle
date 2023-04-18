@@ -6,7 +6,6 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.yield
 import org.testcontainers.containers.GenericContainer
 import org.testcontainers.containers.output.*
-import org.testcontainers.containers.wait.strategy.WaitAllStrategy
 import java.io.File
 import java.nio.charset.StandardCharsets
 import java.util.function.Consumer
@@ -29,7 +28,6 @@ class TestContainerExecutor(private val container: GenericContainer<*>) : Comman
         systemOut: Consumer<String>,
         systemErr: Consumer<String>
     ): ExecutionResult = runBlocking {
-        container.waitingFor(WaitAllStrategy())
         if (verbose) {
             terminal.info("${workingDir.path} % $command ${args.joinToString(" ")}")
         }
