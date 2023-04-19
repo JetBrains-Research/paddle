@@ -4,7 +4,8 @@ import com.intellij.codeInsight.completion.*
 import com.intellij.codeInsight.lookup.LookupElementBuilder
 import com.intellij.patterns.PlatformPatterns
 import com.intellij.util.ProcessingContext
-import io.paddle.plugin.python.dependencies.PyInterpreter
+import io.paddle.plugin.python.dependencies.interpreter.InterpreterVersion
+import io.paddle.plugin.python.dependencies.interpreter.PythonPaths
 import io.paddle.plugin.python.extensions.globalInterpreter
 import io.paddle.plugin.python.hasPython
 import kotlinx.coroutines.runBlocking
@@ -31,11 +32,11 @@ class PyInterpreterVersionCompletionContributor : CompletionContributor() {
 }
 
 class PyInterpreterVersionCompletionProvider : CompletionProvider<CompletionParameters>() {
-    private data class VersionTuple(val version: PyInterpreter.Version, val typeText: String) {
+    private data class VersionTuple(val version: InterpreterVersion, val typeText: String) {
         companion object Type {
             const val CACHED = "internal paddle cache"
             const val LOCAL = "local installation"
-            const val FTP = PyInterpreter.PYTHON_DISTRIBUTIONS_BASE_URL
+            const val FTP = PythonPaths.PYTHON_DISTRIBUTIONS_BASE_URL
         }
     }
 
@@ -48,7 +49,7 @@ class PyInterpreterVersionCompletionProvider : CompletionProvider<CompletionPara
         if (!paddleProject.hasPython) return@runBlocking
 
         val prefix = parameters.position.text.trim().removeSuffix(CompletionUtilCore.DUMMY_IDENTIFIER_TRIMMED)
-        val remoteVersions = PyInterpreter.Version.getAvailableRemoteVersions()
+        val remoteVersions = InterpreterVersion.getAvailableRemoteVersions()
 
         val cachedVariants =
             paddleProject.globalInterpreter.cachedVersions.map { VersionTuple(it, VersionTuple.CACHED) }

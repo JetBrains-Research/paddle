@@ -1,6 +1,6 @@
 package io.paddle.plugin.python
 
-import io.paddle.plugin.python.dependencies.PyInterpreter
+import io.paddle.plugin.python.dependencies.interpreter.InterpreterVersion
 import io.paddle.plugin.python.dependencies.packages.PyPackageVersionSpecifier
 
 /**
@@ -13,5 +13,5 @@ object PyDefaultVersions {
     val MYPY = PyPackageVersionSpecifier.fromString("0.961")
     val WHEEL = PyPackageVersionSpecifier.fromString("0.37.1")
     val SETUPTOOLS = PyPackageVersionSpecifier.fromString("60.2.0")
-    val PYTHON = PyInterpreter.Version("3.8")
+    val PYTHON = InterpreterVersion("3.8")
 }
