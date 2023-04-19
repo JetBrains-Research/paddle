@@ -1,6 +1,5 @@
 package io.paddle.plugin.python.dependencies.interpreter
 
-import io.paddle.plugin.python.dependencies.interpretator.DockerTestInterpreterDownloader
 import io.paddle.plugin.python.extensions.pyLocations
 import io.paddle.plugin.python.utils.*
 import io.paddle.project.PaddleProject
