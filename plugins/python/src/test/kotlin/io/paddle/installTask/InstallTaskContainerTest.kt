@@ -53,6 +53,7 @@ class InstallTaskContainerTest :
         val project = projectProvider.getProject(rootDir)
         assertNotNull(project)
         project.executor = executor
+        assertEquals(0, project.globalInterpreter.cachedVersions.size)
 
         project.execute("install")
         assertEquals(1, project.globalInterpreter.cachedVersions.size)
@@ -72,5 +73,6 @@ class InstallTaskContainerTest :
         assertEquals(1, project.globalInterpreter.cachedVersions.size)
         assert(project.globalInterpreter.cachedVersions.first().matches(InterpreterVersion("3.9")))
         assert(project.globalInterpreter.pythonVersion.matches(InterpreterVersion("3.9")))
+        project.execute("install")
     }
 }
