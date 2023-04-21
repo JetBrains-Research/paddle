@@ -4,7 +4,7 @@ import io.paddle.plugin.python.extensions.pyLocations
 import io.paddle.plugin.python.utils.*
 import io.paddle.project.PaddleProject
 import io.paddle.tasks.Task
-import io.paddle.utils.config.PaddleApplicationSettings
+import io.paddle.utils.config.PaddleAppRuntime
 import kotlinx.coroutines.runBlocking
 import org.codehaus.plexus.util.Os
 import java.io.File
@@ -98,10 +98,9 @@ internal open class AbstractInterpreterDownloader(private val project: PaddlePro
 
     companion object {
         fun getDownloader(project: PaddleProject) = when {
-            PaddleApplicationSettings.isTests -> DockerTestInterpreterDownloader(project)
+            PaddleAppRuntime.isTests -> DockerTestInterpreterDownloader(project)
             Os.isFamily(Os.FAMILY_UNIX) -> UnixInterpreterDownloader(project)
             Os.isFamily(Os.FAMILY_MAC) -> MacInterpreterDownloader(project)
-            PaddleApplicationSettings.isTests -> DockerTestInterpreterDownloader(project)
             else -> GenericInterpreterDownloader(project) // try to install via generic downloader
         }
     }

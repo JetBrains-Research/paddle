@@ -14,8 +14,6 @@ java {
 dependencies {
     implementation(project(":core"))
 
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.0-Beta")
-
     implementation("org.antlr:antlr4-runtime:4.10.1")
     implementation("javax.mail:mail:1.4.7")
 

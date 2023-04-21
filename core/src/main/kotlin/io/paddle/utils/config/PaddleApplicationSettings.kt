@@ -54,13 +54,4 @@ object PaddleApplicationSettings : KoinComponent {
             get() = (pythonConfig["autoRemove"] as? String)?.toBooleanStrictOrNull() ?: true
             set(x) = modify("autoRemove", x)
     }
-
-    val isTests: Boolean by lazy {
-        for (element in Thread.currentThread().stackTrace) {
-            if (element.className.startsWith("org.junit.")) {
-                return@lazy true
-            }
-        }
-        return@lazy false
-    }
 }

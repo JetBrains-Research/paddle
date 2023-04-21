@@ -2,6 +2,7 @@ package io.paddle.testExecutor
 
 import io.paddle.execution.local.LocalCommandExecutor
 import io.paddle.terminal.Terminal
+import io.paddle.utils.config.PaddleAppRuntime
 import io.paddle.utils.config.PaddleApplicationSettings
 import io.paddle.utils.deepResolve
 import org.junit.jupiter.api.*
@@ -35,34 +36,36 @@ open class AbstractTestContainerTest(containerName: String) : KoinTest {
     }
 
     @Container
-    protected var container: GenericContainer<*> = GenericContainer(ImageFromDockerfile().withDockerfileFromBuilder {
-        val cmdExecutor = LocalCommandExecutor()
-        val output = mutableListOf<String>()
-        cmdExecutor.execute("id",
-            args = listOf("-u"),
-            workingDir = resources,
-            terminal = Terminal.MOCK,
-            systemOut = { output.add(it) }
-        )
-        val USER_ID = output[0].trim()
-        output.clear()
-        cmdExecutor.execute("id",
-            args = listOf("-g"),
-            workingDir = resources,
-            terminal = Terminal.MOCK,
-            systemOut = { output.add(it) }
-        )
-        val GROUP_ID = output[0].trim()
-        it
-            .from(containerName)
-            .run("addgroup --gid $GROUP_ID user")
-            .run("adduser --disabled-password --gecos '' --uid $USER_ID --gid $GROUP_ID user")
-            .user("user")
-    })
-        .withCommand("tail -f /dev/null") // a stub command to keep container alive
-        .withFileSystemBind(resources.absolutePath, resources.absolutePath, BindMode.READ_WRITE)
-        .withFileSystemBind(paddleHome.absolutePath, paddleHome.absolutePath, BindMode.READ_WRITE)
-        .withStartupTimeout(Duration.ofHours(1))
+    protected var container: GenericContainer<*> =
+        GenericContainer(ImageFromDockerfile()
+            .withDockerfileFromBuilder {
+                val cmdExecutor = LocalCommandExecutor()
+                val output = mutableListOf<String>()
+                cmdExecutor.execute("id",
+                    args = listOf("-u"),
+                    workingDir = resources,
+                    terminal = Terminal.MOCK,
+                    systemOut = { output.add(it) }
+                )
+                val USER_ID = output[0].trim()
+                output.clear()
+                cmdExecutor.execute("id",
+                    args = listOf("-g"),
+                    workingDir = resources,
+                    terminal = Terminal.MOCK,
+                    systemOut = { output.add(it) }
+                )
+                val GROUP_ID = output[0].trim()
+                it
+                    .from(containerName)
+                    .run("addgroup --gid $GROUP_ID user")
+                    .run("adduser --disabled-password --gecos '' --uid $USER_ID --gid $GROUP_ID user")
+                    .user("user")
+            })
+            .withCommand("tail -f /dev/null") // a stub command to keep container alive
+            .withFileSystemBind(resources.absolutePath, resources.absolutePath, BindMode.READ_WRITE)
+            .withFileSystemBind(paddleHome.absolutePath, paddleHome.absolutePath, BindMode.READ_WRITE)
+            .withStartupTimeout(Duration.ofHours(1))
 
     protected lateinit var executor: TestContainerExecutor
     protected lateinit var console: TestConsole
@@ -77,7 +80,7 @@ open class AbstractTestContainerTest(containerName: String) : KoinTest {
         terminal = Terminal(console)
         logConsumer = ToStringConsumer()
         container.followOutput(logConsumer, OutputFrame.OutputType.STDOUT)
-        assert(container.isRunning())
+        assert(container.isRunning)
         // FIXME: this make TestContainer fail without error and with empty log
 //        paddleHome.listFiles()?.forEach {
 //            it.deleteRecursively()
@@ -108,7 +111,7 @@ open class AbstractTestContainerTest(containerName: String) : KoinTest {
         @JvmStatic
         @BeforeAll
         fun assertTestMode() {
-            assert(PaddleApplicationSettings.isTests)
+            assert(PaddleAppRuntime.isTests)
         }
     }
 }

@@ -1,4 +1,4 @@
-project: minimal-project
+project: minimal-project-3.9
 
 roots:
   sources: src
