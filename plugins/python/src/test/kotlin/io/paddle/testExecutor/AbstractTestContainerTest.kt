@@ -2,6 +2,8 @@ package io.paddle.testExecutor
 
 import io.paddle.execution.local.LocalCommandExecutor
 import io.paddle.terminal.Terminal
+import io.paddle.testExecutor.AbstractTestContainerTest.Companion.paddleHome
+import io.paddle.testExecutor.AbstractTestContainerTest.Companion.resources
 import io.paddle.utils.config.PaddleAppRuntime
 import io.paddle.utils.config.PaddleApplicationSettings
 import io.paddle.utils.deepResolve
@@ -21,6 +23,23 @@ import java.io.File
 import java.nio.file.Path
 import java.time.Duration
 
+/**
+ * An abstract test, that executes in a docker container
+ *
+ * To use just inherit your test class from this class. It mounts resources folder
+ * and creates a local paddle home directory, that is not associated with your PADDLE_HOME.
+ *
+ * **NB**: the paddle home directory is not clearing between test, but the project folders (.venv, project's .paddle) are.
+ * @param containerName Docker's container name:version, that will be pulled locally(?) or from Docker Hub
+ * @property resources A test resources folder
+ * @property paddleHome A local paddle home folder, that is used
+ * @property container Currently running container abstraction, that set to run until test completes,
+ * set user with your user permissions and mounted [resources] and [paddleHome] with your host's paths, so in code you can use your local paths
+ * @property console Every test refreshing console, that holds stdout and stderr
+ * @property terminal Every test refreshing terminal, that used in [LocalCommandExecutor.execute]
+ * @property executor Every test refreshing executor, that run command in the docker container
+ * @property logConsumer Container's log consumer
+ */
 @Testcontainers
 open class AbstractTestContainerTest(containerName: String) : KoinTest {
     private class PaddleResourcesHomeProvider : PaddleApplicationSettings.PaddleHomeProvider {
@@ -73,6 +92,9 @@ open class AbstractTestContainerTest(containerName: String) : KoinTest {
 
     protected lateinit var logConsumer: ToStringConsumer
 
+    /**
+     * Initialize test environment
+     */
     @BeforeEach
     fun executorInit() {
         executor = TestContainerExecutor(container)
@@ -102,10 +124,13 @@ open class AbstractTestContainerTest(containerName: String) : KoinTest {
         @JvmStatic
         protected val paddleHome: File = resources.resolve(".paddle")
 
+        /**
+         * Cleanup .paddleHome after all tests
+         */
         @JvmStatic
         @AfterAll
         fun deletePaddleHome() {
-            paddleHome.deleteRecursively() // FIXME: .localpython has wrong permissions
+            paddleHome.deleteRecursively()
         }
 
         @JvmStatic
