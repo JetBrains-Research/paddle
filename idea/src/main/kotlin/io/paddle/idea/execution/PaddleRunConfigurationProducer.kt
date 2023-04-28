@@ -6,10 +6,14 @@ import com.intellij.execution.configurations.ConfigurationFactory
 import com.intellij.openapi.externalSystem.service.execution.*
 import com.intellij.openapi.util.Ref
 import com.intellij.psi.PsiElement
+import com.jetbrains.python.PyTokenTypes
+import com.jetbrains.python.PythonFileType
+import com.jetbrains.python.psi.PyFile
+import com.jetbrains.python.psi.PyUtil
+import com.jetbrains.python.psi.impl.getIfStatementByIfKeyword
+import com.jetbrains.python.run.PythonRunConfigurationProducer
 import com.jetbrains.python.sdk.basePath
 import io.paddle.idea.PaddleManager
-import io.paddle.idea.utils.getSuperParent
-import org.jetbrains.yaml.psi.YAMLKeyValue
 
 class PaddleRunConfigurationProducer : AbstractExternalSystemRunConfigurationProducer() {
     override fun getConfigurationFactory(): ConfigurationFactory {
@@ -29,22 +33,13 @@ class PaddleRunConfigurationProducer : AbstractExternalSystemRunConfigurationPro
         val module = context.location?.module ?: return false
 
         val element = context.location?.psiElement ?: return false
-        if (element.parent !is YAMLKeyValue) return false
-        val taskId = (context.location?.psiElement?.parent as YAMLKeyValue?)?.value?.text ?: return false
-
-        configuration.settings.taskNames = listOf(
-            when {
-                element.getSuperParent(5)?.text?.startsWith("pytest") ?: false -> taskId
-                element.getSuperParent(5)?.text?.startsWith("run") ?: false -> taskId
-                element.text.startsWith("twine") -> "twine"
-                element.text.startsWith("requirements") -> "install"
-                else -> return false
-            }
-        )
-        configuration.settings.externalProjectPath = module.basePath
-        configuration.name = AbstractExternalSystemTaskConfigurationType.generateName(module.project, configuration.settings)
-
-        return true
+        if (element.isMainClauseOnTopLevel() || element is PyFile) {
+            configuration.settings.taskNames = listOf("testTask")
+            configuration.settings.externalProjectPath = module.basePath
+            configuration.name = AbstractExternalSystemTaskConfigurationType.generateName(module.project, configuration.settings)
+            return true
+        }
+        return false
     }
 
     override fun isConfigurationFromContext(configuration: ExternalSystemRunConfiguration, context: ConfigurationContext): Boolean {
@@ -53,22 +48,23 @@ class PaddleRunConfigurationProducer : AbstractExternalSystemRunConfigurationPro
         }
 
         if (configuration.settings.externalSystemId != PaddleManager.ID || configuration !is PaddleRunConfiguration) return false
-        val module = context.location?.module ?: return false
-        if (configuration.settings.externalProjectPath != module.basePath) return false
-
-        if (context.location?.psiElement?.parent !is YAMLKeyValue) return false
-        val taskId = (context.location?.psiElement?.parent as YAMLKeyValue).value?.text ?: return false
-        val taskNames = configuration.settings.taskNames.takeIf { it.isNotEmpty() } ?: return false
-
-        return when (taskNames.first()) {
-            taskId, taskId -> true
-            "twine" -> context.location?.psiElement?.text?.startsWith("twine") ?: false
-            "install" -> context.location?.psiElement?.text?.startsWith("requirements") ?: false
-            else -> false
-        }
+        return true
     }
 
     override fun isPreferredConfiguration(self: ConfigurationFromContext?, other: ConfigurationFromContext): Boolean {
-        return other.isProducedBy(PaddleRunConfigurationProducer::class.java)
+        return true
+    }
+
+    private fun PsiElement.isMainClauseOnTopLevel(): Boolean {
+        if (node.elementType != PyTokenTypes.IF_KEYWORD) {
+            return false
+        }
+        val statement = getIfStatementByIfKeyword(this) ?: return false
+        val containingFile = statement as? PyFile ?: return false
+        return containingFile.virtualFile.fileType == PythonFileType.INSTANCE && PyUtil.isIfNameEqualsMain(statement)
+    }
+
+    override fun shouldReplace(self: ConfigurationFromContext, other: ConfigurationFromContext): Boolean {
+        return other.isProducedBy(PythonRunConfigurationProducer::class.java)
     }
 }

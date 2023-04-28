@@ -63,6 +63,7 @@
         <!-- Tasks Execution & Run Configurations  -->
         <configurationType implementation="io.paddle.idea.execution.PaddleTaskConfigurationType"/>
         <runConfigurationProducer implementation="io.paddle.idea.execution.PaddleRunConfigurationProducer"/>
+        <runConfigurationProducer implementation="io.paddle.idea.execution.PaddleRunConfigurationPyGutterProducer"/>
 
         <externalSystemOutputParserProvider implementation="io.paddle.idea.execution.parser.PaddleParserProvider"/>
 
