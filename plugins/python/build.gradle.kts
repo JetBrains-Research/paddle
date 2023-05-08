@@ -31,12 +31,21 @@ dependencies {
     implementation("org.codehaus.plexus:plexus-utils:3.4.2")
 
     implementation("com.github.javakeyring:java-keyring:1.0.1")
+    implementation("io.insert-koin:koin-core:3.4.0")
 
     testImplementation("org.junit.jupiter:junit-jupiter:5.8.1")
     testImplementation("io.kotest:kotest-runner-junit5:5.4.1")
     testImplementation("io.kotest:kotest-assertions-core:5.4.1")
     testImplementation("io.kotest:kotest-property:5.4.1")
     testImplementation("io.kotest.extensions:kotest-extensions-testcontainers:1.3.4")
+    testImplementation("org.testcontainers:testcontainers:1.17.6")
+    testImplementation("org.testcontainers:junit-jupiter:1.17.6")
+    testImplementation("ch.qos.logback:logback-classic:1.4.6")
+    testImplementation("com.github.docker-java:docker-java:3.3.0")
+    testImplementation("io.insert-koin:koin-test:3.4.0")
+    testImplementation("io.insert-koin:koin-test-junit5:3.4.0")
+
+
 }
 
 tasks.withType<Test>().configureEach {

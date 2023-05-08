@@ -1,0 +1,17 @@
+project: minimal-project-3.9
+
+roots:
+  sources: src
+
+plugins:
+  enabled:
+    - python
+
+environment:
+  path: .venv
+  python: 3.9
+
+tasks:
+  run:
+    - entrypoint: main.py
+      id: main
