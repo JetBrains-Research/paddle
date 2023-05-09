@@ -77,8 +77,6 @@
 
         <runLineMarkerContributor language="yaml"
                                   implementationClass="io.paddle.idea.execution.PaddleRunLineMarkerContributor"/>
-        <runLineMarkerContributor language="Python"
-                                  implementationClass="io.paddle.idea.execution.PaddlePyRunLineMarkerContributor"/>
 
         <!-- Settings -->
         <applicationService serviceImplementation="io.paddle.idea.settings.global.PaddleAppSettings"/>
