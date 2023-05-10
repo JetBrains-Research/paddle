@@ -15,7 +15,10 @@ import com.jetbrains.python.run.PythonRunConfigurationProducer
 import com.jetbrains.python.sdk.basePath
 import io.paddle.idea.PaddleManager
 import io.paddle.idea.utils.getSuperParent
+import io.paddle.plugin.standard.extensions.roots
+import io.paddle.project.PaddleProjectProvider
 import org.jetbrains.yaml.psi.YAMLKeyValue
+import java.io.File
 
 class PaddleRunConfigurationProducer : AbstractExternalSystemRunConfigurationProducer() {
     override fun getConfigurationFactory(): ConfigurationFactory {
@@ -36,11 +39,12 @@ class PaddleRunConfigurationProducer : AbstractExternalSystemRunConfigurationPro
 
         val element = context.location?.psiElement ?: return false
         if (element.isMainClauseOnTopLevel()) {
-            return true
+            val path = element.getPath() ?: return false
+            return getConfigurationForPyFile(path, configuration, context)
         }
-        if (element.parent !is YAMLKeyValue) {
-            return false
-        }
+        if (element.parent !is YAMLKeyValue) return false
+
+
         val taskId = (context.location?.psiElement?.parent as YAMLKeyValue?)?.value?.text ?: return false
 
         configuration.settings.taskNames = listOf(
@@ -70,9 +74,10 @@ class PaddleRunConfigurationProducer : AbstractExternalSystemRunConfigurationPro
         val taskNames = configuration.settings.taskNames.takeIf { it.isNotEmpty() } ?: return false
 
         if (element.isMainClauseOnTopLevel()) {
-            when (taskNames.first()) {
-                "twine", "install" -> {}
-                else -> return true // TODO: is run/test?
+            val path = element.getPath() ?: return false
+            return when (taskNames.first()) {
+                "twine", "install" -> false
+                else -> ifFromPyFile(path, configuration, context)
             }
         }
 
@@ -96,13 +101,46 @@ class PaddleRunConfigurationProducer : AbstractExternalSystemRunConfigurationPro
             return false
         }
         val statement = getIfStatementByIfKeyword(this) ?: return false
-        return when (ScopeUtil.getScopeOwner(statement) is PyFile) {
-            true -> PyUtil.isIfNameEqualsMain(statement)
-            false -> false
-        }
+        return ScopeUtil.getScopeOwner(statement) is PyFile && PyUtil.isIfNameEqualsMain(statement)
+    }
+
+    private fun PsiElement.getPath(): String? {
+        return containingFile?.virtualFile?.path
     }
 
     override fun shouldReplace(self: ConfigurationFromContext, other: ConfigurationFromContext): Boolean {
         return other.isProducedBy(PythonRunConfigurationProducer::class.java)
+    }
+
+    private fun findRunTaskForCurrentFile(currentFile: String, context: ConfigurationContext): Map<String, Any>? {
+        val module = context.location?.module ?: return null
+        val moduleDir = module.basePath?.let { File(it) } ?: return null
+        val rootDir = context.project.basePath?.let { File(it) } ?: return null
+
+        val paddleProject = PaddleProjectProvider.getInstance(rootDir).getProject(moduleDir) ?: return null
+
+        val runTasks = paddleProject.config.get<List<Map<String, Any>>?>("tasks.run") ?: return null
+
+        return runTasks.find {
+            val entrypointPath = paddleProject.roots.sources.resolve(it["entrypoint"] as String).path
+            entrypointPath == currentFile
+        }
+    }
+
+    private fun getConfigurationForPyFile(currentFile: String, configuration: PaddleRunConfiguration, context: ConfigurationContext): Boolean {
+        val module = context.location?.module ?: return false
+        val runTask = findRunTaskForCurrentFile(currentFile, context) ?: return false
+
+        configuration.settings.taskNames = listOf(runTask["id"] as String)
+        configuration.settings.externalProjectPath = module.basePath
+        configuration.name = AbstractExternalSystemTaskConfigurationType.generateName(module.project, configuration.settings)
+        return true
+    }
+
+    private fun ifFromPyFile(currentFile: String, configuration: PaddleRunConfiguration, context: ConfigurationContext): Boolean {
+        val runTask = findRunTaskForCurrentFile(currentFile, context) ?: return false
+        val taskNames = configuration.settings.taskNames.takeIf { it.isNotEmpty() } ?: return false
+
+        return taskNames.first() == (runTask["id"] as String)
     }
 }
