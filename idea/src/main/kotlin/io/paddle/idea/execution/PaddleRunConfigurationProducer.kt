@@ -6,6 +6,7 @@ import com.intellij.execution.configurations.ConfigurationFactory
 import com.intellij.openapi.externalSystem.service.execution.*
 import com.intellij.openapi.util.Ref
 import com.intellij.psi.PsiElement
+import com.intellij.psi.impl.source.tree.LeafPsiElement
 import com.jetbrains.python.PyTokenTypes
 import com.jetbrains.python.codeInsight.dataflow.scope.ScopeUtil
 import com.jetbrains.python.psi.PyFile
@@ -41,12 +42,17 @@ class PaddleRunConfigurationProducer : AbstractExternalSystemRunConfigurationPro
             return getConfigurationForIfMain(path, configuration, context)
         }
 
-        val testTask = findTestTaskForElement(element, context)
-        if (testTask != null) {
-            configuration.settings.taskNames = listOf(testTask["id"] as String)
-            configuration.settings.externalProjectPath = module.basePath
-            configuration.name = AbstractExternalSystemTaskConfigurationType.generateName(module.project, configuration.settings)
-            return true
+        if (element is LeafPsiElement && element.elementType == PyTokenTypes.IDENTIFIER) {
+            val parent = element.parent
+            if (parent != null) {
+                val testTask = findTestTaskForElement(parent, context)
+                if (testTask != null) {
+                    configuration.settings.taskNames = listOf(testTask["id"] as String)
+                    configuration.settings.externalProjectPath = module.basePath
+                    configuration.name = AbstractExternalSystemTaskConfigurationType.generateName(module.project, configuration.settings)
+                    return true
+                }
+            }
         }
 
         if (element.parent !is YAMLKeyValue) return false
@@ -87,10 +93,11 @@ class PaddleRunConfigurationProducer : AbstractExternalSystemRunConfigurationPro
                 else -> ifFromIfMain(path, configuration, context)
             }
         }
-
-        val testTask = findTestTaskForElement(element, context)
-        if (testTask != null) {
-            return (testTask["id"] as String) == taskNames.first()
+        if (element is LeafPsiElement && element.elementType == PyTokenTypes.IDENTIFIER) {
+            val testTask = findTestTaskForElement(element, context)
+            if (testTask != null) {
+                return (testTask["id"] as String) == taskNames.first()
+            }
         }
 
         if (context.location?.psiElement?.parent !is YAMLKeyValue) return false
