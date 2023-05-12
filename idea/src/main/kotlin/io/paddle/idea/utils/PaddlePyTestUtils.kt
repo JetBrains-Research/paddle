@@ -9,6 +9,7 @@ import io.paddle.plugin.standard.extensions.roots
 import io.paddle.project.PaddleProject
 import io.paddle.project.PaddleProjectProvider
 import java.io.File
+import kotlin.io.path.Path
 
 fun getProject(context: ConfigurationContext): PaddleProject? {
     val module = context.location?.module ?: return null
@@ -50,7 +51,7 @@ private fun findTestTaskForDirectory(element: PsiDirectory, context: Configurati
     return findTestTaskForPathByPredicate(path, context) { target: String ->
         val resolvedPath = project.roots.tests.resolve(target)
         !target.contains("::") && resolvedPath.exists() && resolvedPath.isDirectory
-    }
+    } ?: if (Path(path) != project.roots.tests.toPath()) element.parent?.let { findTestTaskForElement(it, context) } else null
 }
 
 private fun findTestTaskForFunction(element: PyFunction, context: ConfigurationContext): Map<String, Any>? = findTestTaskForElement(element.parent, context)

@@ -94,9 +94,12 @@ class PaddleRunConfigurationProducer : AbstractExternalSystemRunConfigurationPro
             }
         }
         if (element is LeafPsiElement && element.elementType == PyTokenTypes.IDENTIFIER) {
-            val testTask = findTestTaskForElement(element, context)
-            if (testTask != null) {
-                return (testTask["id"] as String) == taskNames.first()
+            val parent = element.parent
+            if (parent != null) {
+                val testTask = findTestTaskForElement(parent, context)
+                if (testTask != null) {
+                    return (testTask["id"] as String) == taskNames.first()
+                }
             }
         }
 
