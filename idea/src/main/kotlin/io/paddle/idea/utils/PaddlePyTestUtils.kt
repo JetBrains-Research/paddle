@@ -67,12 +67,17 @@ private fun checkTargetForElement(element: PsiElement, project: PaddleProject, t
         is PsiDirectory -> checkTargetForDirectory(element, project, target)
         is PyFunction -> checkTargetForFunction(element, project, target)
         is PyClass -> checkTargetForClass(element, project, target)
+        is PyStatementList -> { // PyClass -> PyStatementList -> PyFunction
+            val parent = element.parent ?: return false
+            if (parent !is PyClass) return false
+            checkTargetForClass(parent, project, target)
+        }
         else -> false
     }
 }
 
-private fun tryFindForParent(element: PsiElement, context: ConfigurationContext): Map<String, Any>?{
-    val project = getProject(context) ?: return null// TODO: speed up
+private fun tryFindForParent(element: PsiElement, context: ConfigurationContext): Map<String, Any>? {
+    val project = getProject(context) ?: return null // TODO: speed up
     return when (element) {
         is PsiDirectory -> {
             val path = element.virtualFile.path
@@ -83,10 +88,12 @@ private fun tryFindForParent(element: PsiElement, context: ConfigurationContext)
                 findTestTaskForElement(parent, context)
             }
         }
+
         is PyClass, is PyFile, is PyFunction -> {
             val parent = element.parent ?: return null
             findTestTaskForElement(parent, context)
         }
+
         else -> null
     }
 }
