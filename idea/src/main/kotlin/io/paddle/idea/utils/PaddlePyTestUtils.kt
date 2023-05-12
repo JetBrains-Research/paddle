@@ -18,20 +18,38 @@ fun getProject(context: ConfigurationContext): PaddleProject? {
     return PaddleProjectProvider.getInstance(rootDir).getProject(moduleDir)
 }
 
-private fun findTestTaskForFile(element: PyFile, context: ConfigurationContext): Map<String, Any>? {
-    val directory = element.parent ?: return null
-    return findTestTaskForElement(directory, context)
-}
-private fun findTestTaskForDirectory(element: PsiDirectory, context: ConfigurationContext): Map<String, Any>? {
+private fun findTestTaskForPathByPredicate(path: String, context: ConfigurationContext, predicate: (String) -> Boolean): Map<String, Any>? {
     val project = getProject(context) ?: return null
     val testTasks = project.config.get<List<Map<String, Any>>?>("tasks.test.pytest") ?: return null
-    val path = element.virtualFile.path
+
     return testTasks.find {
-            val targets = it["targets"] as List<String>? ?: listOf("/")
-        targets.any { target ->
-            val targetPath = if (target == "/") project.roots.tests.path else project.roots.tests.resolve(target).path
-            targetPath == path
-        }
+        val targets = it["targets"] as List<String>? ?: listOf(project.roots.tests.path)
+        targets
+            .filter(predicate)
+            .any { target ->
+                val targetPath = if (target == "/") project.roots.tests.path else project.roots.tests.resolve(target).path
+                targetPath == path
+            }
+    }
+}
+
+private fun findTestTaskForFile(element: PyFile, context: ConfigurationContext): Map<String, Any>? {
+    val project = getProject(context) ?: return null
+    val path = element.virtualFile.path
+
+    return findTestTaskForPathByPredicate(path, context) { target: String ->
+        val resolvedPath = project.roots.tests.resolve(target)
+        !target.contains("::") && resolvedPath.exists() && resolvedPath.isFile
+    } ?: element.parent?.let { findTestTaskForElement(it, context) }
+}
+
+private fun findTestTaskForDirectory(element: PsiDirectory, context: ConfigurationContext): Map<String, Any>? {
+    val project = getProject(context) ?: return null
+    val path = element.virtualFile.path
+
+    return findTestTaskForPathByPredicate(path, context) { target: String ->
+        val resolvedPath = project.roots.tests.resolve(target)
+        !target.contains("::") && resolvedPath.exists() && resolvedPath.isDirectory
     }
 }
 
