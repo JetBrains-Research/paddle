@@ -19,48 +19,86 @@ fun getProject(context: ConfigurationContext): PaddleProject? {
     return PaddleProjectProvider.getInstance(rootDir).getProject(moduleDir)
 }
 
-private fun findTestTaskForPathByPredicate(path: String, context: ConfigurationContext, predicate: (String) -> Boolean): Map<String, Any>? {
+private fun checkTargetForFile(file: PyFile, project: PaddleProject, target: List<String>): Boolean {
+    if (target.size != 1 || !target.first().endsWith(".py")) {
+        return false
+    }
+    val path = file.virtualFile.path
+    val targetPath = project.roots.tests.resolve(target.first())
+    return targetPath.exists() && targetPath.isFile && Path(path) == targetPath.toPath()
+}
+
+private fun checkTargetForDirectory(directory: PsiDirectory, project: PaddleProject, target: List<String>): Boolean {
+    if (target.size != 1) {
+        return false
+    }
+    val path = directory.virtualFile.path
+    val targetPath = project.roots.tests.resolve(target.first())
+    return targetPath.exists() && targetPath.isDirectory && Path(path) == targetPath.toPath()
+}
+
+private fun checkTargetForFunction(function: PyFunction, project: PaddleProject, target: List<String>): Boolean {
+    if (target.size == 1) {
+        return false
+    }
+    val targetFunctionName = target.last()
+    val psiFunctionName = function.name ?: return false
+    val parent = function.parent ?: return false
+    return targetFunctionName == psiFunctionName && checkTargetForElement(parent, project, target.dropLast(1))
+}
+
+private fun checkTargetForClass(clazz: PyClass, project: PaddleProject, target: List<String>): Boolean {
+    if (target.size == 1) {
+        return false
+    }
+    val className = clazz.name ?: return false
+    val targetClassName = target.last()
+    val parent = clazz.parent ?: return false
+    return className == targetClassName && checkTargetForElement(parent, project, target.dropLast(1))
+}
+
+private fun checkTargetForElement(element: PsiElement, project: PaddleProject, target: List<String>): Boolean {
+    if (target.isEmpty()) {
+        return element is PsiDirectory
+    }
+
+    return when (element) {
+        is PyFile -> checkTargetForFile(element, project, target)
+        is PsiDirectory -> checkTargetForDirectory(element, project, target)
+        is PyFunction -> checkTargetForFunction(element, project, target)
+        is PyClass -> checkTargetForClass(element, project, target)
+        else -> false
+    }
+}
+
+private fun tryFindForParent(element: PsiElement, context: ConfigurationContext): Map<String, Any>?{
+    val project = getProject(context) ?: return null// TODO: speed up
+    return when (element) {
+        is PsiDirectory -> {
+            val path = element.virtualFile.path
+            if (Path(path) == project.roots.tests.toPath()) {
+                null
+            } else {
+                val parent = element.parent ?: return null
+                findTestTaskForElement(parent, context)
+            }
+        }
+        is PyClass, is PyFile, is PyFunction -> {
+            val parent = element.parent ?: return null
+            findTestTaskForElement(parent, context)
+        }
+        else -> null
+    }
+}
+
+fun findTestTaskForElement(element: PsiElement, context: ConfigurationContext): Map<String, Any>? {
     val project = getProject(context) ?: return null
     val testTasks = project.config.get<List<Map<String, Any>>?>("tasks.test.pytest") ?: return null
 
     return testTasks.find {
         val targets = it["targets"] as List<String>? ?: listOf(project.roots.tests.path)
-        targets
-            .filter(predicate)
-            .any { target ->
-                val targetPath = if (target == "/") project.roots.tests.path else project.roots.tests.resolve(target).path
-                targetPath == path
-            }
-    }
-}
-
-private fun findTestTaskForFile(element: PyFile, context: ConfigurationContext): Map<String, Any>? {
-    val project = getProject(context) ?: return null
-    val path = element.virtualFile.path
-
-    return findTestTaskForPathByPredicate(path, context) { target: String ->
-        val resolvedPath = project.roots.tests.resolve(target)
-        !target.contains("::") && resolvedPath.exists() && resolvedPath.isFile
-    } ?: element.parent?.let { findTestTaskForElement(it, context) }
-}
-
-private fun findTestTaskForDirectory(element: PsiDirectory, context: ConfigurationContext): Map<String, Any>? {
-    val project = getProject(context) ?: return null
-    val path = element.virtualFile.path
-
-    return findTestTaskForPathByPredicate(path, context) { target: String ->
-        val resolvedPath = project.roots.tests.resolve(target)
-        !target.contains("::") && resolvedPath.exists() && resolvedPath.isDirectory
-    } ?: if (Path(path) != project.roots.tests.toPath()) element.parent?.let { findTestTaskForElement(it, context) } else null
-}
-
-private fun findTestTaskForFunction(element: PyFunction, context: ConfigurationContext): Map<String, Any>? = findTestTaskForElement(element.parent, context)
-private fun findTestTaskForClass(element: PyClass, context: ConfigurationContext): Map<String, Any>? = null
-
-fun findTestTaskForElement(element: PsiElement, context: ConfigurationContext): Map<String, Any>? = when (element) {
-    is PyFile -> findTestTaskForFile(element, context)
-    is PsiDirectory -> findTestTaskForDirectory(element, context)
-    is PyFunction -> findTestTaskForFunction(element, context)
-    is PyClass -> findTestTaskForClass(element, context)
-    else -> null
+        targets.any { target ->
+            checkTargetForElement(element, project, target.split("::"))
+        }
+    } ?: tryFindForParent(element, context)
 }

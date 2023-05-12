@@ -16,13 +16,15 @@
       <option name="taskNames">
         <list>
           <option value="main" />
-          <option value="-Ppython.run.extraArgs=&quot;arg1 arg2 arg3&quot;" />
+          <option value="-PextraArgs=&quot;arg1 arg2 arg3&quot;" />
         </list>
       </option>
       <option name="vmOptions" />
     </ExternalSystemSettings>
     <ExternalSystemDebugServerProcess>true</ExternalSystemDebugServerProcess>
     <ExternalSystemReattachDebugProcess>true</ExternalSystemReattachDebugProcess>
-    <method v="2" />
+    <method v="2">
+      <option name="Paddle.BeforeRunTask" enabled="true" tasks="install" externalProjectPath="$PROJECT_DIR$" />
+    </method>
   </configuration>
 </component>
