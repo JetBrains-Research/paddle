@@ -15,7 +15,9 @@ import com.jetbrains.python.psi.impl.getIfStatementByIfKeyword
 import com.jetbrains.python.run.PythonRunConfigurationProducer
 import com.jetbrains.python.sdk.basePath
 import io.paddle.idea.PaddleManager
-import io.paddle.idea.utils.*
+import io.paddle.idea.execution.marker.PyTestTargetFinder
+import io.paddle.idea.utils.getProject
+import io.paddle.idea.utils.getSuperParent
 import io.paddle.plugin.standard.extensions.roots
 import org.jetbrains.yaml.psi.YAMLKeyValue
 
@@ -41,18 +43,12 @@ class PaddleRunConfigurationProducer : AbstractExternalSystemRunConfigurationPro
             val path = element.getPath() ?: return false
             return getConfigurationForIfMain(path, configuration, context)
         }
-
-        if (element is LeafPsiElement && element.elementType == PyTokenTypes.IDENTIFIER) {
-            val parent = element.parent
-            if (parent != null) {
-                val testTask = findTestTaskForElement(parent, context)
-                if (testTask != null) {
-                    configuration.settings.taskNames = listOf(testTask["id"] as String)
-                    configuration.settings.externalProjectPath = module.basePath
-                    configuration.name = AbstractExternalSystemTaskConfigurationType.generateName(module.project, configuration.settings)
-                    return true
-                }
-            }
+        val testTask = findTestTask(element, context)
+        if (testTask != null) {
+            configuration.settings.taskNames = listOf(testTask["id"] as String)
+            configuration.settings.externalProjectPath = module.basePath
+            configuration.name = AbstractExternalSystemTaskConfigurationType.generateName(module.project, configuration.settings)
+            return true
         }
 
         if (element.parent !is YAMLKeyValue) return false
@@ -93,14 +89,9 @@ class PaddleRunConfigurationProducer : AbstractExternalSystemRunConfigurationPro
                 else -> ifFromIfMain(path, configuration, context)
             }
         }
-        if (element is LeafPsiElement && element.elementType == PyTokenTypes.IDENTIFIER) {
-            val parent = element.parent
-            if (parent != null) {
-                val testTask = findTestTaskForElement(parent, context)
-                if (testTask != null) {
-                    return (testTask["id"] as String) == taskNames.first()
-                }
-            }
+        val testTask = findTestTask(element, context)
+        if (testTask != null) {
+            return (testTask["id"] as String) == taskNames.first()
         }
 
         if (context.location?.psiElement?.parent !is YAMLKeyValue) return false
@@ -118,18 +109,6 @@ class PaddleRunConfigurationProducer : AbstractExternalSystemRunConfigurationPro
         return true
     }
 
-    private fun PsiElement.isMainClauseOnTopLevel(): Boolean {
-        if (node.elementType != PyTokenTypes.IF_KEYWORD) {
-            return false
-        }
-        val statement = getIfStatementByIfKeyword(this) ?: return false
-        return ScopeUtil.getScopeOwner(statement) is PyFile && PyUtil.isIfNameEqualsMain(statement)
-    }
-
-    private fun PsiElement.getPath(): String? {
-        return containingFile?.virtualFile?.path
-    }
-
     override fun shouldReplace(self: ConfigurationFromContext, other: ConfigurationFromContext): Boolean {
         return other.isProducedBy(PythonRunConfigurationProducer::class.java)
     }
@@ -143,6 +122,13 @@ class PaddleRunConfigurationProducer : AbstractExternalSystemRunConfigurationPro
             val entrypointPath = paddleProject.roots.sources.resolve(it["entrypoint"] as String).path
             entrypointPath == currentFile
         }
+    }
+
+    private fun findTestTask(element: PsiElement, context: ConfigurationContext): Map<String, Any>? {
+        if (element is LeafPsiElement && element.elementType == PyTokenTypes.IDENTIFIER && element.parent != null) {
+            return getProject(context)?.let { PyTestTargetFinder.findTestTaskForElement(element.parent, it) }
+        }
+        return null
     }
 
     private fun getConfigurationForIfMain(currentFile: String, configuration: PaddleRunConfiguration, context: ConfigurationContext): Boolean {
@@ -160,5 +146,17 @@ class PaddleRunConfigurationProducer : AbstractExternalSystemRunConfigurationPro
         val taskNames = configuration.settings.taskNames.takeIf { it.isNotEmpty() } ?: return false
 
         return taskNames.first() == (runTask["id"] as String)
+    }
+
+    fun PsiElement.isMainClauseOnTopLevel(): Boolean {
+        if (node.elementType != PyTokenTypes.IF_KEYWORD) {
+            return false
+        }
+        val statement = getIfStatementByIfKeyword(this) ?: return false
+        return ScopeUtil.getScopeOwner(statement) is PyFile && PyUtil.isIfNameEqualsMain(statement)
+    }
+
+    private fun PsiElement.getPath(): String? {
+        return containingFile?.virtualFile?.path
     }
 }
