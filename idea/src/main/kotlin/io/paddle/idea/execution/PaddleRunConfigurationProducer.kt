@@ -16,10 +16,12 @@ import com.jetbrains.python.run.PythonRunConfigurationProducer
 import com.jetbrains.python.sdk.basePath
 import io.paddle.idea.PaddleManager
 import io.paddle.idea.execution.marker.PyTestTargetFinder
-import io.paddle.idea.utils.getProject
 import io.paddle.idea.utils.getSuperParent
 import io.paddle.plugin.standard.extensions.roots
+import io.paddle.project.PaddleProject
+import io.paddle.project.PaddleProjectProvider
 import org.jetbrains.yaml.psi.YAMLKeyValue
+import java.io.File
 
 class PaddleRunConfigurationProducer : AbstractExternalSystemRunConfigurationProducer() {
     override fun getConfigurationFactory(): ConfigurationFactory {
@@ -114,7 +116,7 @@ class PaddleRunConfigurationProducer : AbstractExternalSystemRunConfigurationPro
     }
 
     private fun findRunTaskForCurrentFile(currentFile: String, context: ConfigurationContext): Map<String, Any>? {
-        val paddleProject = getProject(context) ?: return null
+        val paddleProject = context.getPaddleProject() ?: return null
 
         val runTasks = paddleProject.config.get<List<Map<String, Any>>?>("tasks.run") ?: return null
 
@@ -126,7 +128,7 @@ class PaddleRunConfigurationProducer : AbstractExternalSystemRunConfigurationPro
 
     private fun findTestTask(element: PsiElement, context: ConfigurationContext): Map<String, Any>? {
         if (element is LeafPsiElement && element.elementType == PyTokenTypes.IDENTIFIER && element.parent != null) {
-            return getProject(context)?.let { PyTestTargetFinder.findTestTaskForElement(element.parent, it) }
+            return context.getPaddleProject()?.let { PyTestTargetFinder.findTestTaskForElement(element.parent, it) }
         }
         return null
     }
@@ -148,7 +150,7 @@ class PaddleRunConfigurationProducer : AbstractExternalSystemRunConfigurationPro
         return taskNames.first() == (runTask["id"] as String)
     }
 
-    fun PsiElement.isMainClauseOnTopLevel(): Boolean {
+    private fun PsiElement.isMainClauseOnTopLevel(): Boolean {
         if (node.elementType != PyTokenTypes.IF_KEYWORD) {
             return false
         }
@@ -158,5 +160,13 @@ class PaddleRunConfigurationProducer : AbstractExternalSystemRunConfigurationPro
 
     private fun PsiElement.getPath(): String? {
         return containingFile?.virtualFile?.path
+    }
+
+    private fun ConfigurationContext.getPaddleProject(): PaddleProject? {
+        val module = location?.module ?: return null
+        val moduleDir = module.basePath?.let { File(it) } ?: return null
+        val rootDir = project.basePath?.let { File(it) } ?: return null
+
+        return PaddleProjectProvider.getInstance(rootDir).getProject(moduleDir)
     }
 }
