@@ -54,4 +54,9 @@ tasks {
             channels.set(listOf(it))
         }
     }
+    val test by getting(Test::class) {
+        setScanForTestClasses(false)
+        // Only run tests from classes that end with "Test"
+        include("**/*Test.class")
+    }
 }
