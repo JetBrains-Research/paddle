@@ -22,6 +22,7 @@ dependencies {
         exclude("org.slf4j")
     }
     implementation("io.kotest:kotest-runner-junit5-jvm:5.4.1")
+    implementation("io.insert-koin:koin-core:3.4.0")
 }
 
 intellij {

@@ -11,14 +11,10 @@ import io.paddle.schema.extensions.BaseJsonSchemaExtension
 import io.paddle.schema.extensions.JsonSchema
 import io.paddle.tasks.CancellationToken
 import io.paddle.tasks.Tasks
-import io.paddle.terminal.CommandOutput
-import io.paddle.terminal.Terminal
-import io.paddle.terminal.TextOutput
+import io.paddle.terminal.*
 import io.paddle.utils.config.Configuration
 import io.paddle.utils.ext.Extendable
-import io.paddle.utils.hash.AggregatedHashable
-import io.paddle.utils.hash.StringHashable
-import io.paddle.utils.hash.hashable
+import io.paddle.utils.hash.*
 import java.io.File
 
 class PaddleProject internal constructor(
@@ -118,6 +114,11 @@ class PaddleProject internal constructor(
         other as PaddleProject
         if (id != other.id) return false
         return true
+    }
+
+    companion object {
+        fun create(rootDir: File): PaddleProject =
+            PaddleProjectProvider.getInstance(rootDir).getProject(rootDir) ?: error("Couldn't find any Paddle project in $rootDir")
     }
 }
 
