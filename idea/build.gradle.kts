@@ -23,6 +23,10 @@ dependencies {
     }
     implementation("io.kotest:kotest-runner-junit5-jvm:5.4.1")
     implementation("io.insert-koin:koin-core:3.4.0")
+
+
+    testImplementation("io.insert-koin:koin-test:3.4.0")
+    testImplementation("io.insert-koin:koin-test-junit5:3.4.0")
 }
 
 intellij {
