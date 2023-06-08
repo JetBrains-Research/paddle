@@ -34,8 +34,8 @@ class PaddleRunConfigurationProducer : AbstractExternalSystemRunConfigurationPro
 
         configuration.settings.taskNames = listOf(
             when {
-                element.getSuperParent(5)?.text?.startsWith("pytest") ?: false -> taskId
-                element.getSuperParent(5)?.text?.startsWith("run") ?: false -> taskId
+                element.getSuperParent(5)?.text?.startsWith("pytest") ?: false -> "pytest$$taskId"
+                element.getSuperParent(5)?.text?.startsWith("run") ?: false -> "run$$taskId"
                 element.text.startsWith("twine") -> "twine"
                 element.text.startsWith("requirements") -> "install"
                 else -> return false

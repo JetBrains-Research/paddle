@@ -1,8 +1,8 @@
 package io.paddle.plugin.python.tasks.test
 
-import io.paddle.plugin.python.PyDefaultVersions
 import io.paddle.plugin.python.dependencies.pytest.PyTestTarget
-import io.paddle.plugin.python.extensions.*
+import io.paddle.plugin.python.extensions.environment
+import io.paddle.plugin.python.extensions.requirements
 import io.paddle.plugin.standard.tasks.clean
 import io.paddle.project.PaddleProject
 import io.paddle.tasks.Task
@@ -45,7 +45,7 @@ class PyTestTask(
         }
     }
 
-    override val id: String = name
+    override val id: String = "pytest$$name"
 
     override val group: String = TaskDefaultGroups.TEST
 
