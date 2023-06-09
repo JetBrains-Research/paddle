@@ -61,7 +61,7 @@ class PaddleRunConfigurationProducer : AbstractExternalSystemRunConfigurationPro
         val taskNames = configuration.settings.taskNames.takeIf { it.isNotEmpty() } ?: return false
 
         return when (taskNames.first()) {
-            taskId, taskId -> true
+            "run${"$"}$taskId", "test${"$"}$taskId" -> true
             "twine" -> context.location?.psiElement?.text?.startsWith("twine") ?: false
             "install" -> context.location?.psiElement?.text?.startsWith("requirements") ?: false
             else -> false

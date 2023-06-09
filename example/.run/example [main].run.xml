@@ -16,7 +16,7 @@
       <option name="taskNames">
         <list>
           <option value="main" />
-          <option value="-Ppython.run.extraArgs=&quot;arg1 arg2 arg3&quot;" />
+          <option value="-PextraArgs=&quot;arg1 arg2 arg3&quot;" />
         </list>
       </option>
       <option name="vmOptions" />
